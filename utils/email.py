@@ -15,6 +15,7 @@ recipients = [
     ('心心家成员', '707216098@qq.com'),
 ]
 
+
 def send(message):
     ret = True
     try:
