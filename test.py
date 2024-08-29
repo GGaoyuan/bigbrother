@@ -56,7 +56,7 @@ def aft_close_task():
         email.send('aft_close_task no')
 
 
-prepare_time = time(hour=22, minute=49)
+prepare_time = time(hour=9, minute=49)
 mor_open_time = time(hour=22, minute=50)
 mor_close_time = time(hour=22, minute=51)
 aft_open_time = time(hour=22, minute=52)
