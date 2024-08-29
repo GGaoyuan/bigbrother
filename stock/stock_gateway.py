@@ -16,70 +16,89 @@ import inspect
 尾盘集合竞价：下午14:57至15:00。这个时间段内可以挂单但不能撤单，此时的成交价格将决定股票当天的收盘价。需要注意的是，尾盘集合竞价可能仅在部分市场（如深圳市场）进行。
 """
 
-class StockGateway(object):
 
-    def __init__(self):
-        # 创建调度器
-        self._scheduler = BlockingScheduler()
-        self._tradable = False
-        
-    def start_scheduler(self):
-        prepare_time = time(hour=9, minute=0)
-        mor_open_time = time(hour=9, minute=15)
-        mor_close_time = time(hour=11, minute=30)
-        aft_open_time = time(hour=13, minute=0)
-        aft_close_time = time(hour=15, minute=0)
+# def start_scheduler():
+#     print('start_scheduler')
+#     # 启动调度器
+#     scheduler.start()
 
-        current_time = datetime.now().time()
-        if prepare_time <= current_time <= aft_close_time:
-            email.send('当前处于交易时间，开启失败。9~15点请不要开启脚本')
-            return
-        else:
-            email.send('开启scheduler')
-        # 早市准备
-        self._scheduler.add_job(func=self._prepare_task, trigger=CronTrigger(hour=prepare_time.hour, minute=prepare_time.minute), id='prepare_task')
-        # 早市开始和结束
-        self._scheduler.add_job(func=self._mor_open_task, trigger=CronTrigger(hour=mor_open_time.hour, minute=mor_open_time.minute), id='mor_open_task')
-        self._scheduler.add_job(func=self._mor_close_task, trigger=CronTrigger(hour=mor_close_time.hour, minute=mor_close_time.minute), id='mor_close_task')
-        # 午市开始和结束
-        self._scheduler.add_job(func=self._aft_open_task, trigger=CronTrigger(hour=aft_open_time.hour, minute=aft_open_time.minute), id='aft_open_task')
-        self._scheduler.add_job(func=self._aft_close_task, trigger=CronTrigger(hour=aft_close_time.hour, minute=aft_close_time.minute), id='aft_close_task')
-        # 监听器
-        self._scheduler.add_listener(self._schedule_listener,
-                                     apscheduler.events.EVENT_JOB_ERROR | apscheduler.events.EVENT_JOB_EXECUTED)
-        # 启动调度器
-        self._scheduler.start()
+def schedule_listener(event):
+    if event.exception:
+        caller_frame = inspect.stack()[1]
+        caller_method_name = caller_frame.function
+        email.send(f"{caller_method_name}: {event.exception}")
+
+def prepare_task():
+    # 今日是否可以交易
+    global tradable
+    today = datetime.now().strftime('%Y-%m-%d')
+    trade_date = ak.tool_trade_date_hist_sina()['trade_date'].values.astype(str)
+    tradable = today in trade_date
+    print(f'Preparing task：tradable = {tradable}')
+    if tradable:
+        email.send('_prepare_task - 今日可交易')
+    else:
+        email.send('_prepare_task - 今日不可交易')
+
+def mor_open_task():
+    global tradable
+    if tradable:
+        email.send('_mor_open_task')
+
+def mor_close_task():
+    global tradable
+    if tradable:
+        email.send('_mor_close_task')
+
+def aft_open_task():
+    global tradable
+    if tradable:
+        email.send('_aft_open_task')
+
+def aft_close_task():
+    global tradable
+    tradable = False
+    if tradable:
+        email.send('_aft_close_task')
 
 
-    def _schedule_listener(self, event):
-        if event.exception:
-            caller_frame = inspect.stack()[1]
-            caller_method_name = caller_frame.function
-            email.send(f"{caller_method_name}: {event.exception}")
 
-    def _prepare_task(self):
-        # 今日是否可以交易
-        today = datetime.now().strftime('%Y-%m-%d')
-        trade_date = ak.tool_trade_date_hist_sina()['trade_date'].values.astype(str)
-        self._tradable = today in trade_date
-        print(f'Preparing task：tradable = {self._tradable}')
-        if self._tradable:
-            email.send('_prepare_task - 今日可交易')
-        else:
-            email.send('_prepare_task - 今日不可交易')
 
-    def _mor_open_task(self):
-        if self._tradable:
-            email.send('_mor_open_task')
 
-    def _mor_close_task(self):
-        if self._tradable:
-            email.send('_mor_close_task')
+scheduler = BlockingScheduler()
+tradable = False
+prepare_time = time(hour=22, minute=14)
+mor_open_time = time(hour=22, minute=15)
+mor_close_time = time(hour=22, minute=16)
+aft_open_time = time(hour=22, minute=17)
+aft_close_time = time(hour=22, minute=18)
 
-    def _aft_open_task(self):
-        if self._tradable:
-            email.send('_aft_open_task')
+current_time = datetime.now().time()
+if prepare_time <= current_time <= aft_close_time:
+    email.send('当前处于交易时间，开启失败。9~15点请不要开启脚本')
+else:
+    email.send('开启scheduler')
 
-    def _aft_close_task(self):
-        if self._tradable:
-            email.send('_aft_close_task')
+    # 早市准备
+# global scheduler
+scheduler.add_job(func=prepare_task,
+                  trigger=CronTrigger(hour=prepare_time.hour, minute=prepare_time.minute), id='prepare_task')
+# 早市开始和结束
+scheduler.add_job(func=mor_open_task,
+                  trigger=CronTrigger(hour=mor_open_time.hour, minute=mor_open_time.minute),
+                  id='mor_open_task')
+scheduler.add_job(func=mor_close_task,
+                  trigger=CronTrigger(hour=mor_close_time.hour, minute=mor_close_time.minute),
+                  id='mor_close_task')
+# 午市开始和结束
+scheduler.add_job(func=aft_open_task,
+                  trigger=CronTrigger(hour=aft_open_time.hour, minute=aft_open_time.minute),
+                  id='aft_open_task')
+scheduler.add_job(func=aft_close_task,
+                  trigger=CronTrigger(hour=aft_close_time.hour, minute=aft_close_time.minute),
+                  id='aft_close_task')
+# 监听器
+scheduler.add_listener(schedule_listener,
+                       apscheduler.events.EVENT_JOB_ERROR | apscheduler.events.EVENT_JOB_EXECUTED)
+scheduler.start()
+

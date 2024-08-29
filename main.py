@@ -1,7 +1,7 @@
-from stock.stock_gateway import StockGateway
+from stock import stock_gateway as sg
+import test
 
 
 if __name__ == '__main__':
-    sg = StockGateway()
-    sg.start_scheduler()
-
+    sg.scheduler.start()
+    # test.test()
