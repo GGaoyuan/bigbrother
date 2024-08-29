@@ -16,17 +16,11 @@ import inspect
 尾盘集合竞价：下午14:57至15:00。这个时间段内可以挂单但不能撤单，此时的成交价格将决定股票当天的收盘价。需要注意的是，尾盘集合竞价可能仅在部分市场（如深圳市场）进行。
 """
 
-
-# def start_scheduler():
-#     print('start_scheduler')
-#     # 启动调度器
-#     scheduler.start()
-
 def schedule_listener(event):
     if event.exception:
         caller_frame = inspect.stack()[1]
         caller_method_name = caller_frame.function
-        email.send(f"{caller_method_name}: {event.exception}")
+        print(f"{caller_method_name}: {event.exception}")
 
 def prepare_task():
     # 今日是否可以交易
@@ -36,30 +30,30 @@ def prepare_task():
     tradable = today in trade_date
     print(f'Preparing task：tradable = {tradable}')
     if tradable:
-        email.send('_prepare_task - 今日可交易')
+        print('_prepare_task - 今日可交易')
     else:
-        email.send('_prepare_task - 今日不可交易')
+        print('_prepare_task - 今日不可交易')
 
 def mor_open_task():
     global tradable
     if tradable:
-        email.send('_mor_open_task')
+        print('_mor_open_task')
 
 def mor_close_task():
     global tradable
     if tradable:
-        email.send('_mor_close_task')
+        print('_mor_close_task')
 
 def aft_open_task():
     global tradable
     if tradable:
-        email.send('_aft_open_task')
+        print('_aft_open_task')
 
 def aft_close_task():
     global tradable
     tradable = False
     if tradable:
-        email.send('_aft_close_task')
+        print('_aft_close_task')
 
 
 
@@ -75,9 +69,9 @@ aft_close_time = time(hour=22, minute=18)
 
 current_time = datetime.now().time()
 if prepare_time <= current_time <= aft_close_time:
-    email.send('当前处于交易时间，开启失败。9~15点请不要开启脚本')
+    print('当前处于交易时间，开启失败。9~15点请不要开启脚本')
 else:
-    email.send('开启scheduler')
+    print('开启scheduler')
 
     # 早市准备
 # global scheduler
