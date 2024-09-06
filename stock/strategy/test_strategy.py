@@ -23,6 +23,13 @@ https://www.joinquant.com/view/community/detail/69182b9cc15c3f8d4ecc5b0b7373312b
 经营活动产生的现金流量净额/经营活动净收益>10
 """
 
+import concurrent.futures
+import time, os
+import pandas as pd
+import akshare as ak
+import stock.util.data_reader_util as util
+
+
 def stock_pool():
     list = dr.get_market_stocks(available=True)
     print(list.columns)
@@ -33,8 +40,8 @@ def stock_pool():
     list = list[list['市盈率-动态'] > 0]
     list = list[list['市盈率-动态'] < 1000]
     # 获取财务数据
-    stock_codes = list['代码'].to_list
-    financial_datas = dr.get_financial_datas(stock_codes=stock_codes)
+    stock_codes = list['代码'].to_list()
+    financial_datas = dr.get_financial_datas(stock_codes)
 
     print(financial_datas)
 

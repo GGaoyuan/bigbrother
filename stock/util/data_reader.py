@@ -83,6 +83,3 @@ def get_financial_datas(stock_codes: list, max_workers: int = 10, indicator: str
 
     print(f"完成 {len(stock_codes)} 次请求，耗时：{end_time - start_time:.2f} 秒")
     return results
-
-# list = get_market_stocks()
-# print(list)
