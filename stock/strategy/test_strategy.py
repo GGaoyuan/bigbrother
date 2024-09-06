@@ -1,4 +1,4 @@
-import stock.util.test as ar
+import stock.util.data_reader as dr
 
 """
 https://www.joinquant.com/view/community/detail/69182b9cc15c3f8d4ecc5b0b7373312b?type=1
@@ -24,7 +24,7 @@ https://www.joinquant.com/view/community/detail/69182b9cc15c3f8d4ecc5b0b7373312b
 """
 
 def stock_pool():
-    list = ar.market_available_stocks()
+    list = dr.get_market_stocks(available=True)
     print(list.columns)
     print(list)
     # 市净率大于1
@@ -32,7 +32,11 @@ def stock_pool():
     # 市盈率 > 0 且 < 1000（剔除妖股）
     list = list[list['市盈率-动态'] > 0]
     list = list[list['市盈率-动态'] < 1000]
-    print(list)
+    # 获取财务数据
+    stock_codes = list['代码'].to_list
+    financial_datas = dr.get_financial_datas(stock_codes=stock_codes)
+
+    print(financial_datas)
 
 
 

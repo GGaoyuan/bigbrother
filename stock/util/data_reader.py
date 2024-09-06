@@ -32,20 +32,31 @@ def get_market_stocks(available = False) -> pd.DataFrame:
         available_stocks = available_stocks[available_stocks['总市值'] > 0]
         return available_stocks
 
-def get_financial_data(stock_code, indicator = "按报告期") -> (str, pd.DataFrame):
+
+
+financial_indicator = '按报告期'
+def get_financial_data(stock_code: str, indicator: str = financial_indicator) -> tuple[str, pd.DataFrame]:
     """
     获取股票的金融数据
     indicator="按报告期"; choice of {"按报告期", "按年度", "按单季度"}
     """
     try:
-        financial_data = ak.stock_financial_abstract_ths(symbol=stock_code, indicator=indicator)
-        print(f"股票代码 {stock_code} 请求成功")
+        date_str = util.today_str()
+        if util.is_today_data():
+            date_str = util.yesterday_str()
+        file_path = util.file_path(date_str=date_str, file_name=f'{stock_code}_financial_data.csv')
+        if not os.path.exists(file_path):
+            print('没有找到缓存文件，正在请求数据...')
+            financial_data = ak.stock_financial_abstract_ths(symbol=stock_code, indicator=indicator)
+            financial_data.to_csv(file_path, index=False)
+            print(f"股票代码 {stock_code} 请求成功")
+        financial_data = pd.read_csv(file_path)
         return stock_code, financial_data
     except Exception as e:
         print(f"股票代码 {stock_code} 请求失败: {e}")
-        return stock_code, None
+        return stock_code, pd.DataFrame()
 
-def get_financial_datas(stock_codes: list, max_workers = 10, indicator = "按报告期"):
+def get_financial_datas(stock_codes: list, max_workers: int = 10, indicator: str = financial_indicator) -> list[tuple[str, pd.DataFrame]]:
     """
     获取股票的金融数据
     indicator="按报告期"; choice of {"按报告期", "按年度", "按单季度"}
@@ -55,14 +66,17 @@ def get_financial_datas(stock_codes: list, max_workers = 10, indicator = "按报
 
     # 使用 ThreadPoolExecutor 进行多线程并发请求
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # 提交请求
+        # 提交请求，确保 future 提交任务是正确的
         futures = {executor.submit(get_financial_data, code, indicator): code for code in stock_codes}
 
         # 获取所有请求的结果
         results = []
         for future in concurrent.futures.as_completed(futures):
-            stock_code, result = future.result()
-            results.append((stock_code, result))
+            try:
+                stock_code, result = future.result()
+                results.append((stock_code, result))
+            except Exception as e:
+                print(f"请求任务失败: {e}")
 
     # 记录结束时间
     end_time = time.time()
@@ -70,5 +84,5 @@ def get_financial_datas(stock_codes: list, max_workers = 10, indicator = "按报
     print(f"完成 {len(stock_codes)} 次请求，耗时：{end_time - start_time:.2f} 秒")
     return results
 
-list = get_market_stocks()
-print(list)
+# list = get_market_stocks()
+# print(list)
