@@ -16,7 +16,7 @@ from apscheduler.triggers.cron import CronTrigger
 from datetime import datetime, time
 import inspect
 import akshare as ak
-import test.email as email
+import test.stock.util.email as email
 
 def schedule_listener(event):
     if event.exception:

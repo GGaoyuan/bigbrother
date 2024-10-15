@@ -1,6 +1,6 @@
 import akshare as ak
 import pandas as pd
-import stock.util.data_reader_util as util
+import test.stock.util.data_reader_util as util
 import os
 import concurrent.futures
 import time
@@ -26,8 +26,10 @@ def get_market_stocks(available = False) -> pd.DataFrame:
         main_board = stock_list[stock_list['代码'].str.startswith(('600', '601', '603', '000'))]
         small_board = stock_list[stock_list['代码'].str.startswith('002')]
         available_stocks = pd.concat([main_board, small_board])
-        # 去掉股票名称中包含 'ST'
+        # 去掉股票名称中包含 'ST和*'
         available_stocks = available_stocks[~available_stocks['名称'].str.contains('ST')]
+        available_stocks = available_stocks[~available_stocks['名称'].str.contains('*')]
+        available_stocks = available_stocks[~available_stocks['名称'].str.contains('退')]
         # 去掉市值是0的股票（退市的）
         available_stocks = available_stocks[available_stocks['总市值'] > 0]
         return available_stocks

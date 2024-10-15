@@ -1,6 +1,4 @@
-from test import stock_gateway as sg
+from xtquant import xtdata
 
 if __name__ == '__main__':
-    # sg.scheduler.start()
-    # test.test()
-    print('')
+    print('aaaaaa')

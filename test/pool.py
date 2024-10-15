@@ -1,6 +1,6 @@
-import time, os
+import os
 import akshare as ak
-from stock.files import filepath  as fp
+from test.stock import filepath  as fp
 import pandas as pd
 _stock_code = '代码'
 _stock_name = '名称'
