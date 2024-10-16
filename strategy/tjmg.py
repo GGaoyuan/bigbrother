@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from bigbrotherkit.stock import factors
+from bigbrotherkit import factors
 # import talib
 from xtquant import xtdata
 
