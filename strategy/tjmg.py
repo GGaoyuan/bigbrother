@@ -1,10 +1,7 @@
 from datetime import datetime, timedelta
-from stockkit import factors
-import pandas as pd
-import numpy as np
+from bigbrotherkit.stock import factors
 # import talib
 from xtquant import xtdata
-from stockkit import financial
 
 
 class G(): pass
