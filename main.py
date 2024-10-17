@@ -1,6 +1,6 @@
 from strategy import tjmg, hxzcld
 from xtquant import xtdata
-
+import yaml
 def financial_download_data_callback(data):
     print(data)
 
