@@ -1,4 +1,4 @@
-from bigbrotherkit import feishu
+from bigbrother import feishu
 
 class Account():
     pass

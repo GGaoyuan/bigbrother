@@ -1,6 +1,6 @@
 from strategy import tjmg, hxzcld
 from xtquant import xtdata
-from bigbrotherkit import feishu
+from bigbrother import feishu
 import account
 def financial_download_data_callback(data):
     print(data)
@@ -13,8 +13,9 @@ if __name__ == '__main__':
     #print(data)
     #financial.download_data(date_delta=10, callback=financial_download_data_callback)
     # tjmg.init()
-    feishu.send_msg()
-    account.test()
+
+    # feishu.send_msg()
+    # account.test()
     """
     获取基金数据
     ret_sector_data = xtdata.get_stock_list_in_sector('沪深基金')
@@ -23,3 +24,6 @@ if __name__ == '__main__':
     print(instrument)
     """
     #hxzcld.init()
+
+
+    pass
