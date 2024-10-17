@@ -44,8 +44,8 @@ if __name__ == '__main__':
     # 佣金
     cerebro.broker.setcommission(commission=0.001)
     # 开始回测
-    print('backtest start')
+    print('组合期初资金: %.2f' % cerebro.broker.getvalue())
     cerebro.run()
-    print('backtest end')
+    print('组合期末资金: %.2f' % cerebro.broker.getvalue())
     # 画图
     cerebro.plot()
