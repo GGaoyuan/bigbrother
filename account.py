@@ -5,5 +5,5 @@ class Account():
 
 
 def test():
-    feishu.send_msg()
+    feishu.send_msg('55555555555')
     pass
