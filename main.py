@@ -1,7 +1,5 @@
 #from strategy import tjmg, hxzcld
 # from xtquant import xtdata
-from bigbrotherkit import feishu
-import account
 def financial_download_data_callback(data):
     print(data)
 
