@@ -2,7 +2,7 @@ from enum import Enum
 import akshare as ak
 import pandas as pd
 from datetime import datetime, timedelta
-from bigbrother import datafile
+from datas import datafile
 import os
 
 
