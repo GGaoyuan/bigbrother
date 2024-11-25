@@ -13,6 +13,5 @@
   background-color: #FFFAAA;
   display: flex;
   height: 100vh;
-  width: 100vw;
 }
 </style>
