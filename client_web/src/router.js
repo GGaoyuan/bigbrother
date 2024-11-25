@@ -11,10 +11,12 @@ const routes = [
         children:[
             {
                 path: '/candle',
+                name: 'candle',
                 component: CandleView,
             },
             {
                 path: '/heatmap',
+                name: 'heatmap',
                 component: HeatmapView,
             },
         ]

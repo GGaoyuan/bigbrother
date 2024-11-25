@@ -1,13 +1,16 @@
 <script setup>
 import {ref} from "vue";
 import HPMenu from "./HomeMenu.vue";
+import CandleView from "./views/candle/CandleView.vue";
 
 </script>
 
 <template>
   <div class="container">
     <HPMenu></HPMenu>
-    <div class="content"></div>
+    <div class="content">
+      <RouterView></RouterView>
+    </div>
   </div>
 </template>
 
