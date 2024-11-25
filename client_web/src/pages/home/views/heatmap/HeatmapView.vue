@@ -1,19 +1,18 @@
 <script setup>
-import {ref} from "vue";
 
 </script>
 
 <template>
-  <body class="body_area">
-  </body>
+  <div class="container">
+
+  </div>
 </template>
 
 <style scoped>
-.body_area{
-  background-color: #646c88;
+.container {
+  background-color: #FFFAAA;
   display: flex;
   height: 100vh;
   width: 100vw;
 }
-
 </style>

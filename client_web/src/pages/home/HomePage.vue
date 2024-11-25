@@ -1,6 +1,6 @@
 <script setup>
 import {ref} from "vue";
-import HPMenu from "./HPMenu.vue";
+import HPMenu from "./HomeMenu.vue";
 
 </script>
 

@@ -1,5 +1,5 @@
 <script setup>
-// import VerticalMenu from "./components/HPMenu.vue";
+// import VerticalMenu from "./components/HomeMenu.vue";
 // import ContentView from "./components/ContentView.vue";
 
 

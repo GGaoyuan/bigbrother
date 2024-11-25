@@ -1,13 +1,23 @@
 import { createWebHistory, createRouter } from 'vue-router'
 
 import HomePage from "./pages/home/HomePage.vue";
-import ContentView from "./components/ContentView.vue";
+import CandleView from "./pages/home/views/candle/CandleView.vue";
+import HeatmapView from "./pages/home/views/heatmap/HeatmapView.vue";
 
 const routes = [
     {
         path: '/',
-        name: 'Home',
-        component: HomePage
+        component: HomePage,
+        children:[
+            {
+                path: '/candle',
+                component: CandleView,
+            },
+            {
+                path: '/heatmap',
+                component: HeatmapView,
+            },
+        ]
     },
 ]
 
