@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { MailOutlined, AppstoreOutlined, SettingOutlined } from '@ant-design/icons-vue';
 const selectedKeys = ref(['1']);
 const openKeys = ref(['sub1']);
+
 function getItem(label, key, icon, children, type) {
   return {
     key,
@@ -14,7 +15,7 @@ function getItem(label, key, icon, children, type) {
   };
 }
 const items = reactive([
-  getItem('Navigation One', 'sub1', () => h(MailOutlined), [
+  getItem('Navigation Oneaaaaaa', 'sub1', () => h(MailOutlined), [
     getItem('Item 1', 'g1', null, [getItem('Option 1', '1'), getItem('Option 2', '2')], 'group'),
     getItem('Item 2', 'g2', null, [getItem('Option 3', '3'), getItem('Option 4', '4')], 'group'),
   ]),
@@ -26,6 +27,24 @@ const items = reactive([
   {
     type: 'divider',
   },
+  getItem('Navigation Three', 'sub4', () => h(SettingOutlined), [
+    getItem('Option 9', '9'),
+    getItem('Option 10', '10'),
+    getItem('Option 11', '11'),
+    getItem('Option 12', '12'),
+  ]),
+  getItem('Navigation Three', 'sub4', () => h(SettingOutlined), [
+    getItem('Option 9', '9'),
+    getItem('Option 10', '10'),
+    getItem('Option 11', '11'),
+    getItem('Option 12', '12'),
+  ]),
+  getItem('Navigation Three', 'sub4', () => h(SettingOutlined), [
+    getItem('Option 9', '9'),
+    getItem('Option 10', '10'),
+    getItem('Option 11', '11'),
+    getItem('Option 12', '12'),
+  ]),
   getItem('Navigation Three', 'sub4', () => h(SettingOutlined), [
     getItem('Option 9', '9'),
     getItem('Option 10', '10'),
