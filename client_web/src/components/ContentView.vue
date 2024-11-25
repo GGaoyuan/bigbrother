@@ -1,9 +1,6 @@
 <script setup>
-import {inject, ref} from "vue";
-  var page = ref(null)
-  const message = inject('vertical_menu_click');
-  console.log(message)
-  console.log("vertical_menu_click log")
+import {ref} from "vue";
+
 </script>
 
 <template>

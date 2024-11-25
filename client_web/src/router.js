@@ -1,16 +1,19 @@
 import { createWebHistory, createRouter } from 'vue-router'
 
-import VerticalMenu from './components/VerticalMenu.vue'
-import ContentView from "./components/ContentView.vue";
 import HomePage from "./pages/home/HomePage.vue";
+import ContentView from "./components/ContentView.vue";
 
 const routes = [
-    { path: '/', component: HomePage },
-    { path: '/login', component: LoginView }
+    {
+        path: '/',
+        name: 'Home',
+        component: HomePage
+    },
 ]
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
 })
+
 export default router
