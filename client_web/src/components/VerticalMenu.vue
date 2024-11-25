@@ -1,6 +1,6 @@
 
 <script setup>
-import { reactive, ref, watch, h } from 'vue';
+import {reactive, ref, watch, h, provide, inject} from 'vue';
 import { MailOutlined, AppstoreOutlined, SettingOutlined } from '@ant-design/icons-vue';
 const selectedKeys = ref(['1']);
 const openKeys = ref(['sub1']);
