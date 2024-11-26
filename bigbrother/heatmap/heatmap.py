@@ -17,12 +17,23 @@ class HeatMap:
     def __init__(self):
         pass
 
+    def all_stocks(self):
+        stocks_list = ak.stock_zh_a_spot_em()
+        print(stocks_list)
+
+    def find_etf(self):
+        etf_list = ak.fund_etf_spot_em()
+        print(etf_list)
+
     def test(self):
+        # 股票代码可以在
+        # ak.stock_zh_a_spot_em()
+        # 中获取
         delta = 13
         # 获取当前日期
         start_date = (datetime.now() - timedelta(delta * 3)).strftime('%Y%m%d')
         end_date = datetime.now().strftime('%Y%m%d')
-        stock_zh_a_hist_df = ak.stock_zh_a_hist(symbol="600519", period="daily", start_date=start_date, end_date=end_date, adjust="qfq")
+        stock_zh_a_hist_df = ak.stock_zh_a_hist(symbol="159755", period="daily", start_date=start_date, end_date=end_date, adjust="qfq")
         if len(stock_zh_a_hist_df) > delta:
             stock_zh_a_hist_df = stock_zh_a_hist_df.tail(delta)
         print(stock_zh_a_hist_df[["日期", "股票代码", "涨跌幅"]])
@@ -30,4 +41,7 @@ class HeatMap:
 
 if __name__ == '__main__':
     heat_map = HeatMap()
-    heat_map.test()
+    # heat_map.test()
+    heat_map.find_etf()
+    # heat_map.all_stocks()
+
