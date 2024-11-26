@@ -1,14 +1,17 @@
 from app.util import md5
 import pandas as pd
-from . import files_util as fu
+from app.util.files import STATIC_DATAS_ETF_CSV as csvf
+
+
 class ETFDao:
 
     def __init__(self):
-        self.__folder = 'ETF'
+        pass
 
     def get_history_datas(self, etfs: list) -> pd.DataFrame:
         md5_str = md5.to_string(etfs)
-        fu.data_path()
+        csv_folder = csvf()
+        # folder = ETFFolder().path
 
         print(md5_str)
 
