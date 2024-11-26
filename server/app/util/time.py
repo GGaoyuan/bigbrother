@@ -1,10 +1,11 @@
 from datetime import datetime, time
 
-
+class TimeUtil:
+    pass
 
 def is_stock_trading_time() -> bool:
     """
-    当前是否是交易时间
+    当前是否是交易时间，有问题，
     """
     # 获取当前时间
     now = datetime.now()

@@ -1,7 +1,12 @@
 from app.util import md5
+from app.util import time as time_util
 import pandas as pd
-from app.util.files import STATIC_DATAS_ETF_CSV as csvf
+from app.util.folder import Folder
+from datetime import datetime, time
 
+class STATIC_DATAS_ETF_HISTORY(Folder):
+    def __init__(self):
+        super().__init__(['datas', 'ETF', 'history'])
 
 class ETFDao:
 
@@ -9,8 +14,13 @@ class ETFDao:
         pass
 
     def get_history_datas(self, etfs: list) -> pd.DataFrame:
-        md5_str = md5.to_string(etfs)
-        csv_folder = csvf()
+        if time_util.is_stock_trading_time():
+            # 直接请求数据
+            pass
+        else:
+            md5_str = md5.to_string(etfs)
+            folder = STATIC_DATAS_ETF_HISTORY()
+            today_str = datetime.now().strftime('%Y-%m-%d')
         # folder = ETFFolder().path
 
         print(md5_str)
