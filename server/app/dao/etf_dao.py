@@ -4,9 +4,11 @@ import pandas as pd
 from app.util.folder import Folder
 from datetime import datetime, time
 
-class STATIC_DATAS_ETF_HISTORY(Folder):
+class ETFHistoryFolder(Folder):
     def __init__(self):
-        super().__init__(['datas', 'ETF', 'history'])
+        super().__init__('datas/ETF/history')
+
+        
 
 class ETFDao:
 
@@ -19,7 +21,7 @@ class ETFDao:
             pass
         else:
             md5_str = md5.to_string(etfs)
-            folder = STATIC_DATAS_ETF_HISTORY()
+            folder = ETFHistoryFolder()
             today_str = datetime.now().strftime('%Y-%m-%d')
         # folder = ETFFolder().path
 
