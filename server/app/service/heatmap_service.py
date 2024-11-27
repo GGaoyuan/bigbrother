@@ -11,7 +11,8 @@ class HeatmapService:
             '159755', #电池ETF
             '159996', #家电ETF
         ]
-        df = self.__etf_dao.get_history_datas(etf_list)
-        print(df)
+        datas = self.__etf_dao.get_history_datas(etf_list)
+
+        # print(datas)
 
         return ""
