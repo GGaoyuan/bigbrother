@@ -5,13 +5,14 @@ import { MailOutlined, AppstoreOutlined, SettingOutlined } from '@ant-design/ico
 const selectedKeys = ref(['1']);
 const openKeys = ref(['sub1']);
 
-function getItem(label, key, icon, children, type) {
+function getItem(label, key, icon, children, type, url) {
   return {
     key,
     icon,
     children,
     label,
     type,
+    url,
   };
 }
 const items = reactive([
@@ -54,10 +55,17 @@ const items = reactive([
   getItem('Group', 'grp', null, [getItem('Option 13', '13'), getItem('Option 14', '14')], 'group'),
 ]);
 const router = useRouter();
+router.push({ path: '/heatmap' });
+
 const route = useRoute();
 const handleClick = e => {
-  router.push({ path: '/heatmap' });
+
   console.log('click', e);
+  if (e.key === '1') {
+    router.push({ path: '/heatmap' });
+  } else {
+    router.push({ path: '/candle' });
+  }
 };
 watch(openKeys, val => {
   console.log('openKeys', val);
