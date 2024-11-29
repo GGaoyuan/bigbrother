@@ -8,7 +8,7 @@ const heatmapData = ref(null);
 
 let chartInstance = null;
 
-async function fetchHeatmapData() {
+function fetchHeatmapData() {
   fetch('http://127.0.0.1:5000/industry/heatmap')
       .then((response) => {
         if (!response.ok) {
@@ -88,7 +88,7 @@ function buildHeatmap() {
 // 初始化ECharts实例并设置配置项（这里以折线图为例，但可灵活替换）
 onMounted(async () => {
   await nextTick(); // 确保DOM已经渲染完成
-  await fetchHeatmapData()
+  fetchHeatmapData()
 });
 
 
