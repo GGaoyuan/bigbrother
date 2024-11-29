@@ -7,21 +7,21 @@ const chartDom = ref(null);
 let chartInstance = null;
 
 async function fetchHeatmapData() {
-  try {
-    // 步骤 2：使用 fetch 请求网络接口
-    const response = await fetch('http://127.0.0.1:5000/industry/heatmap');
-    // 步骤 3：检查响应状态
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    // 步骤 4：解析返回的 JSON 数据
-    const json = await response.json();
-
-    // 步骤 5：更新数据状态
-    data.value = json;
-  } catch (error) {
-    console.error('Fetch error:', error);
-  }
+  fetch('http://127.0.0.1:5000/industry/heatmap')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((json) => {
+        let data = json.data;
+        console.log(json);
+        console.log(json.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
 }
 
 // 初始化ECharts实例并设置配置项（这里以折线图为例，但可灵活替换）
