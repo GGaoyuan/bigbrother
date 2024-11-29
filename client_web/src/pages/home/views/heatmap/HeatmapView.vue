@@ -103,6 +103,7 @@ onUnmounted(() => {
   } else {
     console.log('chartInstance 未销毁')
   }
+  //flex-direction: column
 });
 </script>
 
@@ -113,5 +114,6 @@ onUnmounted(() => {
 
 
 <style scoped>
+
 /* 添加一些CSS样式来美化图表容器（可选） */
 </style>

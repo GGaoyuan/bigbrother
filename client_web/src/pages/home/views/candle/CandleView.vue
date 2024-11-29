@@ -1,11 +1,11 @@
 <script setup>
-
+import HeatmapComponent from "../../../../components/HeatmapComponent.vue";
 
 </script>
 
 <template>
   <div class="container">
-
+    <HeatmapComponent></HeatmapComponent>>
   </div>
 </template>
 
@@ -14,6 +14,7 @@
 .container {
   background-color: #880022;
   display: flex;
+  flex-direction: column;
   height: 100vh;
 }
 </style>
