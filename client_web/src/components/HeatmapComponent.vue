@@ -1,3 +1,7 @@
+<template>
+  <div ref="chartDom" style="width: 600px; height: 400px;"></div>
+</template>
+
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import * as echarts from 'echarts';
@@ -6,28 +10,9 @@ import * as echarts from 'echarts';
 const chartDom = ref(null);
 let chartInstance = null;
 
-async function fetchHeatmapData() {
-  try {
-    // 步骤 2：使用 fetch 请求网络接口
-    const response = await fetch('http://127.0.0.1:5000/industry/heatmap');
-    // 步骤 3：检查响应状态
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    // 步骤 4：解析返回的 JSON 数据
-    const json = await response.json();
-
-    // 步骤 5：更新数据状态
-    data.value = json;
-  } catch (error) {
-    console.error('Fetch error:', error);
-  }
-}
-
 // 初始化ECharts实例并设置配置项（这里以折线图为例，但可灵活替换）
 onMounted(async () => {
   await nextTick(); // 确保DOM已经渲染完成
-  fetchHeatmapData()
   chartInstance = echarts.init(chartDom.value);
   // prettier-ignore
   const hours = [
@@ -35,11 +20,11 @@ onMounted(async () => {
   ];
 // prettier-ignore
   const days = [
-    'Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday', 'Sunday'
+    'Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday'
   ];
 // prettier-ignore
   const data = [
-      [0, 0, 15], [0, 1, 11], [0, 2, 10], [0, 3, 0], [0, 4, 0], [0, 5, 0], [0, 6, 0], [0, 7, 0], [0, 8, 0], [0, 9, 0], [0, 10, 0], [0, 11, 2], [0, 12, 4], [0, 13, 1], [0, 14, 1], [0, 15, 3], [0, 16, 4], [0, 17, 6], [0, 18, 4], [0, 19, 4], [0, 20, 3], [0, 21, 3], [0, 22, 2], [0, 23, 5],
+    [0, 0, 15], [0, 1, 11], [0, 2, 10], [0, 3, 0], [0, 4, 0], [0, 5, 0], [0, 6, 0], [0, 7, 0], [0, 8, 0], [0, 9, 0], [0, 10, 0], [0, 11, 2], [0, 12, 4], [0, 13, 1], [0, 14, 1], [0, 15, 3], [0, 16, 4], [0, 17, 6], [0, 18, 4], [0, 19, 4], [0, 20, 3], [0, 21, 3], [0, 22, 2], [0, 23, 5],
     [1, 0, 7], [1, 1, 10], [1, 2, 0], [1, 3, 0], [1, 4, 0], [1, 5, 0], [1, 6, 0], [1, 7, 0], [1, 8, 0], [1, 9, 0], [1, 10, 5], [1, 11, 2], [1, 12, 2], [1, 13, 6], [1, 14, 9], [1, 15, 11], [1, 16, 6], [1, 17, 7], [1, 18, 8], [1, 19, 12], [1, 20, 5], [1, 21, 5], [1, 22, 7], [1, 23, 2],
     [2, 0, 1], [2, 1, 1], [2, 2, 0], [2, 3, 0], [2, 4, 0], [2, 5, 0], [2, 6, 0], [2, 7, 0], [2, 8, 0], [2, 9, 0], [2, 10, 3], [2, 11, 2], [2, 12, 1], [2, 13, 9], [2, 14, 8], [2, 15, 10], [2, 16, 6], [2, 17, 5], [2, 18, 5], [2, 19, 5], [2, 20, 7], [2, 21, 4], [2, 22, 2], [2, 23, 4],
     [3, 0, 7], [3, 1, 3], [3, 2, 0], [3, 3, 0], [3, 4, 0], [3, 5, 0], [3, 6, 0], [3, 7, 0], [3, 8, 1], [3, 9, 0], [3, 10, 5], [3, 11, 4], [3, 12, 7], [3, 13, 14], [3, 14, 13], [3, 15, 12], [3, 16, 9], [3, 17, 5], [3, 18, 5], [3, 19, 10], [3, 20, 6], [3, 21, 4], [3, 22, 4], [3, 23, 1],
@@ -103,8 +88,6 @@ onMounted(async () => {
   chartInstance.setOption(option);
 });
 
-
-
 // 销毁ECharts实例
 onUnmounted(() => {
   if (chartInstance != null && chartInstance.dispose) {
@@ -117,12 +100,6 @@ onUnmounted(() => {
   }
 });
 </script>
-
-
-<template>
-  <div ref="chartDom" style="width: 1000px; height: 400px;"></div>
-</template>
-
 
 <style scoped>
 /* 添加一些CSS样式来美化图表容器（可选） */
