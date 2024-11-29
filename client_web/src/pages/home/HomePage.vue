@@ -2,8 +2,8 @@
 import {reactive, ref, watch, h, provide, inject} from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { MailOutlined, AppstoreOutlined, SettingOutlined } from '@ant-design/icons-vue';
-const selectedKeys = ref(['1']);
-const openKeys = ref(['sub1']);
+const selectedKeys = ref(['9']);
+const openKeys = ref(['sub4']);
 
 function getItem(label, key, icon, children, type, url) {
   return {
@@ -16,7 +16,7 @@ function getItem(label, key, icon, children, type, url) {
   };
 }
 const items = reactive([
-  getItem('Navigation Oneaaaaaa', 'sub1', () => h(MailOutlined), [
+  getItem('Navigation One', 'sub1', () => h(MailOutlined), [
     getItem('Item 1', 'g1', null, [getItem('Option 1', '1'), getItem('Option 2', '2')], 'group'),
     getItem('Item 2', 'g2', null, [getItem('Option 3', '3'), getItem('Option 4', '4')], 'group'),
   ]),
@@ -52,7 +52,6 @@ const items = reactive([
     getItem('Option 11', '11'),
     getItem('Option 12', '12'),
   ]),
-  getItem('Group', 'grp', null, [getItem('Option 13', '13'), getItem('Option 14', '14')], 'group'),
 ]);
 const router = useRouter();
 router.push({ path: '/heatmap' });
@@ -64,6 +63,7 @@ const handleClick = e => {
   if (e.key === '1') {
     router.push({ path: '/heatmap' });
   } else {
+
     router.push({ path: '/candle' });
   }
 };

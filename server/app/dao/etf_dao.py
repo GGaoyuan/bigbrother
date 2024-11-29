@@ -22,7 +22,11 @@ class ETFDao:
         pass
 
     def get_history_datas(self, etfs: list) -> Iterator[dict[str, DataFrame]]:
-        def ak_request(etf_code: str) -> dict[str, pd.DataFrame]:
+
+        async def request_list() -> DataFrame:
+            pass
+
+        def ak_request(etf_code: str) -> dict[str, DataFrame]:
             delta = 13
             # 获取当前日期
             start_date = (datetime.now() - timedelta(delta * 3)).strftime('%Y%m%d')
