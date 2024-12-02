@@ -36,18 +36,16 @@ onMounted(async () => {
         return [item[1], item[0], item[2] || '-'];
       });
   const option = {
-    title: {
-      text: 'ECharts 示例图表'
-    },
+    // title: {
+    //   text: 'ECharts 示例图表',
+    //   top: '100px'
+    // },
     tooltip: {
       position: 'top'
     },
-    // calendar: {
-    //   cellSize:[null, 50]
-    // },
     grid: {
-      height: '50%',
-      top: '10%'
+      height: '100%',
+      top: '0%'
     },
     xAxis: {
       type: 'category',
@@ -69,7 +67,7 @@ onMounted(async () => {
       calculable: true,
       orient: 'horizontal',
       left: 'center',
-      bottom: '15%'
+      bottom: '0px'
     },
     series: [
       {
@@ -107,7 +105,7 @@ onUnmounted(() => {
 <style scoped>
 .myChart {
   width: 100vw;
-  height: 1000px;
+  height: 500px;
   background-color: #646cff
 }
 

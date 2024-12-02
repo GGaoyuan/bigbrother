@@ -6,6 +6,8 @@ import HeatmapComponent from "../../../../components/HeatmapComponent.vue";
 <template>
   <div class="container">
     <HeatmapComponent></HeatmapComponent>
+    <HeatmapComponent style="background-color: #f9f9f9"></HeatmapComponent>
+    <HeatmapComponent style="background-color: #FF8AA2"></HeatmapComponent>
   </div>
 </template>
 
