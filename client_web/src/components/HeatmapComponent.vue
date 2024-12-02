@@ -1,5 +1,5 @@
 <template>
-  <div ref="chartDom" style="width: 100vw; height: 400px; background-color: #646cff"></div>
+  <div class="myChart" ref="chartDom"></div>
 </template>
 
 <script setup>
@@ -42,6 +42,9 @@ onMounted(async () => {
     tooltip: {
       position: 'top'
     },
+    // calendar: {
+    //   cellSize:[null, 50]
+    // },
     grid: {
       height: '50%',
       top: '10%'
@@ -102,5 +105,10 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 添加一些CSS样式来美化图表容器（可选） */
+.myChart {
+  width: 100vw;
+  height: 1000px;
+  background-color: #646cff
+}
+
 </style>
