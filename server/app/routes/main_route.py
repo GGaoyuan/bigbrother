@@ -1,7 +1,6 @@
 from flask import Blueprint
 import app.routes.response as rsp
 from ..service.heatmap_service import HeatmapService
-from pandas import DataFrame
 bp = Blueprint('main', __name__)
 
 @bp.route('/')
@@ -12,22 +11,16 @@ def home():
 @bp.route('/industry/heatmap')
 def industry_heatmap():
     hm = HeatmapService()
-    results = hm.get_industry_history_data()
-    print(results)
+    industries = hm.get_industry_history_data()
     x_axis = []
     y_axis = []
     data = []
-    for y, result in enumerate(results):
-
-        industry = result['industry']
-        histories: DataFrame = result['history'].iloc[::-1].copy()
-        print()
-        if len(x_axis) == 0:
-            x_axis = histories['日期'].tolist()
-
+    for y, industry in enumerate(industries):
         y_axis.append(industry['板块名称'] + '\n' + industry['板块代码'])
-
-        for x, history in histories.iterrows():
+        history_list = industry['history_list']
+        if len(x_axis) == 0:
+            x_axis = [d['日期'] for d in history_list]
+        for x, history in enumerate(history_list):
             price_change: list = [x, y, history['涨跌幅']]
             data.append(price_change)
 

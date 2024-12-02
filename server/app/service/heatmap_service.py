@@ -8,27 +8,22 @@ class HeatmapService:
     def __init__(self):
         pass
 
-
-
-    def get_industry_history_data(self) -> list:
+    @staticmethod
+    def get_industry_history_data() -> list:
         """
         获取板块的历史数据
+        :return:
         """
-        industry_list = IndustryDao.get_board_industries_list()
-        # industry_name_list = industry_list[['板块名称']]
-        industry_list = industry_list[:1]
-        result_list:list = []
+        industry_list: list[dict] = IndustryDao.get_industries_list()
+        # industry_list = industry_list[:10]
+        industry_name = '板块名称'
         with ThreadPoolExecutor(max_workers=len(industry_list)) as executor:
-            for index, row in industry_list.iterrows():
-                industry_name = row['板块名称']
-                result = executor.submit(IndustryDao.get_board_industries_hist_daily, industry_name, 13)
-                result_list.append({'industry': row, 'history': result.result()})
-                # history = result.result().to
-                # results.append(result)
-                # row['history'] = result.result()
-
-        # for index, row in industry_list.iterrows():
-        #     print(row)
-        #     history = row['history']
-        #     print(history)
-        return result_list
+            results = executor.map(lambda arg: IndustryDao.get_industries_history_daily(arg, 13), [d[industry_name] for d in industry_list])
+        for index, row in enumerate(results):
+            name = row['name']
+            history: list = row['history_list']
+            history.sort(key=lambda x: x['日期'], reverse=True)
+            match = next((d for d in industry_list if d.get(industry_name) == name), None)
+            if match is not None:
+                match['history_list'] = history
+        return industry_list
