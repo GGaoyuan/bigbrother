@@ -18,9 +18,6 @@ function fetchHeatmapData() {
       })
       .then((json) => {
         heatmapData.value = json.data;
-        heatmapData.value.data = heatmapData.value.data.map(function (item) {
-          return [item[1], item[0], item[2] || '-'];
-        })
         console.log(heatmapData.value.data)
         buildHeatmap()
       })
@@ -58,7 +55,7 @@ function buildHeatmap() {
       }
     },
     visualMap: {
-      min: 0,
+      min: -10,
       max: 10,
       calculable: true,
       orient: 'horizontal',
@@ -67,7 +64,7 @@ function buildHeatmap() {
     },
     series: [
       {
-        name: 'Punch Card',
+        name: 'Punch Card\n222\n33333333\naaaaaaaaaa\n00000000000000',
         type: 'heatmap',
         data: heatmapData.value.data,
         label: {
