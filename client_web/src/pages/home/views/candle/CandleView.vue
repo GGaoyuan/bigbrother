@@ -51,6 +51,5 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   width: 100vw;
-  overflow: auto;
 }
 </style>

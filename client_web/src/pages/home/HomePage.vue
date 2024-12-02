@@ -80,7 +80,7 @@ watch(openKeys, val => {
 .content {
   flex-grow: 1;
   background-color: #99FF22;
-  /*overflow-y: auto;  如果内容超出，显示滚动条 */
+  overflow-y: auto;
 }
 
 </style>
