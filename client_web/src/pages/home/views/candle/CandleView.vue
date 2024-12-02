@@ -5,7 +5,7 @@ import HeatmapComponent from "../../../../components/HeatmapComponent.vue";
 
 <template>
   <div class="container">
-    <HeatmapComponent></HeatmapComponent>>
+    <HeatmapComponent></HeatmapComponent>
   </div>
 </template>
 
