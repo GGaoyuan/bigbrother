@@ -58,7 +58,7 @@ function buildHeatmap() {
   const rows = heatmap_data.value.yAxis.length
 
   // 每个格子的大小（可根据需要调整）
-  const cellSize = 20;
+  const cellSize = 50;
   // const width = cols * cellSize;
   const height = rows * cellSize;
   console.log("width", chartDom.value.parentElement.offsetWidth);
@@ -71,16 +71,17 @@ function buildHeatmap() {
   console.log(heatmap_data.value.title)
   const option = {
     title: {
-      text: heatmap_data.value.title
+      text: heatmap_data.value.title,
+      // position: "center",
     },
     tooltip: {
       position: 'top'
     },
     grid: {
-      left: "10%",
+      left: "20%",
       right: "20%",
-      top: "30%",
-      bottom: "40%",
+      top: "0%",
+      bottom: "100px",
     },
     xAxis: {
       type: 'category',
@@ -97,12 +98,28 @@ function buildHeatmap() {
       }
     },
     visualMap: {
-      min: -10,
-      max: 10,
+      min: -5,
+      max: 5,
       calculable: true,
       orient: 'horizontal',
       left: 'center',
-      bottom: '0px'
+      bottom: '0px',
+      inRange: {
+        color: [
+          '#0000FF', // 深蓝
+          '#0055FF', // 蓝色
+          '#00AAFF', // 浅蓝
+          '#00FFFF', // 青色
+          '#55FFAA', // 浅绿色
+          '#00FF00', // 绿色
+          '#AAFF00', // 黄绿色
+          '#FFFF00', // 黄色
+          '#FFAA00', // 橙黄色
+          '#FF5500', // 橙色
+          '#FF0000', // 红色
+          '#AA0000', // 深红
+        ]
+      }
     },
     series: [
       {

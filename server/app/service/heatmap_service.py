@@ -15,7 +15,7 @@ class HeatmapService:
         :return:
         """
         industry_list: list[dict] = IndustryDao.get_industries_list()
-        industry_list = industry_list[:2]
+        industry_list = industry_list[:5]
         industry_name = '板块名称'
         with ThreadPoolExecutor(max_workers=len(industry_list)) as executor:
             results = executor.map(lambda arg: IndustryDao.get_industries_history_daily(arg, 13), [d[industry_name] for d in industry_list])
