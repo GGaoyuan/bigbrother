@@ -79,8 +79,8 @@ function buildHeatmap() {
       position: 'top'
     },
     grid: {
-      left: "20%",
-      right: "20%",
+      left: "5%",
+      right: "5%",
       top: "30px",
       bottom: "60px",
     },

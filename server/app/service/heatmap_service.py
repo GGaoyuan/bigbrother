@@ -16,7 +16,7 @@ class HeatmapService:
         # industry_list = industry_list[:5]
         industry_name = '板块名称'
         with ThreadPoolExecutor(max_workers=len(industry_list)) as executor:
-            results = executor.map(lambda arg: IndustryDao.get_industries_history_daily(arg, 13), [d[industry_name] for d in industry_list])
+            results = executor.map(lambda arg: IndustryDao.get_industries_history_daily(arg, 60), [d[industry_name] for d in industry_list])
         for index, row in enumerate(results):
             name = row['name']
             history: list = row['history_list']
