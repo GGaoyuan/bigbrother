@@ -1,12 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import * as echarts from 'echarts';
+import HeatmapComponent from "../../../../components/HeatmapComponent.vue";
 
-// 创建一个响应式引用来保存DOM元素
-const chartDom = ref(null);
 const heatmapData = ref(null);
-
-let chartInstance = null;
 
 function fetchHeatmapData() {
   fetch('http://127.0.0.1:5000/industry/heatmap')
@@ -19,72 +16,10 @@ function fetchHeatmapData() {
       .then((json) => {
         heatmapData.value = json.data;
         console.log(heatmapData.value.data)
-        buildHeatmap()
       })
       .catch((error) => {
         console.error(error);
       })
-}
-
-function buildHeatmap() {
-  chartInstance = echarts.init(chartDom.value)
-  console.log(heatmapData.value.title)
-  const option = {
-
-    title: {
-      text: heatmapData.value.title
-    },
-    tooltip: {
-      position: 'top'
-    },
-    grid: {
-      height: '50%',
-      top: '10%'
-    },
-    xAxis: {
-      type: 'category',
-      data: heatmapData.value.xAxis,
-      splitArea: {
-        show: true
-      }
-    },
-    yAxis: {
-      type: 'category',
-      data: heatmapData.value.yAxis,
-      splitArea: {
-        show: true
-      }
-    },
-    visualMap: {
-      min: -5,
-      max: 5,
-      calculable: true,
-      orient: 'horizontal',
-      left: 'center',
-      bottom: '0px',
-      inRange: {
-        // 在范围内的颜色
-        color: ['#50a3ba', '#ffffff' ,'#d94e5d'] // 颜色渐变
-      },
-    },
-    series: [
-      {
-        name: 'Punch Card\n222\n33333333\naaaaaaaaaa\n00000000000000',
-        type: 'heatmap',
-        data: heatmapData.value.data,
-        label: {
-          show: true
-        },
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 10,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
-          }
-        }
-      }
-    ]
-  };
-  chartInstance.setOption(option);
 }
 
 // 初始化ECharts实例并设置配置项（这里以折线图为例，但可灵活替换）
@@ -97,21 +32,13 @@ onMounted(async () => {
 
 // 销毁ECharts实例
 onUnmounted(() => {
-  if (chartInstance != null && chartInstance.dispose) {
-    chartInstance.dispose();
-  }
-  if (chartInstance == null) {
-    console.log('chartInstance 已销毁')
-  } else {
-    console.log('chartInstance 未销毁')
-  }
-  //flex-direction: column
+
 });
 </script>
 
 
 <template>
-  <div ref="chartDom" style="width: 100%; height: auto;"></div>
+  <HeatmapComponent :heatmapData="heatmapData" style="width: 100%; height: 100%"></HeatmapComponent>
 </template>
 
 

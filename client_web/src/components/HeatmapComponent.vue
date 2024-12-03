@@ -3,26 +3,37 @@ import {ref, onMounted, onUnmounted, nextTick, watch} from 'vue';
 import * as echarts from 'echarts';
 
 const chartDom = ref(null);
-// const chartHeight = ref('0px');
 let chartInstance = null;
-let chartHeight = '400px';
-let titleHeight = '50px';
-let bottomHeight = '50px';
+
 const heatmapData = ref(null)
 const props = defineProps(['heatmapData'])
 
-// console.log('------')
-// console.log(heatmapData)
 watch(props,(New, Old)=>{
   heatmapData.value = props.heatmapData;
-  chartHeight = String(heatmapData.value.yAxis.length * 50 + 100) + 'px'
-  console.log(chartHeight);
+  console.log(heatmapData.value);
+  // console.log(chartHeight);
   buildHeatmap()
 })
 
-//
 function buildHeatmap() {
-  chartInstance = echarts.init(chartDom.value)
+  if (!chartInstance) {
+    chartInstance = echarts.init(chartDom.value);
+  }
+  console.log("heatmapData.value.yAxis")
+  console.log(heatmapData.value.yAxis)
+  const rows = heatmapData.value.yAxis.length
+
+  // 每个格子的大小（可根据需要调整）
+  const cellSize = 20;
+  // const width = cols * cellSize;
+  const height = rows * cellSize;
+  console.log("width", chartDom.value.parentElement.offsetWidth);
+  console.log("height", height);
+  // 设置图表宽高
+  chartInstance.resize({
+    // width: Math.max(chartDom.value.parentElement.offsetWidth, 100), // 最小宽度
+    height: Math.max(height, 300), // 最小高度
+  });
   console.log(heatmapData.value.title)
   const option = {
     title: {
@@ -32,8 +43,10 @@ function buildHeatmap() {
       position: 'top'
     },
     grid: {
-      height: chartHeight,
-      top: '0px'
+      left: "10%",
+      right: "20%",
+      top: "30%",
+      bottom: "40%",
     },
     xAxis: {
       type: 'category',
@@ -100,10 +113,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-<!--  <div class="myChart" ref="chartDom" :style="{width: '100vw', height: chartHeight, background:'#AAA172'}"></div>-->
-  <div class="myChart" ref="chartDom" :style="{width: '100vw', height: '4400px', background:'#AAA172'}"></div>
+  <div ref="chartDom" style="width: 100%; min-height: 100px; background-color: #213547"></div>
 </template>
 
 <style scoped>
-
+div {
+  width: 100%;
+  height: 100%;
+}
 </style>

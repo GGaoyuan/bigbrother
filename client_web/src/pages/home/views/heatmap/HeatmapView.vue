@@ -106,7 +106,7 @@ onUnmounted(() => {
 
 
 <template>
-  <div ref="chartDom" style="width: 100%; height: 4000px;"></div>
+  <div ref="chartDom" style="width: 100%; height: 2000px; background-color: #646cff"></div>
 </template>
 
 
