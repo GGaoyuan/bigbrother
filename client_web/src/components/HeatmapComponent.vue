@@ -73,6 +73,7 @@ function buildHeatmap() {
     title: {
       text: heatmap_data.value.title,
       // position: "center",
+      left: 'center',
     },
     tooltip: {
       position: 'top'
@@ -80,8 +81,8 @@ function buildHeatmap() {
     grid: {
       left: "20%",
       right: "20%",
-      top: "100px",
-      bottom: "100px",
+      top: "30px",
+      bottom: "60px",
     },
     xAxis: {
       type: 'category',
