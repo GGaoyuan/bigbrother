@@ -58,7 +58,7 @@ function buildHeatmap() {
   const rows = heatmap_data.value.yAxis.length
 
   // 每个格子的大小（可根据需要调整）
-  const cellSize = 50;
+  const cellSize = 30;
   // const width = cols * cellSize;
   const height = rows * cellSize;
   console.log("width", chartDom.value.parentElement.offsetWidth);
@@ -80,7 +80,7 @@ function buildHeatmap() {
     grid: {
       left: "20%",
       right: "20%",
-      top: "0%",
+      top: "100px",
       bottom: "100px",
     },
     xAxis: {
@@ -98,26 +98,64 @@ function buildHeatmap() {
       }
     },
     visualMap: {
-      min: -5,
-      max: 5,
+      min: -3,
+      max: 3,
       calculable: true,
       orient: 'horizontal',
       left: 'center',
       bottom: '0px',
       inRange: {
         color: [
-          '#0000FF', // 深蓝
-          '#0055FF', // 蓝色
-          '#00AAFF', // 浅蓝
-          '#00FFFF', // 青色
-          '#55FFAA', // 浅绿色
-          '#00FF00', // 绿色
-          '#AAFF00', // 黄绿色
-          '#FFFF00', // 黄色
-          '#FFAA00', // 橙黄色
-          '#FF5500', // 橙色
-          '#FF0000', // 红色
-          '#AA0000', // 深红
+          "#386aff",
+          "#4168f3",
+          "#4a65e8",
+          "#5363dc",
+          "#5c60d1",
+          "#655ec5",
+          "#386aff",
+          "#4171ff",
+          "#4a78ff",
+          "#537eff",
+          "#5c85ff",
+          "#658cff",
+          "#6e93ff",
+          "#7799ff",
+          "#80a0ff",
+          "#89a7ff",
+          "#92aeff",
+          "#9bb5ff",
+          "#a5bbff",
+          "#aec2ff",
+          "#b7c9ff",
+          "#c0d0ff",
+          "#c9d6ff",
+          "#d2ddff",
+          "#dbe4ff",
+          "#e4ebff",
+          "#edf1ff",
+          "#f6f8ff",
+          "#fbf3f3",
+          "#f7e8e8",
+          "#f3dcdc",
+          "#f0d1d1",
+          "#ecc5c5",
+          "#e8b9b9",
+          "#e4aeae",
+          "#e0a2a2",
+          "#dc9797",
+          "#d88b8b",
+          "#d47f7f",
+          "#d17474",
+          "#cd6868",
+          "#c95d5d",
+          "#c55151",
+          "#c14646",
+          "#bd3a3a",
+          "#b92e2e",
+          "#b62323",
+          "#b21717",
+          "#ae0c0c",
+          "#aa0000"
         ]
       }
     },
