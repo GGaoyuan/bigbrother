@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import akshare as ak
-
+from app.dao.cache import DaoCache
 
 
 class ConceptDao:
@@ -13,8 +13,11 @@ class ConceptDao:
         返回概念板块列表
         :return: list[dict]
         """
+        # if DaoCache().get() is not None:
+        #     return DaoCache().get()
         df = ak.stock_board_concept_name_em()
         result = df.to_dict(orient='records')
+        # DaoCache().set(result)
         return result
 
     @staticmethod

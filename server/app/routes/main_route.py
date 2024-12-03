@@ -10,8 +10,7 @@ def home():
 
 @bp.route('/industry/heatmap')
 def industry_heatmap():
-    hm = HeatmapService()
-    industries = hm.get_industry_history_data()
+    industries = HeatmapService.get_industry_history_data()
     x_axis = []
     y_axis = []
     data = []
@@ -33,3 +32,8 @@ def industry_heatmap():
     rsp_value['data'] = data
     json = rsp.to_json(data = rsp_value)
     return json
+
+@bp.route('/heatmap/concept')
+def heatmap_concept():
+    concept = HeatmapService.get_concept_history_data()
+    print(concept)

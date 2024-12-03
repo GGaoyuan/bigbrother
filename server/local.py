@@ -6,8 +6,8 @@ import app.routes.main_route as main_route
 
 
 if __name__ == '__main__':
-    main_route.industry_heatmap()
-
+    # main_route.industry_heatmap()
+    main_route.heatmap_concept()
     # hm = HeatmapService()
     # results = hm.get_industry_history_data()
     # print(results)
