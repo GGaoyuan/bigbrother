@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import HeatmapComponent from "../components/HeatmapComponent.vue";
+import HeatmapComponent, {type HeatmapInterface} from "../components/HeatmapComponent.vue";
 import {nextTick, onMounted, onUnmounted, ref} from "vue";
 
-const heatmapData = ref(null);
+const optionRef = ref({})
+const testRef = ref('')
 
 function fetchHeatmapData() {
   console.log('HeatmapPage fetchHeatmapData begin');
@@ -14,7 +15,13 @@ function fetchHeatmapData() {
         return response.json();
       })
       .then((json) => {
-        heatmapData.value = json.data;
+        optionRef.value = {
+          title: json.data.title,
+          xAxis: json.data.xAxis,
+          yAxis: json.data.yAxis,
+          series: json.data.data
+        }
+        testRef.value = "asdasdas";
         console.log('HeatmapPage fetchHeatmapData complete');
       })
       .catch((error) => {
@@ -36,7 +43,7 @@ onUnmounted(()=>{
 
 <template>
   <div class="container">
-    <HeatmapComponent :heatmapData="heatmapData"/>
+    <HeatmapComponent :option="optionRef" :test="testRef" />
     <div class="test"></div>
     <div class="test2"></div>
     <div class="test"></div>

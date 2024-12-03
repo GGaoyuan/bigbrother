@@ -1,27 +1,61 @@
-<script setup>
+<script setup lang="ts">
 import {ref, onMounted, onUnmounted, nextTick, watch} from 'vue';
 import * as echarts from 'echarts';
+
+export interface HeatmapInterface {
+  option: {
+    title: string;
+    xAxis: string[];
+    yAxis: string[];
+    series: number[][];
+  }
+  test: string
+}
+
+const props = withDefaults(defineProps<HeatmapInterface>(), {
+  option: {
+    title: '默认的',
+    xAxis: [],
+    yAxis: [],
+    series: [
+      []
+    ]
+  },
+  test: 'dataSource'
+})
+const heatmap_data = ref(null)
+
+watch(props, (newValue, oldValue)=>{
+  heatmap_data.value = newValue.option
+  buildHeatmap()
+  console.log('111111')
+  console.log(newValue.option.title)
+  console.log(newValue.option.xAxis)
+  console.log(newValue.option.yAxis)
+  console.log(newValue.test)
+})
 
 const chartDom = ref(null);
 let chartInstance = null;
 
-const heatmapData = ref(null)
-const props = defineProps(['heatmapData'])
 
-watch(props,(New, Old)=>{
-  heatmapData.value = props.heatmapData;
-  console.log(heatmapData.value);
-  // console.log(chartHeight);
-  buildHeatmap()
-})
+// const props = defineProps(['heatmapData'])
+//
+// watch(props,(New, Old)=>{
+//   heatmapData.value = props.heatmapData;
+//   console.log(heatmapData.value);
+//   // console.log(chartHeight);
+//   buildHeatmap()
+// })
 
 function buildHeatmap() {
   if (!chartInstance) {
     chartInstance = echarts.init(chartDom.value);
   }
-  console.log("heatmapData.value.yAxis")
-  console.log(heatmapData.value.yAxis)
-  const rows = heatmapData.value.yAxis.length
+  // console.log("heatmapData.value.yAxis")
+  // console.log(heatmapData.value.yAxis)
+
+  const rows = heatmap_data.value.yAxis.length
 
   // 每个格子的大小（可根据需要调整）
   const cellSize = 20;
@@ -34,10 +68,10 @@ function buildHeatmap() {
     // width: Math.max(chartDom.value.parentElement.offsetWidth, 100), // 最小宽度
     height: Math.max(height, 300), // 最小高度
   });
-  console.log(heatmapData.value.title)
+  console.log(heatmap_data.value.title)
   const option = {
     title: {
-      text: heatmapData.value.title
+      text: heatmap_data.value.title
     },
     tooltip: {
       position: 'top'
@@ -50,14 +84,14 @@ function buildHeatmap() {
     },
     xAxis: {
       type: 'category',
-      data: heatmapData.value.xAxis,
+      data: heatmap_data.value.xAxis,
       splitArea: {
         show: true
       }
     },
     yAxis: {
       type: 'category',
-      data: heatmapData.value.yAxis,
+      data: heatmap_data.value.yAxis,
       splitArea: {
         show: true
       }
@@ -74,7 +108,7 @@ function buildHeatmap() {
       {
         name: 'Punch Card\n222\n33333333\naaaaaaaaaa\n00000000000000',
         type: 'heatmap',
-        data: heatmapData.value.data,
+        data: heatmap_data.value.series,
         label: {
           show: true
         },
@@ -93,7 +127,7 @@ function buildHeatmap() {
 // 初始化ECharts实例并设置配置项（这里以折线图为例，但可灵活替换）
 onMounted(async () => {
   await nextTick(); // 确保DOM已经渲染完成
-  // buildHeatmap()
+  console.log('HeatmapComponent onMounted');
 });
 
 
