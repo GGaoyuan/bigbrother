@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 import akshare as ak
-from pandas import DataFrame
 
 
 class IndustryDao:
@@ -14,8 +13,8 @@ class IndustryDao:
         :return: list[dict]
         """
         df = ak.stock_board_industry_name_em()
-        list = df.to_dict(orient='records')
-        return list
+        result = df.to_dict(orient='records')
+        return result
 
     @staticmethod
     def get_industries_history_daily(industry_name: str, time_delta = 0) -> dict:
