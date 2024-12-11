@@ -61,32 +61,14 @@ def cache(level: Level = Level.HOUR1):
                     Path(file).unlink()
                     file = None
             if file is None:
-                print("cache:网络拉取")
+                print(f"cache:网络拉取 {func_name}")
                 result = func(*args, **kwargs)
                 if type(result) is pd.DataFrame:
                     df = pd.DataFrame(result)
                     df.to_csv(caller_folder_path.joinpath(str(current_timestamp) + '.csv'))
             else:
-                print("cache:获取缓存")
+                print(f"cache:获取缓存 {func_name}")
                 result = pd.read_csv(file)
-
-                # if limit_timestamp < int(cache_timestamp):
-
-                # else:
-                #     Path(file).unlink()
-                #     result = func(*args, **kwargs)
-                #     if type(result) is pd.DataFrame:
-                #         df = pd.DataFrame(result)
-                #         df.to_csv(caller_folder_path.joinpath(str(current_timestamp) + '.csv'))
-            # else:
-            #     result = func(*args, **kwargs)
-            #     if type(result) is pd.DataFrame:
-            #         df = pd.DataFrame(result)
-            #         df.to_csv(caller_folder_path.joinpath(str(current_timestamp) + '.csv'))
-
-
-
-
             return result
         return wrapper
     return decorator
