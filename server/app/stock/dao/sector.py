@@ -1,5 +1,5 @@
 import akshare as ak
-
+from .__cacher__ import *
 """
 获取关于行业/概念板块的数据
 """
@@ -19,13 +19,12 @@ def get_concept_member_list(name: str):
     stock_board_concept_cons_em_df = ak.stock_board_concept_cons_em(symbol="车联网")
     print(stock_board_concept_cons_em_df)
 
-def get_concept_history_daily_list(name: str, start: str, end: str):
+def get_concept_history_daily_list(name: str, start_date: str, end_date: str):
     """
     获取行业板块的历史数据
     """
-    # cons_df = ak.stock_board_concept_hist_em(symbol=concept_name, period='daily', start_date=start_date,
-    #                                          end_date=end_date, adjust='qfq')
-    pass
+    cons_df = ak.stock_board_concept_hist_em(symbol=name, period='daily', start_date=start_date, end_date=end_date, adjust='qfq')
+    return cons_df
 
 
 def get_industry_list() -> list[dict]:
@@ -44,12 +43,13 @@ def get_industry_member_list(name: str):
     stock_board_industry_cons_em_df = ak.stock_board_industry_cons_em(symbol="小金属")
     print(stock_board_industry_cons_em_df)
 
-def get_industry_history_daily_list(name: str, start: str, end: str):
+@cache(Level.MINUTE1)
+def get_industry_history_daily_list(name: str, start_date: str, end_date: str):
     """
     获取行业板块的历史数据
     """
-    # cons_df = ak.stock_board_industry_hist_em(symbol=industry_name, period='日k', start_date=start_date,
-    #                                           end_date=end_date, adjust='qfq')
-    # rtn[keys[1]] = cons_df.to_dict(orient='records')
-    # cons_df
-    pass
+    print('11111')
+    cons_df = ak.stock_board_industry_hist_em(symbol=name, period='日k', start_date=start_date,
+                                              end_date=end_date, adjust='qfq')
+    print('22222')
+    return cons_df

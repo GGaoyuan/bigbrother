@@ -1,10 +1,13 @@
-import app.routes.main_route as main_route
 
+import app.stock.dao.sector as sector_dao
 
 
 if __name__ == '__main__':
+
+    f = sector_dao.get_industry_history_daily_list('小金属', '20220101', '20221128')
+    print(f)
     # main_route.industry_heatmap()
-    main_route.heatmap_concept()
+    # main_route.heatmap_concept()
     # hm = HeatmapService()
     # results = hm.get_industry_history_data()
     # print(results)
