@@ -43,7 +43,7 @@ def get_industry_member_list(name: str):
     stock_board_industry_cons_em_df = ak.stock_board_industry_cons_em(symbol="小金属")
     print(stock_board_industry_cons_em_df)
 
-@cache(Level.MINUTE1)
+@cache(Level.HOUR3)
 def get_industry_history_daily_list(name: str, start_date: str, end_date: str):
     """
     获取行业板块的历史数据

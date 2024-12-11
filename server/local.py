@@ -1,11 +1,18 @@
 
-import app.stock.dao.sector as sector_dao
-
+from datetime import datetime, time, timedelta
+import app.stock.service.market as market_service
 
 if __name__ == '__main__':
+    time_delta = 20
+    start_date = (datetime.now() - timedelta(time_delta)).strftime('%Y%m%d')
+    end_date = datetime.now().strftime('%Y%m%d')
+    if time_delta == 0:
+        end_date = start_date
+    df = market_service.get_hot_by_rank(start_date, end_date)
 
-    f = sector_dao.get_industry_history_daily_list('小金属', '20220101', '20221128')
-    print(f)
+
+    # f = sector_dao.get_industry_history_daily_list('小金属', '20220101', '20221128')
+    # print(f)
     # main_route.industry_heatmap()
     # main_route.heatmap_concept()
     # hm = HeatmapService()
