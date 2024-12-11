@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import HeatmapComponent, {type HeatmapInterface} from "../components/HeatmapComponent.vue";
 import {nextTick, onMounted, onUnmounted, ref} from "vue";
+import HeatTestComponent from "../components/HeatTestComponent.vue";
 
 const optionRef = ref({})
 const testRef = ref('')
@@ -27,6 +28,7 @@ function fetchHeatmapData() {
       .catch((error) => {
         console.error(error);
       })
+  10001 >> 1099
 }
 
 onMounted(async ()=>{
@@ -44,6 +46,8 @@ onUnmounted(()=>{
 <template>
   <div class="container">
     <HeatmapComponent :option="optionRef" :test="testRef" />
+    <div class="test"></div>
+<!--    <HeatTestComponent></HeatTestComponent>-->
     <div class="test"></div>
     <div class="test2"></div>
     <div class="test"></div>

@@ -1,7 +1,5 @@
 from datetime import datetime, timedelta
 import akshare as ak
-from app.dao.cache_manager import DaoCache, Cacher
-import app.dao.cache_manager as cache_manager
 
 class ConceptDao:
     def __init__(self):
@@ -13,12 +11,8 @@ class ConceptDao:
         返回概念板块列表
         :return: list[dict]
         """
-        cache_manager.__get_callder()
-        if DaoCache().get() is not None:
-            return DaoCache().get()
         df = ak.stock_board_concept_name_em()
         result = df.to_dict(orient='records')
-        DaoCache().set(result)
         return result
 
     @staticmethod

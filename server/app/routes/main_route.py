@@ -33,6 +33,10 @@ def industry_heatmap():
     json = rsp.to_json(data = rsp_value)
     return json
 
+@bp.route('/industry/heatmap2')
+def industry_heatmap2():
+    industries = HeatmapService.get_industry_history_data()
+
 @bp.route('/heatmap/concept')
 def heatmap_concept():
     concept = HeatmapService.get_concept_history_data()

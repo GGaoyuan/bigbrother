@@ -16,7 +16,7 @@ class HeatmapService:
         # industry_list = industry_list[:5]
         industry_name = '板块名称'
         with ThreadPoolExecutor(max_workers=len(industry_list)) as executor:
-            results = executor.map(lambda arg: IndustryDao.get_industries_history_daily(arg, 60), [d[industry_name] for d in industry_list])
+            results = executor.map(lambda arg: IndustryDao.get_industries_history_daily(arg, 15), [d[industry_name] for d in industry_list])
         for index, row in enumerate(results):
             name = row['name']
             history: list = row['history_list']
@@ -62,6 +62,9 @@ class HeatmapService:
 
 
         """
+        1.想到一个排除大盘干扰的一个方法，就是吧那种大家全部跌的情况排除掉
+        2.根据龙虎榜，反推板块的热度
+
         突然想到的一个策略，就是每天交易的时候跟踪各个板块的换手率交集看板块涨跌筛选出好的票
         换手率可以换成前一天的龙虎榜
 
