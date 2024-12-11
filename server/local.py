@@ -1,6 +1,3 @@
-
-from app.service.heatmap_service import HeatmapService
-from pandas import DataFrame
 import app.routes.main_route as main_route
 
 

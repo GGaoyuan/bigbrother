@@ -1,6 +1,6 @@
 from flask import Blueprint
 import app.routes.response as rsp
-from ..service.heatmap_service import HeatmapService
+from app.stock.service import HeatmapService
 bp = Blueprint('main', __name__)
 
 @bp.route('/')
@@ -39,5 +39,10 @@ def industry_heatmap2():
 
 @bp.route('/heatmap/concept')
 def heatmap_concept():
+    concept = HeatmapService.get_concept_history_data()
+    print(concept)
+
+@bp.route('/market')
+def market():
     concept = HeatmapService.get_concept_history_data()
     print(concept)

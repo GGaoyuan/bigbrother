@@ -1,5 +1,5 @@
 from flask import Blueprint
-from app.service.heatmap_service import HeatmapService
+from app.stock.service.heatmap_service import HeatmapService
 
 bp = Blueprint('test', __name__)
 

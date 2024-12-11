@@ -1,5 +1,5 @@
-from app.dao.concept_board import ConceptDao
-from app.dao.industry_board import IndustryDao
+from app.stock.dao.concept_board import ConceptDao
+from app.stock.dao.industry_board import IndustryDao
 from concurrent.futures import ThreadPoolExecutor
 
 class HeatmapService:
