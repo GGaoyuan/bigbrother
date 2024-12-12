@@ -1,5 +1,6 @@
 from ..dao.ranking import *
-from ..service import *
+from app.util.cache import cache
+
 def get_hot_by_rank(start_date: str, end_date: str):
     """
     获取龙虎榜和相关的数据

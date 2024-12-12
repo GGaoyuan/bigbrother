@@ -1,10 +1,7 @@
 import akshare as ak
-from __cacher__ import *
 """
 获取股票，板块的排行数据，如龙虎榜
 """
-
-cache(Level.HOUR1)
 def get_leader_list(start_date: str, end_date: str):
     """
     获取龙虎榜的股票详情
