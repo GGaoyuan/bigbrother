@@ -1,14 +1,19 @@
 
 from datetime import datetime, time, timedelta
-import app.stock.service.market as market_service
+from app.stock.service.market_service import MarketService
 
 if __name__ == '__main__':
-    time_delta = 20
-    start_date = (datetime.now() - timedelta(time_delta)).strftime('%Y%m%d')
-    end_date = datetime.now().strftime('%Y%m%d')
-    if time_delta == 0:
-        end_date = start_date
-    df = market_service.get_hot_by_rank(start_date, end_date)
+    # time_delta = 20
+    # start_date = (datetime.now() - timedelta(time_delta)).strftime('%Y%m%d')
+    # end_date = datetime.now().strftime('%Y%m%d')
+    # if time_delta == 0:
+    #     end_date = start_date
+    # df = market_service.get_hot_by_rank(start_date, end_date)
+
+    # market
+    ms = MarketService()
+    df = ms.get_hot_by_rank()
+
 
 
     # f = sector_dao.get_industry_history_daily_list('小金属', '20220101', '20221128')
@@ -61,6 +66,7 @@ if __name__ == '__main__':
     #     [6, 0, 1], [6, 1, 0], [6, 2, 0], [6, 3, 10], [6, 4, 0], [6, 5, 0], [6, 6, 0], [6, 7, 0], [6, 8, 0], [6, 9, 0],[6, 10, 1], [6, 11, 0], [6, 12, 2], [6, 13, 1], [6, 14, 3], [6, 15, 4], [6, 16, 0], [6, 17, 0], [6, 18, 0],[6, 19, 0], [6, 20, 1], [6, 21, 2], [6, 22, 2], [6, 23, 6]
     # ]
 
+    pass
 
 
 

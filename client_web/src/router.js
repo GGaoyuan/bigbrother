@@ -5,6 +5,7 @@ import CandleView from "./pages/home/views/candle/CandleView.vue";
 import HeatmapView from "./pages/home/views/heatmap/HeatmapView.vue";
 
 import HeatmapPage from "./pages/HeatmapPage.vue";
+import SectorPage from "./pages/sectors/SectorPage.vue";
 
 const routes = [
     // {
@@ -26,6 +27,10 @@ const routes = [
     {
         path: '/heatmap',
         component: HeatmapPage
+    },
+    {
+        path: '/sector',
+        component: SectorPage
     },
 ]
 
