@@ -1,5 +1,5 @@
 import numpy as np
-
+from concurrent.futures import ThreadPoolExecutor
 import app.stock.dao.market_center as mc
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
@@ -30,14 +30,23 @@ class ReviewService:
 
     def daily_review(self):
         data_str = '20241226'
+        def get_limit_up_data():
+            return mc.get_limit_up_data(data_str)
+        def get_limit_down_data():
+            return mc.get_limit_down_data(data_str)
+        def get_industry_sector_data():
+            return mc.get_industry_sector_data()
 
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            # 提交任务到线程池
+            limit_up_data = executor.submit(get_limit_up_data)
+            limit_down_data = executor.submit(get_limit_down_data)
+            industry_sector_data = executor.submit(get_industry_sector_data)
 
-        # 获取涨停和跌停数据
-        limit_up = mc.get_limit_up_data(data_str)
-        # limit_up = limit_up[['代码', '名称', '最新价', '涨跌幅', '封板资金', '所属行业']]
-
-        limit_down = mc.get_limit_down_data(data_str)
-        # limit_down = limit_down[['代码', '名称', '最新价', '涨跌幅', '封板资金', '所属行业']]
+            # 获取结果
+            limit_up = limit_up_data.result()
+            limit_down = limit_down_data.result()
+            industry_sector = industry_sector_data.result()
 
         # 统计涨停和跌停板的行业分布
         limit_up_stat = limit_up['所属行业'].value_counts().reset_index()
@@ -53,20 +62,22 @@ class ReviewService:
 
 
         # 获取板块信息
-        industry_sector = mc.get_industry_sector_data()  # 获取所有行业板块
         industry_sector.rename(columns={'板块名称': '行业'}, inplace=True)  # 统一列名
         industry_sector = industry_sector[['板块代码', '行业', '上涨家数', '下跌家数']]  # 选择需要的字段
+        industry_sector = industry_sector.copy()  # 确保操作在副本上进行
         industry_sector['股票总数'] = industry_sector['上涨家数'] + industry_sector['下跌家数']
-        industry_sector['上涨百分比'] = np.where(industry_sector['股票总数'] == 0, 100,
-                                                 (industry_sector['上涨家数'] / industry_sector['股票总数']) * 100)
-
 
         # 将板块信息合并到统计汇总中
         statistics = pd.merge(industry_sector, statistics, on='行业', how='left').fillna(0)
         statistics['涨停数'] = statistics['涨停数'].astype(int)
         statistics['跌停数'] = statistics['跌停数'].astype(int)
+
+        # 涨停百分比
+        # statistics['涨停百分比'] = np.where(statistics['股票总数'] == 0, 0, (statistics['涨停数'] / statistics['股票总数']))
+        # statistics['跌停百分比'] = np.where(statistics['股票总数'] == 0, 0, (statistics['跌停数'] / statistics['股票总数']))
+
         # 定义期望的列顺序
-        cols_order = ['板块代码', '行业', '涨停数', '跌停数', '股票总数', '上涨百分比', '上涨家数', '下跌家数']
+        cols_order = ['板块代码', '行业', '股票总数', '涨停数', '跌停数']
         statistics = statistics[cols_order]
         # 创建Excel文件
         file_name = "板块涨跌停数据分析.xlsx"
