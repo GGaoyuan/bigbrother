@@ -1,7 +1,7 @@
 
 from datetime import datetime, time, timedelta
 from app.stock.service.market_service import MarketService
-
+from app.stock.service.review import ReviewService
 if __name__ == '__main__':
     # time_delta = 20
     # start_date = (datetime.now() - timedelta(time_delta)).strftime('%Y%m%d')
@@ -11,10 +11,11 @@ if __name__ == '__main__':
     # df = market_service.get_hot_by_rank(start_date, end_date)
 
     # market
-    ms = MarketService()
-    df = ms.get_hot_by_rank()
+    # ms = MarketService()
+    # df = ms.get_hot_by_rank()
 
-
+    rs = ReviewService()
+    rs.main()
 
     # f = sector_dao.get_industry_history_daily_list('小金属', '20220101', '20221128')
     # print(f)
