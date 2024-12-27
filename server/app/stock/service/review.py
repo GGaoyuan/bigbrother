@@ -51,20 +51,23 @@ class ReviewService:
         statistics['涨停数'] = statistics['涨停数'].astype(int)
         statistics['跌停数'] = statistics['跌停数'].astype(int)
 
+
         # 获取板块信息
         industry_sector = mc.get_industry_sector_data()  # 获取所有行业板块
-        industry_sector = industry_sector[
-            ['板块代码', '板块名称', '涨跌幅', '换手率', '上涨家数', '下跌家数']]  # 选择需要的字段
+        industry_sector.rename(columns={'板块名称': '行业'}, inplace=True)  # 统一列名
+        industry_sector = industry_sector[['板块代码', '行业', '上涨家数', '下跌家数']]  # 选择需要的字段
         industry_sector['股票总数'] = industry_sector['上涨家数'] + industry_sector['下跌家数']
         industry_sector['上涨百分比'] = np.where(industry_sector['股票总数'] == 0, 100,
                                                  (industry_sector['上涨家数'] / industry_sector['股票总数']) * 100)
-        industry_sector.rename(columns={'板块名称': '行业'}, inplace=True)  # 统一列名
-        
-        # # 将板块信息合并到统计汇总中
-        # statistics = pd.merge(industry_sector, statistics, on='行业', how='left').fillna(0)
-        # statistics['涨停数'] = statistics['涨停数'].astype(int)
-        # statistics['跌停数'] = statistics['跌停数'].astype(int)
 
+
+        # 将板块信息合并到统计汇总中
+        statistics = pd.merge(industry_sector, statistics, on='行业', how='left').fillna(0)
+        statistics['涨停数'] = statistics['涨停数'].astype(int)
+        statistics['跌停数'] = statistics['跌停数'].astype(int)
+        # 定义期望的列顺序
+        cols_order = ['板块代码', '行业', '涨停数', '跌停数', '股票总数', '上涨百分比', '上涨家数', '下跌家数']
+        statistics = statistics[cols_order]
         # 创建Excel文件
         file_name = "板块涨跌停数据分析.xlsx"
         wb = Workbook()
@@ -74,7 +77,7 @@ class ReviewService:
         sheet1.title = "统计总结"
 
         # 写入列名
-        sheet1.append(['行业', '成分股数量', '涨停数', '跌停数'])
+        sheet1.append(cols_order)
 
         # 写入统计数据
         for _, row in statistics.iterrows():
