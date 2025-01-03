@@ -16,6 +16,11 @@ function getItem(label, key, icon, children, type, url) {
   };
 }
 const items = reactive([
+  getItem('Navigation Two', 'sub2', () => h(AppstoreOutlined), [
+    getItem('Option 5', '5'),
+    getItem('Option 6', '6'),
+    getItem('Submenu', 'sub3', null, [getItem('Option 7', '7'), getItem('Option 8', '8')]),
+  ]),
   getItem('Navigation One', 'sub1', () => h(MailOutlined), [
     getItem('Item 1', 'g1', null, [getItem('Option 1', '1'), getItem('Option 2', '2')], 'group'),
     getItem('Item 2', 'g2', null, [getItem('Option 3', '3'), getItem('Option 4', '4')], 'group'),
@@ -29,19 +34,19 @@ const items = reactive([
     type: 'divider',
   }
 ]);
-const router = useRouter();
-router.push({ path: '/heatmap' });
+// const router = useRouter();
+// router.push({ path: '/heatmap' });
 
 const route = useRoute();
 const handleClick = e => {
 
   console.log('click', e);
-  if (e.key === '1') {
-    router.push({ path: '/heatmap' });
-  } else {
-
-    router.push({ path: '/candle' });
-  }
+  // if (e.key === '1') {
+  //   router.push({ path: '/heatmap' });
+  // } else {
+  //
+  //   router.push({ path: '/candle' });
+  // }
 };
 watch(openKeys, val => {
   console.log('openKeys', val);
@@ -50,10 +55,10 @@ watch(openKeys, val => {
 
 
 <template>
-  <div class="container">
+  <div class="sidebar">
     <div class="menu">
       <a-menu
-          id="dddddd"
+          id="menu"
           v-model:openKeys="openKeys"
           v-model:selectedKeys="selectedKeys"
           mode="inline"
@@ -71,7 +76,7 @@ watch(openKeys, val => {
 
 
 <style scoped>
-.container {
+.sidebar {
   display: flex;
   height: 100vh;
   width: 100vw;

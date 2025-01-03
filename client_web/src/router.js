@@ -8,30 +8,22 @@ import HeatmapPage from "./pages/HeatmapPage.vue";
 import SectorPage from "./pages/sectors/SectorPage.vue";
 
 const routes = [
+    {
+        path: '/',
+        redirect: '/home'
+    },
+    {
+        path: '/home',
+        component: HomePage
+    },
     // {
-    //     path: '/',
-    //     component: HomePage,
-    //     children:[
-    //         {
-    //             path: '/candle',
-    //             name: 'candle',
-    //             component: CandleView,
-    //         },
-    //         {
-    //             path: '/heatmap',
-    //             name: 'heatmap',
-    //             component: HeatmapView,
-    //         },
-    //     ]
+    //     path: '/heatmap',
+    //     component: HeatmapPage
     // },
-    {
-        path: '/heatmap',
-        component: HeatmapPage
-    },
-    {
-        path: '/sector',
-        component: SectorPage
-    },
+    // {
+    //     path: '/sector',
+    //     component: SectorPage
+    // },
 ]
 
 const router = createRouter({

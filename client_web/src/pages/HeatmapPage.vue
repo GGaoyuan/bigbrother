@@ -44,7 +44,7 @@ onUnmounted(()=>{
 </script>
 
 <template>
-  <div class="container">
+  <div class="sidebar">
     <HeatmapComponent :option="optionRef" :test="testRef" />
     <div class="test"></div>
 <!--    <HeatTestComponent></HeatTestComponent>-->
@@ -72,7 +72,7 @@ onUnmounted(()=>{
 </template>
 
 <style scoped>
-.container {
+.sidebar {
   display: flex;
   flex-direction: column;
   background-color: #646cff;
