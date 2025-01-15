@@ -1,6 +1,6 @@
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
-import app.stock.dao.akshare_wrapper as wrapper
+import app.stock.dao.akshare_wrapper as akshare
 import app.stock.dao.adata_wrapper as adata
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
@@ -10,14 +10,24 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def get_core_board():
+
+
+    today = pd.Timestamp.now().strftime("%Y%m%d")
+    # 涨停
+    limit_up_df = akshare.get_stock_limit_up(today)
+    # 跌停
+    limit_down_df = akshare.get_stock_limit_down(today)
     df1 = adata.get_stock_concept('300033')
-    print("")
-    df2 = adata.get_stock_concept2('300033')
-    print("")
-    df3 = adata.get_stock_industry('300033')
-    print("")
-    df4 = adata.get_stock_district('300033')
-    print("")
+    print("limit_up_df")
+
+
+    # print("")
+    # df2 = adata.get_stock_concept2('300033')
+    # print("")
+    # df3 = adata.get_stock_industry('300033')
+    # print("")
+    # df4 = adata.get_stock_district('300033')
+    # print("")
 
     """
     today = pd.Timestamp.now().strftime("%Y%m%d")
@@ -79,13 +89,15 @@ class ReviewService:
 
 
     def daily_review(self):
+        pass
+        """
         data_str = '20241226'
         def get_limit_up_data():
-            return wrapper.get_limit_up_data(data_str)
+            return akshare.get_limit_up_data(data_str)
         def get_limit_down_data():
-            return wrapper.get_limit_down_data(data_str)
+            return akshare.get_limit_down_data(data_str)
         def get_industry_sector_data():
-            return wrapper.get_industry_sector_data()
+            return akshare.get_industry_sector_data()
 
         with ThreadPoolExecutor(max_workers=3) as executor:
             # 提交任务到线程池
@@ -160,3 +172,4 @@ class ReviewService:
         wb.save(file_name)
 
         print(f"板块数据结合涨跌停数据及统计结果已成功写入到 {file_name}！")
+        """

@@ -1,16 +1,19 @@
+from .field_mapper import *
 import akshare as ak
 import pandas as pd
+from pandas import DataFrame
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-def get_limit_up_df(date_str: str) -> pd.DataFrame:
+def get_stock_limit_up(date_str: str) -> DataFrame:
     """
     东方财富网-行情中心-涨停板行情-涨停股池
     """
-    stock_zt_pool_em_df = ak.stock_zt_pool_em(date=date_str)
-    return stock_zt_pool_em_df
+    df = ak.stock_zt_pool_em(date=date_str)
+    df = rename_fields(df, ['序号', '代码', '名称', '涨跌幅', '最新价', '成交额', '流通市值', '总市值', '换手率', '封板资金', '首次封板时间', '最后封板时间', '炸板次数', '涨停统计', '连板数', '所属行业'])
+    return df
 
 
-def get_limit_down_df(date_str: str) -> pd.DataFrame:
+def get_stock_limit_down(date_str: str) -> DataFrame:
     """
     东方财富网-行情中心-涨停板行情-跌停股池
     """
