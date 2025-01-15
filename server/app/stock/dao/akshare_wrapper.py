@@ -13,8 +13,8 @@ def get_stock_limit_up(date_str: str) -> DataFrame:
     df = rename_fields(df, ['序号', '代码', '名称', '涨跌幅', '最新价', '成交额', '流通市值', '总市值', '换手率',
                             '封板资金', '首次封板时间', '最后封板时间', '炸板次数', '涨停统计', '连板数', '所属行业'])
     df = df.rename(columns={
-        '代码': stock_code,
-        '名称': stock_name
+        '代码': STOCK_CODE,
+        '名称': STOCK_NAME
     })
     return df
 
@@ -27,8 +27,8 @@ def get_stock_limit_down(date_str: str) -> DataFrame:
     df = rename_fields(df, ['序号', '代码', '名称', '涨跌幅', '最新价', '成交额', '流通市值', '总市值', '换手率',
                             '封板资金', '首次封板时间', '最后封板时间', '炸板次数', '涨停统计', '连板数', '所属行业'])
     df = df.rename(columns={
-        '代码': stock_code,
-        '名称': stock_name
+        '代码': STOCK_CODE,
+        '名称': STOCK_NAME
     })
     return df
 

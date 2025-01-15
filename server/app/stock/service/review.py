@@ -5,20 +5,43 @@ import app.stock.dao.adata_wrapper as adata
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 import pandas as pd
+from pandas import DataFrame
+from ..dao.field_mapper import *
 from openpyxl import Workbook, load_workbook
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def get_core_board():
-
-
     today = pd.Timestamp.now().strftime("%Y%m%d")
     # 涨停
     limit_up_df = akshare.get_stock_limit_up(today)
     # 跌停
     limit_down_df = akshare.get_stock_limit_down(today)
-    df1 = adata.get_stock_concept('300033')
+    stock_list = limit_up_df[STOCK_CODE].tolist()
+    print(stock_list)
+    with ThreadPoolExecutor(max_workers=len(limit_up_df)) as executor:
+        futures = {executor.submit(adata.get_stock_industry, row[STOCK_CODE]): row for _, row in limit_up_df.iterrows()}
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+                result[STOCK_NAME] = futures[future][STOCK_NAME]
+            except Exception as e:
+                print(f"线程执行错误: {e}")
+
     print("limit_up_df")
+
+
+
+    # industry_boards = get_industry_board_df()
+    # if industry_boards.empty:
+    #     print(f"获取行业板块失败")
+    #     return pd.DataFrame()
+    # # 获取板块名称列表
+    # industry_names = industry_boards["板块名称"].tolist()
+
+
+    # df1 = adata.get_stock_concept('300033')
+
 
 
     # print("")

@@ -45,7 +45,7 @@ def get_stock_district(stock_code: str) -> DataFrame:
         return DataFrame()
 
 
-def get_stock_concept(stock_code: str) -> DataFrame:
+def get_stock_total_concept(stock_code: str) -> DataFrame:
     """
     获取单只股票所属的概念信息
     :param stock_code:股票代码；例：300033

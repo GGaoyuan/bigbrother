@@ -4,28 +4,28 @@ from pandas import DataFrame
 股票
 """
 # 股票名称
-stock_name = 'stock_name'
+STOCK_NAME = 'stock_name'
 # 股票代码
-stock_code = 'stock_code'
+STOCK_CODE = 'stock_code'
 """
 行业
 """
 # 行业名称
-industry_name = 'industry_name'
+INDUSTRY_NAME = 'industry_name'
 # 行业代码
-industry_code = 'industry_code'
+INDUSTRY_CODE = 'industry_code'
 """
 概念
 """
 # 概念名称
-concept_name = 'concept_name'
+CONCEPT_NAME = 'concept_name'
 # 概念代码
-concept_code = 'concept_code'
+CONCEPT_CODE = 'concept_code'
 """
 通用
 """
 # 涨跌幅
-change = 'change'
+CHANGE = 'change'
 # 换手率
 turnover_ratio = 'turnover_ratio'
 # 最高价
@@ -57,7 +57,7 @@ def rename_fields(df: DataFrame, fields: list[str]) -> DataFrame:
     for field in intersection:
         match field:
             case '涨跌幅':
-                pairs[field] = change
+                pairs[field] = CHANGE
             case '最新价':
                 pairs[field] = latest_price
             case '成交额':
@@ -69,6 +69,6 @@ def rename_fields(df: DataFrame, fields: list[str]) -> DataFrame:
             case '换手率':
                 pairs[field] = turnover_ratio
             case '所属行业':
-                pairs[field] = industry_name
+                pairs[field] = INDUSTRY_NAME
     df = df.rename(columns=pairs)
     return df
