@@ -7,6 +7,10 @@
 
 import { createApp } from 'vue';
 import Antd from 'ant-design-vue';
+// import VueGoodTablePlugin from 'vue-good-table';
+// import 'vue-good-table/dist/vue-good-table.css';
+// Vue.use(VueGoodTablePlugin);
+
 import App from './App.vue'
 import './style.css'
 import router from './router'

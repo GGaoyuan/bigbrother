@@ -1,10 +1,60 @@
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
-import app.stock.dao.market_center as mc
+import app.stock.dao.akshare_wrapper as wrapper
+import app.stock.dao.adata_wrapper as adata
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 import pandas as pd
 from openpyxl import Workbook, load_workbook
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
+def get_core_board():
+    df1 = adata.get_stock_concept('300033')
+    print("")
+    df2 = adata.get_stock_concept2('300033')
+    print("")
+    df3 = adata.get_stock_industry('300033')
+    print("")
+    df4 = adata.get_stock_district('300033')
+    print("")
+
+    """
+    today = pd.Timestamp.now().strftime("%Y%m%d")
+    # 涨停
+    limit_up = wrapper.get_limit_up_df(today)
+    # 跌停
+    limit_down = wrapper.get_limit_down_df(today)
+    # 行业板块
+    industry_df = wrapper.get_industry_board_components_detail_df()
+    # 概念板块
+    concept_df = wrapper.get_concept_board_components_detail_df()
+    board_df = pd.merge(industry_df, concept_df, on='代码', how='outer')
+    limit_up_stock = []
+    for index, row in limit_up.iterrows():
+        df = board_df[board_df['代码'] == row['代码']]
+        limit_up_stock.append(df)
+    df = pd.concat(limit_up_stock, ignore_index=True)
+    print("")
+"""
+
+
+    # if not concept_board_detail_list:
+    #     print("失败4")
+    #     return
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class ReviewService:
     def main(self):
@@ -31,11 +81,11 @@ class ReviewService:
     def daily_review(self):
         data_str = '20241226'
         def get_limit_up_data():
-            return mc.get_limit_up_data(data_str)
+            return wrapper.get_limit_up_data(data_str)
         def get_limit_down_data():
-            return mc.get_limit_down_data(data_str)
+            return wrapper.get_limit_down_data(data_str)
         def get_industry_sector_data():
-            return mc.get_industry_sector_data()
+            return wrapper.get_industry_sector_data()
 
         with ThreadPoolExecutor(max_workers=3) as executor:
             # 提交任务到线程池

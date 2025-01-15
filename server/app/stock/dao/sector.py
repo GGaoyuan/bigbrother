@@ -41,6 +41,7 @@ def get_industry_member_list(name: str) -> DataFrame:
     """
     获取行业板块的成分股
     """
+
     stock_board_industry_cons_em_df = ak.stock_board_industry_cons_em(symbol=name)
     return stock_board_industry_cons_em_df
 

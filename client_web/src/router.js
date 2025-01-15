@@ -6,6 +6,7 @@ import HeatmapView from "./pages/home/views/heatmap/HeatmapView.vue";
 
 import HeatmapPage from "./pages/HeatmapPage.vue";
 import SectorPage from "./pages/sectors/SectorPage.vue";
+import ZDTPage from "./pages/zdt/ZDTPage.vue";
 
 const routes = [
     {
@@ -16,6 +17,11 @@ const routes = [
         path: '/home',
         component: HomePage
     },
+    {
+        //涨跌停榜单
+        path: '/zdt',
+        component: ZDTPage
+    }
     // {
     //     path: '/heatmap',
     //     component: HeatmapPage

@@ -1,8 +1,27 @@
 
 from datetime import datetime, time, timedelta
+
+from app.stock.service import review
 from app.stock.service.market_service import MarketService
 from app.stock.service.review import ReviewService
+import akshare as ak
+import pandas as pd
+from collections import defaultdict
+
+
 if __name__ == '__main__':
+    review.get_core_board()
+
+
+
+
+
+
+
+
+
+
+
     # time_delta = 20
     # start_date = (datetime.now() - timedelta(time_delta)).strftime('%Y%m%d')
     # end_date = datetime.now().strftime('%Y%m%d')
