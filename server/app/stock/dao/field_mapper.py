@@ -24,6 +24,10 @@ CONCEPT_CODE = 'concept_code'
 """
 通用
 """
+# 名字
+NAME = 'name'
+# 代码
+CODE = 'code'
 # 涨跌幅
 CHANGE = 'change'
 # 换手率

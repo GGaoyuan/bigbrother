@@ -1,6 +1,6 @@
+from .field_mapper import *
 import adata
 from pandas import DataFrame
-import pandas as pd
 
 
 def get_stock_core_concept(stock_code: str) -> DataFrame:
@@ -11,6 +11,9 @@ def get_stock_core_concept(stock_code: str) -> DataFrame:
     """
     try:
         df = adata.stock.info.get_concept_east(stock_code=stock_code)
+        df = df.rename(columns={
+            CONCEPT_CODE: CODE
+        })
         return df
     except Exception as e:
         print(f"获取概念板块失败: {e}")
@@ -25,6 +28,10 @@ def get_stock_industry(stock_code: str) -> DataFrame:
     """
     try:
         df = adata.stock.info.get_plate_east(stock_code=stock_code, plate_type=1)
+        df = df.rename(columns={
+            'plate_code': CODE,
+            'plate_name': NAME,
+        })
         return df
     except Exception as e:
         print(f"获取行业板块失败: {e}")

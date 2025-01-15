@@ -17,20 +17,9 @@ def get_core_board():
     limit_up_df = akshare.get_stock_limit_up(today)
     # 跌停
     limit_down_df = akshare.get_stock_limit_down(today)
-    # stock_list = limit_up_df[STOCK_CODE].tolist()
-    # print(stock_list)
-    # with ThreadPoolExecutor(max_workers=len(limit_up_df)) as executor:
-    #     futures = {executor.submit(adata.get_stock_industry, row[STOCK_CODE]): row for _, row in limit_up_df.iterrows()}
-    #     for future in as_completed(futures):
-    #         try:
-    #             result = future.result()
-    #             result[STOCK_NAME] = futures[future][STOCK_NAME]
-    #         except Exception as e:
-    #             print(f"线程执行错误: {e}")
-
-    results = []
-    max_workers = len(limit_up_df)
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+    limit_up_df = limit_up_df.head(1)
+    results = None
+    with ThreadPoolExecutor(max_workers=len(limit_up_df)) as executor:
         futures = {}
         for index, row in limit_up_df.iterrows():
             stock_code = row[STOCK_CODE]
@@ -40,8 +29,12 @@ def get_core_board():
         for future in as_completed(futures):
             try:
                 df = future.result()
+                df = df[[STOCK_CODE, CODE, NAME]]
                 # df[STOCK_NAME] = futures[future][STOCK_NAME]
-                results.append(df)
+                if results is None:
+                    results = df
+                else:
+                    results = pd.merge(results, df, how='inner')
             except Exception as e:
                 print(f"Error occurred: {e}")
     print("limit_up_df")
