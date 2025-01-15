@@ -4,12 +4,18 @@ import pandas as pd
 from pandas import DataFrame
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+
 def get_stock_limit_up(date_str: str) -> DataFrame:
     """
     东方财富网-行情中心-涨停板行情-涨停股池
     """
     df = ak.stock_zt_pool_em(date=date_str)
-    df = rename_fields(df, ['序号', '代码', '名称', '涨跌幅', '最新价', '成交额', '流通市值', '总市值', '换手率', '封板资金', '首次封板时间', '最后封板时间', '炸板次数', '涨停统计', '连板数', '所属行业'])
+    df = rename_fields(df, ['序号', '代码', '名称', '涨跌幅', '最新价', '成交额', '流通市值', '总市值', '换手率',
+                            '封板资金', '首次封板时间', '最后封板时间', '炸板次数', '涨停统计', '连板数', '所属行业'])
+    df = df.rename(columns={
+        '代码': stock_code,
+        '名称': stock_name
+    })
     return df
 
 
@@ -17,12 +23,17 @@ def get_stock_limit_down(date_str: str) -> DataFrame:
     """
     东方财富网-行情中心-涨停板行情-跌停股池
     """
-    stock_zt_pool_dtgc_em_df = ak.stock_zt_pool_dtgc_em(date=date_str)
-    return stock_zt_pool_dtgc_em_df
+    df = ak.stock_zt_pool_dtgc_em(date=date_str)
+    df = rename_fields(df, ['序号', '代码', '名称', '涨跌幅', '最新价', '成交额', '流通市值', '总市值', '换手率',
+                            '封板资金', '首次封板时间', '最后封板时间', '炸板次数', '涨停统计', '连板数', '所属行业'])
+    df = df.rename(columns={
+        '代码': stock_code,
+        '名称': stock_name
+    })
+    return df
 
 
-
-def get_strong_performing_df(date_str: str) -> pd.DataFrame:
+def get_strong_performing(date_str: str) -> pd.DataFrame:
     """
     东方财富网-行情中心-涨停板行情-强势股池
     """
@@ -41,6 +52,7 @@ def get_industry_board_df() -> pd.DataFrame:
     except Exception as e:
         print(f"获取行业板块失败: {e}")
         return pd.DataFrame()
+
 
 def get_industry_board_component_df(name: str) -> pd.DataFrame:
     """
@@ -76,6 +88,7 @@ def get_industry_board_components_detail_df() -> pd.DataFrame:
             except Exception as e:
                 print(f"线程执行错误: {e}")
     return pd.concat(results, ignore_index=True)
+
 
 def get_concept_board_df() -> pd.DataFrame:
     """

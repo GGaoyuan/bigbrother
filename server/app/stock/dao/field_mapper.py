@@ -49,27 +49,26 @@ total_market_cap = 'total_market_cap'
 
 
 def rename_fields(df: DataFrame, fields: list[str]) -> DataFrame:
-    if len(fields) == 0:
+    if df.empty or not fields:
         return df
-    for field in fields:
-        #找对于的英文字段
-        new_field = ''
+    # 获取交集
+    intersection = set(fields).intersection(set(df.columns))
+    pairs = {}
+    for field in intersection:
         match field:
             case '涨跌幅':
-                new_field = change
+                pairs[field] = change
             case '最新价':
-                new_field = latest_price
+                pairs[field] = latest_price
             case '成交额':
-                new_field = volume
+                pairs[field] = volume
             case '流通市值':
-                new_field = circulating_market_cap
+                pairs[field] = circulating_market_cap
             case '总市值':
-                new_field = total_market_cap
+                pairs[field] = total_market_cap
             case '换手率':
-                new_field = turnover_ratio
+                pairs[field] = turnover_ratio
             case '所属行业':
-                new_field = industry_name
-        # 排除瞎JB传的情况和找不到
-        if len(new_field) and field in df.columns:
-            df = df.rename(columns={field: new_field})
+                pairs[field] = industry_name
+    df = df.rename(columns=pairs)
     return df
