@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 
@@ -8,10 +9,10 @@ class OverviewPage extends ConsumerStatefulWidget {
   const OverviewPage({super.key});
 
   @override
-  OverviewPageState createState() => OverviewPageState();
+  _OverviewPageState createState() => _OverviewPageState();
 }
 
-class OverviewPageState extends ConsumerState<OverviewPage> {
+class _OverviewPageState extends ConsumerState<OverviewPage> {
 
   @override
   void initState() {
@@ -27,7 +28,7 @@ class OverviewPageState extends ConsumerState<OverviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Container(color: Colors.blue);
   }
 
 }
