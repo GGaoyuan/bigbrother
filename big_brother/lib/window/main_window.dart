@@ -1,5 +1,5 @@
 import 'package:big_brother/general/app_config.dart';
-import 'package:big_brother/general/tabbed_mapper.dart';
+import 'package:big_brother/general/tab_object.dart';
 import 'package:big_brother/page/overview/overview_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ class MainWindow extends ConsumerStatefulWidget {
 
 class MainWindowState extends ConsumerState<MainWindow> {
 
-  final _tabList = [TabbedMapper.overview];
+  final _tabList = [TabObject.overview];
 
   @override
   void initState() {
@@ -39,11 +39,12 @@ class MainWindowState extends ConsumerState<MainWindow> {
           Expanded(child: TabbedView(
               controller: TabbedViewController(_tabList),
               contentBuilder: (BuildContext context, int tabIndex) {
-                final tabData = _tabList[tabIndex];
-                if (tabData == TabbedMapper.overview) {
-                  return const OverviewPage();
+                final widget = _tabList[tabIndex].content;
+                if (widget != null) {
+                  return widget;
+                } else {
+                  return Container();
                 }
-                return Container();
               }
           ))
         ],
