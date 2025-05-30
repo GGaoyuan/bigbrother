@@ -18,7 +18,7 @@ def get_core_board():
     # 跌停
     limit_down_df = akshare.get_stock_limit_down(today)
     limit_up_df = limit_up_df.head(1)
-    results = None
+
     with ThreadPoolExecutor(max_workers=len(limit_up_df)) as executor:
         futures = {}
         for index, row in limit_up_df.iterrows():
@@ -34,7 +34,7 @@ def get_core_board():
                 if results is None:
                     results = df
                 else:
-                    results = pd.merge(results, df, how='inner')
+                    results = pd.merge(results, df, on=[STOCK_CODE, CODE, NAME])
             except Exception as e:
                 print(f"Error occurred: {e}")
     print("limit_up_df")
