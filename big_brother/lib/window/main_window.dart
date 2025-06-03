@@ -17,7 +17,10 @@ class MainWindow extends ConsumerStatefulWidget {
 
 class MainWindowState extends ConsumerState<MainWindow> {
 
-  final _tabList = [TabObject.overview];
+  final _tabList = [
+    TabObject.overview,
+    TabObject.seesaw,
+  ];
 
   @override
   void initState() {

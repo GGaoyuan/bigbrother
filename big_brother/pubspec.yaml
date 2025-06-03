@@ -35,6 +35,7 @@ dependencies:
   bitsdojo_window: ^0.1.6
   # 图表
   fl_chart: ^1.0.0
+  syncfusion_flutter_charts: ^29.2.7
   # 状态管理
   flutter_riverpod: ^2.6.1
   # 桌面风格的顶部标签
