@@ -329,10 +329,18 @@ packages:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
-      sha256: "6898c5dc81f73ac4e1156a075e4dd4591ea8927f26dcc77f6ba0e9b1b1d6c8c5"
+      sha256: "73904e5db0c4181b179c4d3b28ed40e6c2898ad4d081f2c999a5b8a8f8475e3f"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "29.2.7"
+    version: "29.2.8"
+  syncfusion_flutter_datagrid:
+    dependency: "direct main"
+    description:
+      name: syncfusion_flutter_datagrid
+      sha256: a63eeff2cbf081887292b966eaea56059e9c1e3f3478956c4436075c291ce534
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "29.2.8"
   tabbed_view:
     dependency: "direct main"
     description:
