@@ -13,11 +13,12 @@ class MainFlutterWindow: BitsdojoWindow {
     self.contentViewController = flutterViewController
     self.setFrame(windowFrame, display: true)
 
-//     self.titleVisibility = .hidden  // 隐藏标题
-//     self.titlebarAppearsTransparent = true // 让标题栏透明
-//     self.isMovableByWindowBackground = true // 允许通过背景拖动
-//     self.styleMask.remove(.titled) // ❗️去除标题栏样式（如需彻底隐藏）
-//     self.styleMask.insert(.fullSizeContentView) // 允许内容区占据整个窗口
+    // 设置无标题栏和透明标题栏，允许内容延伸到标题栏区域
+    let window = self
+    window.titleVisibility = .hidden
+    window.titlebarAppearsTransparent = true
+    window.isMovableByWindowBackground = true
+    window.styleMask.insert(.fullSizeContentView)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 
