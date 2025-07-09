@@ -28,5 +28,16 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+
+	<!-- 允许网络访问权限 -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+
+	<!-- 允许 http 明文传输 -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

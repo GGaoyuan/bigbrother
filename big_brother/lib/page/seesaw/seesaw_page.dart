@@ -1,3 +1,4 @@
+import 'package:big_brother/general/network/network_manager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -100,7 +101,8 @@ class SeesawPageState extends ConsumerState<SeesawPage> {
   Widget build(BuildContext context) {
 
     return Center(
-      child: GestureDetector(onTap: () {
+      child: GestureDetector(onTap: () async {
+        final a = await NetworkManager.requestTest();
         print("object");
       },
       child: Container(width: 100, height: 100, color: Colors.red),
