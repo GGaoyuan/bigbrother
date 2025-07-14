@@ -1,4 +1,5 @@
 import 'package:big_brother/general/app_config.dart';
+import 'package:big_brother/general/general_import.dart';
 import 'package:big_brother/general/tab_object.dart';
 import 'package:big_brother/page/overview/overview_page.dart';
 import 'package:flutter/cupertino.dart';
@@ -35,43 +36,42 @@ class MainWindowState extends ConsumerState<MainWindow> {
 
   @override
   Widget build(BuildContext context) {
-    return WindowBorder(color: AppConfig.instance.themeColor, child: Column(
+    return WindowBorder(color: AppConfig.themeColor, child: Column(
       children: [
         // 自定义顶部栏
         WindowTitleBarBox(
-          child: Row(
-            children: [
+          child: Container(color: Colors.black, child: Row(
+        children: [
               // 窗口控制按钮
               SizedBox(
                 width: 100,
-                child: MoveWindow(child: Row(
-                  children: [
-                    MinimizeWindowButton(),
-                    MaximizeWindowButton(),
-                    CloseWindowButton(),
-                  ],
-                )),
+                child: MoveWindow(),
               ),
               // 应用名
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 child: Text("bigbrother (Git)", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ),
-              Spacer(),
+              // const Spacer(),
               // 操作按钮
-              _TopBarButton(icon: Icons.add, label: "提交"),
-              _TopBarButton(icon: Icons.download, label: "拉取"),
-              _TopBarButton(icon: Icons.upload, label: "推送"),
-              _TopBarButton(icon: Icons.access_time, label: "抓取"),
-              _TopBarButton(icon: Icons.device_hub, label: "分支"),
-              _TopBarButton(icon: Icons.merge_type, label: "合并"),
-              _TopBarButton(icon: Icons.cloud, label: "显示远程服务器"),
-              _TopBarButton(icon: Icons.folder_open, label: "在Finder中显示"),
-              _TopBarButton(icon: Icons.terminal, label: "终端"),
-              _TopBarButton(icon: Icons.settings, label: "设置"),
-              SizedBox(width: 12),
+              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+              SizedBox(
+                width: 100,
+                child: MoveWindow(),
+              ),
             ],
-          ),
+          ))
         ),
         Expanded(child: MoveWindow(
           child: TabbedView(
@@ -85,8 +85,8 @@ class MainWindowState extends ConsumerState<MainWindow> {
                 }
               }
           )
-        ))
-      ],
+          ))
+        ],
     ));
   }
 
@@ -106,6 +106,7 @@ class _TopBarButton extends StatelessWidget {
         children: [
           // Icon(icon, size: 18),
           Text(label, style: TextStyle(fontSize: 10, )),
+          // Container(color: randomColor())
         ],
       ),
     );

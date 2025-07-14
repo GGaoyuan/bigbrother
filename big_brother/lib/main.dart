@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tabbed_view/tabbed_view.dart';
+import 'package:big_brother/general/app_config.dart';
 
 void main() {
   runApp(
@@ -10,7 +11,7 @@ void main() {
   );
 
   doWhenWindowReady(() {
-    appWindow.minSize = const Size(900, 600);
+    // appWindow.minSize = const Size(900, 600);
     appWindow.alignment = Alignment.center;
     appWindow.maximize();
     appWindow.show();
@@ -22,9 +23,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: true,
-      home: MainWindow(),
+      theme: AppConfig.globalTheme,
+      home: const MainWindow(),
     );
   }
 }

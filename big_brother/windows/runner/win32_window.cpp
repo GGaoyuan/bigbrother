@@ -144,6 +144,11 @@ bool Win32Window::Create(const std::wstring& title,
     return false;
   }
 
+  // 设置自定义标题栏高度（可选）
+  // 注意：这会影响原生标题栏，通常 Flutter 自定义标题栏更灵活
+  // SetWindowPos(window, nullptr, 0, 0, 0, 0, 
+  //             SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+
   UpdateTheme(window);
 
   return OnCreate();
