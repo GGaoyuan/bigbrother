@@ -25,21 +25,21 @@ class AppConfig {
     fontSize: 14,
   );
 
-  // 顶部栏文本样式
-  static final titleBarTextStyle = TextStyle(
-    decoration: TextDecoration.none,
-    fontSize: 16,
-    fontWeight: FontWeight.bold,
-  );
+  // 顶部栏文本样式 - 已注释
+  // static final titleBarTextStyle = TextStyle(
+  //   decoration: TextDecoration.none,
+  //   fontSize: 16,
+  //   fontWeight: FontWeight.bold,
+  // );
 
-  // 按钮文本样式
-  static final buttonTextStyle = TextStyle(
-    decoration: TextDecoration.none,
-    fontSize: 10,
-  );
+  // 按钮文本样式 - 已注释
+  // static final buttonTextStyle = TextStyle(
+  //   decoration: TextDecoration.none,
+  //   fontSize: 10,
+  // );
 
-  // 顶部栏高度
-  static const double titleBarHeight = 260.0;
+  // 顶部栏高度 - 已注释
+  // static const double titleBarHeight = 260.0;
 }
 
 

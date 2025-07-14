@@ -38,41 +38,41 @@ class MainWindowState extends ConsumerState<MainWindow> {
   Widget build(BuildContext context) {
     return WindowBorder(color: AppConfig.themeColor, child: Column(
       children: [
-        // 自定义顶部栏
-        WindowTitleBarBox(
-          child: Container(color: Colors.black, child: Row(
-        children: [
-              // 窗口控制按钮
-              SizedBox(
-                width: 100,
-                child: MoveWindow(),
-              ),
-              // 应用名
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: Text("bigbrother (Git)", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              ),
-              // const Spacer(),
-              // 操作按钮
-              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
-              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
-              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
-              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
-              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
-              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
-              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
-              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
-              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
-              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
-              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
-              Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
-              SizedBox(
-                width: 100,
-                child: MoveWindow(),
-              ),
-            ],
-          ))
-        ),
+        // 自定义顶部栏 - 已注释
+        // WindowTitleBarBox(
+        //   child: Container(color: Colors.black, child: Row(
+        // children: [
+        //       // 窗口控制按钮
+        //       SizedBox(
+        //         width: 100,
+        //         child: MoveWindow(),
+        //       ),
+        //       // 应用名
+        //       Padding(
+        //         padding: EdgeInsets.symmetric(horizontal: 12),
+        //         child: Text("bigbrother (Git)", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        //       ),
+        //       // const Spacer(),
+        //       // 操作按钮
+        //       Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+        //       Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+        //       Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+        //       Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+        //       Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+        //       Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+        //       Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+        //       Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+        //       Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+        //       Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+        //       Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+        //       Flexible(flex: 1, child: _TopBarButton(icon: Icons.add, label: "提交")),
+        //       SizedBox(
+        //         width: 100,
+        //         child: MoveWindow(),
+        //       ),
+        //     ],
+        //   ))
+        // ),
         Expanded(child: MoveWindow(
           child: TabbedView(
               controller: TabbedViewController(_tabList),
@@ -92,26 +92,26 @@ class MainWindowState extends ConsumerState<MainWindow> {
 
 }
 
-// 自定义顶部栏按钮组件
-class _TopBarButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  const _TopBarButton({required this.icon, required this.label});
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 6),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Icon(icon, size: 18),
-          Text(label, style: TextStyle(fontSize: 10, )),
-          // Container(color: randomColor())
-        ],
-      ),
-    );
-  }
-}
+// 自定义顶部栏按钮组件 - 已注释
+// class _TopBarButton extends StatelessWidget {
+//   final IconData icon;
+//   final String label;
+//   const _TopBarButton({required this.icon, required this.label});
+//   @override
+//   Widget build(BuildContext context) {
+//     return Padding(
+//       padding: EdgeInsets.symmetric(horizontal: 6),
+//       child: Column(
+//         mainAxisAlignment: MainAxisAlignment.center,
+//         children: [
+//           // Icon(icon, size: 18),
+//           Text(label, style: TextStyle(fontSize: 10, )),
+//           // Container(color: randomColor())
+//         ],
+//       ),
+//     );
+//   }
+// }
 
 
 
