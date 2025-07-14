@@ -21,6 +21,7 @@ class MainWindowState extends ConsumerState<MainWindow> {
   final _tabList = [
     TabObject.seesaw,
     TabObject.overview,
+    TabObject.sentiment
   ];
 
   @override
