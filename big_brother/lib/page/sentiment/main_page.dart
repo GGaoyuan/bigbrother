@@ -1,4 +1,5 @@
 import 'package:big_brother/general/general_import.dart';
+import 'package:big_brother/page/sentiment/data_notifier.dart';
 import 'package:big_brother/page/sentiment/single_line_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,7 +49,15 @@ class MainPageState extends ConsumerState<MainPage> {
         scrollDirection: Axis.vertical, // 允许水平滚动
         child: Column(
           children: [
-            SingleLineChart([]),
+            Consumer(builder: (_, _, _) {
+              return ref.watch(testProvider).when(data: (data) {
+                return SingleLineChart(data);
+              }, error: (error, _) {
+                return Text("$error");
+              }, loading: (){
+                return const Center(child: CircularProgressIndicator());
+              });
+            }),
             Container(height: 300, color: randomColor()),
             Container(height: 300, color: randomColor()),
             Container(height: 300, color: randomColor()),
