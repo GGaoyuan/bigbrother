@@ -1,5 +1,6 @@
 import 'package:big_brother/general/app_config.dart';
 import 'package:big_brother/page/overview/overview_page.dart';
+import 'package:big_brother/test_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +22,7 @@ class MainWindowState extends ConsumerState<MainWindow> {
 
   final _tabList = [
     TabData(text: "Rotation", closable: false, content: const RotationPage()),
+    TabData(text: "Test", closable: false, content: const TestPage()),
     TabData(text: "Overview", closable: false, content: const OverviewPage()),
     TabData(text: "Seesaw", closable: false, content: const SeesawPage()),
     TabData(text: "AAA", closable: false, content: const MainPage()),
