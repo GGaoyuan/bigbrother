@@ -1,16 +1,27 @@
 
-class RotationModel {
-  final String dateTime;
+
+class HeatmapSeries {
   final String name;
-  final String value;
-
-  const RotationModel(
-      this.dateTime,
+  final SeriesPiece pieces;
+  const HeatmapSeries(
       this.name,
-      this.value,
+      this.pieces,
   );
-
+  
+  static Set<String> generateDateTime(List<HeatmapSeries> dataSeries) {
+    return dataSeries.map((series) => series.pieces.dateTime).toSet();
+  }
 }
+
+class SeriesPiece {
+  final String dateTime;
+  final double value;
+  const SeriesPiece(
+      this.dateTime,
+      this.value
+      );
+}
+
 
 
 /*

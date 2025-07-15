@@ -15,8 +15,8 @@ class NetworkConfigReader {
 
 
 class NetworkConfig {
-  // final String baseAddress = "http://49.235.60.18";
-  final String baseAddress = "http://127.0.0.1:5000";
+  final String baseAddress = "http://49.235.60.18";
+  // final String baseAddress = "http://127.0.0.1:5000";
 
   Map<String, dynamic> get defaultParams {
     return {
