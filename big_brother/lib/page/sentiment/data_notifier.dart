@@ -10,44 +10,15 @@ final testProvider = FutureProvider.autoDispose<List<SingleLineChartData>>((ref)
     debugPrint("testProvider dispose");
   });
   await Future.delayed(const Duration(seconds: 1));
-  final List<SingleLineChartData> rtn = [
-    SingleLineChartData('Jan', 35),
-    SingleLineChartData('Feb', 28),
-    SingleLineChartData('Mar', 42),
-    SingleLineChartData('Apr', 60),
-    SingleLineChartData('May', 75),
-    SingleLineChartData('Jun', 90),
-    SingleLineChartData('Jan', 35),
-    SingleLineChartData('Feb', 28),
-    SingleLineChartData('Mar', 42),
-    SingleLineChartData('Apr', 60),
-    SingleLineChartData('May', 75),
-    SingleLineChartData('Jun', 90),
-    SingleLineChartData('Jan', 35),
-    SingleLineChartData('Feb', 28),
-    SingleLineChartData('Mar', 42),
-    SingleLineChartData('Apr', 60),
-    SingleLineChartData('May', 75),
-    SingleLineChartData('Jun', 90),
-    SingleLineChartData('Jan', 35),
-    SingleLineChartData('Feb', 28),
-    SingleLineChartData('Mar', 42),
-    SingleLineChartData('Apr', 60),
-    SingleLineChartData('May', 75),
-    SingleLineChartData('Jun', 90),
-    SingleLineChartData('Jan', 35),
-    SingleLineChartData('Feb', 28),
-    SingleLineChartData('Mar', 42),
-    SingleLineChartData('Apr', 60),
-    SingleLineChartData('May', 75),
-    SingleLineChartData('Jun', 90),
-    SingleLineChartData('Jan', 35),
-    SingleLineChartData('Feb', 28),
-    SingleLineChartData('Mar', 42),
-    SingleLineChartData('Apr', 60),
-    SingleLineChartData('May', 75),
-    SingleLineChartData('Jun', 90),
-  ];
+  final List<SingleLineChartData> rtn = List.generate(50, (index) {
+    // 生成4位字符串作为日期
+    String dateStr = 'Date${(index + 1).toString().padLeft(3, '0')}';
+    
+    // 生成5-99的随机数字
+    int randomValue = 5 + (index * 2) % 95; // 使用简单的算法生成5-99的数字
+    
+    return SingleLineChartData(dateStr, randomValue.toDouble());
+  });
 
   return rtn;
 });
