@@ -53,6 +53,12 @@ class RotationPageState extends ConsumerState<RotationPage> {
       _HeatMapData('Thu', 0.3, 80, 0.1, 0.4, 112, 4, 1, 50, 0, 2, 40),
       _HeatMapData('Fri', 0.5, 0.15, 90, 0.6, 0.25, 7, 2, 3, 1, 4, 20),
       _HeatMapData('Sat', 6.9, 43.2, 40.8, 69.5, 49.5, 5.7, 80, 20, 12, 40, 9),
+      _HeatMapData('Mon1', 0.694, 27, 0.285, 0.76, 0.375, 10, 3, 4, 2, 5, 30),
+      _HeatMapData('Tue1', 15, 1.68, 50, 1.61, 1.75, 1.61, 60, 40, 150, 40, 0.1),
+      _HeatMapData('Wed1', 0.5, 0.15, 90, 0.6, 0.25, 7, 2, 3, 1, 4, 20),
+      _HeatMapData('Thu1', 0.3, 80, 0.1, 0.4, 112, 4, 1, 50, 0, 2, 40),
+      _HeatMapData('Fri1', 0.5, 0.15, 90, 0.6, 0.25, 7, 2, 3, 1, 4, 20),
+      _HeatMapData('Sat1', 6.9, 43.2, 40.8, 69.5, 49.5, 5.7, 80, 20, 12, 40, 9),
     ];
     _tooltipBehavior = TooltipBehavior(
       enable: true,
@@ -67,17 +73,67 @@ class RotationPageState extends ConsumerState<RotationPage> {
 
 
   Color _buildColor(num value) {
-    if (value >= 100.0) return Colors.lightBlue.shade800;
-    if (value >= 80.0) return Colors.lightBlue.shade700;
-    if (value >= 50.0) return Colors.lightBlue.shade600;
-    if (value >= 40.0) return Colors.lightBlue.shade500;
-    if (value >= 20.0) return Colors.lightBlue.shade400;
-    if (value >= 0.0) return Colors.lightBlue.shade300;
-    return Colors.redAccent.shade100;
+    if (value >= 100.0) {
+      return Colors.red.shade900;
+    } else if (value >= 90.0) {
+      return Colors.red.shade800;
+    } else if (value >= 80.0) {
+      return Colors.red.shade700;
+    } else if (value >= 70.0) {
+      return Colors.red.shade600;
+    } else if (value >= 60.0) {
+      return Colors.red.shade500;
+    } else if (value >= 50.0) {
+      return Colors.red.shade400;
+    } else if (value >= 40.0) {
+      return Colors.red.shade300;
+    } else if (value >= 30.0) {
+      return Colors.red.shade200;
+    } else if (value >= 20.0) {
+      return Colors.red.shade100;
+    } else if (value >= 10.0) {
+      return Colors.red.shade50;
+    } else if (value > 0.0) {
+      return Colors.white;
+    } else if (value == 0.0) {
+      return Colors.white;
+    } else if (value >= -10.0) {
+      return Colors.blue.shade50;
+    } else if (value >= -20.0) {
+      return Colors.blue.shade100;
+    } else if (value >= -30.0) {
+      return Colors.blue.shade200;
+    } else if (value >= -40.0) {
+      return Colors.blue.shade300;
+    } else if (value >= -50.0) {
+      return Colors.blue.shade400;
+    } else if (value >= -60.0) {
+      return Colors.blue.shade500;
+    } else if (value >= -70.0) {
+      return Colors.blue.shade600;
+    } else if (value >= -80.0) {
+      return Colors.blue.shade700;
+    } else if (value >= -90.0) {
+      return Colors.blue.shade800;
+    } else if (value >= -100.0) {
+      return Colors.blue.shade900;
+    }
+    return Colors.black;
   }
 
   List<NumericMultiLevelLabel> _buildNumericLabels() {
     return [
+      NumericMultiLevelLabel(start: 0, end: 8, text: 'Nancy'),
+      NumericMultiLevelLabel(start: 8, end: 19, text: 'Andrew'),
+      NumericMultiLevelLabel(start: 19, end: 26, text: 'Janet'),
+      NumericMultiLevelLabel(start: 26, end: 38, text: 'Margaret'),
+      NumericMultiLevelLabel(start: 38, end: 43, text: 'Steven'),
+      NumericMultiLevelLabel(start: 43, end: 56, text: 'Michael'),
+      NumericMultiLevelLabel(start: 56, end: 62, text: 'Robert'),
+      NumericMultiLevelLabel(start: 62, end: 75, text: 'Laura'),
+      NumericMultiLevelLabel(start: 75, end: 80, text: 'Anne'),
+      NumericMultiLevelLabel(start: 80, end: 92, text: 'Paul'),
+      NumericMultiLevelLabel(start: 92, end: 98, text: 'Mario'),
       NumericMultiLevelLabel(start: 0, end: 8, text: 'Nancy'),
       NumericMultiLevelLabel(start: 8, end: 19, text: 'Andrew'),
       NumericMultiLevelLabel(start: 19, end: 26, text: 'Janet'),
@@ -114,68 +170,71 @@ class RotationPageState extends ConsumerState<RotationPage> {
             const Center(
               child: Text("12313"),
             ),
-            Consumer(builder: (_, _, _) {
-              return ref.watch(industryProvider).when(data: (data) {
-                return SfCartesianChart(
-                  plotAreaBorderWidth: 0,
-                  primaryXAxis: CategoryAxis(
-                    axisLine: const AxisLine(width: 0),
-                    majorGridLines: const MajorGridLines(width: 0),
-                    majorTickLines: const MajorTickLines(width: 0),
-                    labelStyle:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0),
-                  ),
-                  primaryYAxis: NumericAxis(
-                    opposedPosition: true,
-                    axisLine: const AxisLine(width: 0),
-                    majorGridLines: const MajorGridLines(width: 0),
-                    majorTickLines: const MajorTickLines(width: 0),
-                    labelStyle: const TextStyle(fontSize: 0),
-                    multiLevelLabelStyle:
-                    MultiLevelLabelStyle(borderColor: Colors.transparent),
-                    multiLevelLabels: _buildNumericLabels(),
-                    multiLevelLabelFormatter: _formatLabel,
-                  ),
-                  legend: Legend(
-                    isVisible: true,
-                    position: LegendPosition.top,
-                    toggleSeriesVisibility: false,
-                    legendItemBuilder: (legendText, series, point, seriesIndex) {
-                      return Row(
-                        children: [
-                          const Text('Zero '),
-                          const SizedBox(width: 5),
-                          SizedBox(
-                              width: 400,
-                              height: 20,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.lightBlue.withValues(alpha: 0.1),
-                                      Colors.lightBlue.withValues(alpha: 0.4),
-                                      Colors.lightBlue.withValues(alpha: 0.9),
-                                    ],
-                                    begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Consumer(builder: (_, _, _) {
+                return ref.watch(industryProvider).when(data: (data) {
+                  return SfCartesianChart(
+                    plotAreaBorderWidth: 0,
+                    primaryXAxis: CategoryAxis(
+                      axisLine: const AxisLine(width: 0),
+                      majorGridLines: const MajorGridLines(width: 0),
+                      majorTickLines: const MajorTickLines(width: 0),
+                      labelStyle:
+                      const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0),
+                    ),
+                    primaryYAxis: NumericAxis(
+                      opposedPosition: true,
+                      axisLine: const AxisLine(width: 0),
+                      majorGridLines: const MajorGridLines(width: 0),
+                      majorTickLines: const MajorTickLines(width: 0),
+                      labelStyle: const TextStyle(fontSize: 0),
+                      multiLevelLabelStyle:
+                      MultiLevelLabelStyle(borderColor: Colors.transparent),
+                      multiLevelLabels: _buildNumericLabels(),
+                      multiLevelLabelFormatter: _formatLabel,
+                    ),
+                    legend: Legend(
+                      isVisible: true,
+                      position: LegendPosition.top,
+                      toggleSeriesVisibility: false,
+                      legendItemBuilder: (legendText, series, point, seriesIndex) {
+                        return Row(
+                          children: [
+                            const Text('Zero '),
+                            const SizedBox(width: 5),
+                            SizedBox(
+                                width: 400,
+                                height: 20,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.lightBlue.withValues(alpha: 0.1),
+                                        Colors.lightBlue.withValues(alpha: 0.4),
+                                        Colors.lightBlue.withValues(alpha: 0.9),
+                                      ],
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                    ),
                                   ),
-                                ),
-                              )),
-                          const SizedBox(width: 5),
-                          const Text('150'),
-                        ],
-                      );
-                    },
-                  ),
-                  tooltipBehavior: _tooltipBehavior,
-                  series: _buildHeatmapSeries(),
-                );
-              }, error: (error, _) {
-                return Text("$error");
-              }, loading: (){
-                return const Center(child: CircularProgressIndicator());
-              });
-            }),
+                                )),
+                            const SizedBox(width: 5),
+                            const Text('150'),
+                          ],
+                        );
+                      },
+                    ),
+                    tooltipBehavior: _tooltipBehavior,
+                    series: _buildHeatmapSeries(),
+                  );
+                }, error: (error, _) {
+                  return Text("$error");
+                }, loading: (){
+                  return const Center(child: CircularProgressIndicator());
+                });
+              }),
+            )
           ],
         ),
       ),
@@ -183,7 +242,7 @@ class RotationPageState extends ConsumerState<RotationPage> {
   }
 
   List<CartesianSeries<_HeatMapData, String>> _buildHeatmapSeries() {
-    return List.generate(11, (index) {
+    return List.generate(22, (index) {
       return StackedBar100Series<_HeatMapData, String>(
         dataSource: _heatMapData,
         xValueMapper: (_HeatMapData data, int _) => data.percentage,
