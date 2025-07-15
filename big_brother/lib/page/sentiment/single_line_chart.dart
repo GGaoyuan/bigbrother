@@ -27,7 +27,7 @@ class SingleLineChartState extends ConsumerState<SingleLineChart> {
       scrollDirection: Axis.horizontal, // 启用水平滚动
       physics: const ClampingScrollPhysics(), // 移除弹簧效果
       child: Container(
-        // color: randomColor(),
+        color: randomColor(),
         height: 400,
         width: widget.dataSource.length * 50.0, //每个节点100像素宽度
         // margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
