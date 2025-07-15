@@ -11,14 +11,14 @@ class SentimentData {
   SentimentData(this.date, this.value);
 }
 
-class SentimentPage extends ConsumerStatefulWidget {
-  const SentimentPage({super.key});
+class MainPage extends ConsumerStatefulWidget {
+  const MainPage({super.key});
 
   @override
-  SentimentPageState createState() => SentimentPageState();
+  MainPageState createState() => MainPageState();
 }
 
-class SentimentPageState extends ConsumerState<SentimentPage> {
+class MainPageState extends ConsumerState<MainPage> {
   late ZoomPanBehavior _zoomPanBehavior;
   late CrosshairBehavior _crosshairBehavior;
   late TooltipBehavior _tooltipBehavior;
