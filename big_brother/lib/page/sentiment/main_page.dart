@@ -46,7 +46,7 @@ class MainPageState extends ConsumerState<MainPage> {
         elevation: 1,
       ),
       body: SingleChildScrollView(
-        scrollDirection: Axis.vertical, // 允许水平滚动
+        scrollDirection: Axis.vertical,
         child: Column(
           children: [
             Consumer(builder: (_, _, _) {

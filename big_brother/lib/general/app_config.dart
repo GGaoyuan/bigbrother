@@ -7,6 +7,8 @@ class AppConfig {
 
   static final themeColor = Colors.white;
 
+  static final backgroundColor = Colors.grey[50];
+
   // 全局主题配置
   static final globalTheme = ThemeData(
     textTheme: TextTheme(
