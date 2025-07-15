@@ -1,12 +1,13 @@
 import 'package:big_brother/general/app_config.dart';
-import 'package:big_brother/general/general_import.dart';
-import 'package:big_brother/general/tab_object.dart';
 import 'package:big_brother/page/overview/overview_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:tabbed_view/tabbed_view.dart';
+import 'package:big_brother/page/seesaw/seesaw_page.dart';
+import 'package:big_brother/page/sentiment/main_page.dart';
+import 'package:big_brother/page/rotation/rotation_page.dart';
 
 class MainWindow extends ConsumerStatefulWidget {
 
@@ -19,9 +20,10 @@ class MainWindow extends ConsumerStatefulWidget {
 class MainWindowState extends ConsumerState<MainWindow> {
 
   final _tabList = [
-    TabObject.seesaw,
-    TabObject.overview,
-    TabObject.sentiment
+    TabData(text: "Rotation", closable: false, content: const RotationPage()),
+    TabData(text: "Overview", closable: false, content: const OverviewPage()),
+    TabData(text: "Seesaw", closable: false, content: const SeesawPage()),
+    TabData(text: "AAA", closable: false, content: const MainPage()),
   ];
 
   @override
