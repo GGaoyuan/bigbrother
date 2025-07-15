@@ -169,7 +169,7 @@ class HeatmapWidgetState extends ConsumerState<HeatmapWidget> {
                         return StackedBar100Series<HeatmapSeries, String>(
                           dataSource: widget.dataSeries,
                           xValueMapper: (HeatmapSeries data, int _) {
-                            return data.percentage;
+                            return data.pieces[index].name;
                           },
                           yValueMapper: (HeatmapSeries data, int _) {
                             return _findValueByIndex(data, index);
@@ -211,32 +211,7 @@ class HeatmapWidgetState extends ConsumerState<HeatmapWidget> {
   }
 
   double _findValueByIndex(HeatmapSeries data, int index) {
-    switch (index) {
-      case 0:
-        return data.nancy;
-      case 1:
-        return data.andrew;
-      case 2:
-        return data.janet;
-      case 3:
-        return data.margaret;
-      case 4:
-        return data.steven;
-      case 5:
-        return data.michael;
-      case 6:
-        return data.robert;
-      case 7:
-        return data.laura;
-      case 8:
-        return data.anne;
-      case 9:
-        return data.paul;
-      case 10:
-        return data.mario;
-      default:
-        return 0;
-    }
+    return data.pieces[index].value;
   }
 }
 

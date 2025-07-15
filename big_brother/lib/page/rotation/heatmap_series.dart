@@ -1,22 +1,29 @@
 
 
 class HeatmapSeries {
-  final String name;
-  final SeriesPiece pieces;
+  final List<SeriesPiece> pieces;
   const HeatmapSeries(
-      this.name,
       this.pieces,
   );
   
   static Set<String> generateDateTime(List<HeatmapSeries> dataSeries) {
-    return dataSeries.map((series) => series.pieces.dateTime).toSet();
+    Set<String> dateTimes = {};
+    for (HeatmapSeries series in dataSeries) {
+      for (SeriesPiece piece in series.pieces) {
+        dateTimes.add(piece.dateTime);
+      }
+    }
+    
+    return dateTimes;
   }
 }
 
 class SeriesPiece {
+  final String name;
   final String dateTime;
   final double value;
   const SeriesPiece(
+      this.name,
       this.dateTime,
       this.value
       );

@@ -19,11 +19,17 @@ final industryProvider = FutureProvider.autoDispose<List<HeatmapSeries>>((ref) a
   final Random random = Random();
   final DateTime today = DateTime.now();
   
-  for (int i = 0; i < 30; i++) {
+  for (int i = 0; i < 50; i++) {
     final DateTime date = today.subtract(Duration(days: 29 - i));
     final String dateString = DateFormat('M/d').format(date);
     final double value = -100 + random.nextDouble() * 200;
-    final series = HeatmapSeries((i + 1).toString(), SeriesPiece(dateString, value));
+    final name = (i + 1).toString();
+    final List<SeriesPiece> list = [];
+    for (int j = 0; j < 30; j++) {
+      final data = SeriesPiece(name, dateString, value);
+      list.add(data);
+    }
+    final series = HeatmapSeries(list);
     result.add(series);
   }
   
