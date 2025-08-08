@@ -16,18 +16,20 @@ class RotationPageState extends ConsumerState<RotationPage> {
 
   @override
   void initState() {
-
-
     super.initState();
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppConfig.backgroundColor,
       body: ref.watch(industryProvider).when(data: (data) {
-        return HeatmapWidget(data);
+        return Container(
+          // 根据数据量计算容器大小
+          width: data.isNotEmpty ? data.first.pieces.length * 50.0 : 300,
+          height: data.length * 50.0,
+          child: HeatmapWidget(data),
+        );
       }, error: (error, _) {
         return Center(child: Text("$error"));
       }, loading: (){
@@ -36,5 +38,3 @@ class RotationPageState extends ConsumerState<RotationPage> {
     );
   }
 }
-
-// HeatmapWidget(dataSeries)

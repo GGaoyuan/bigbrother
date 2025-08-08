@@ -162,7 +162,7 @@ class TestPageState extends ConsumerState<TestPage> {
             labelStyle: const TextStyle(fontSize: 0),
             multiLevelLabelStyle:
             MultiLevelLabelStyle(borderColor: Colors.transparent),
-            multiLevelLabels: _buildNumericLabels(),
+            // multiLevelLabels: _buildNumericLabels(),
             multiLevelLabelFormatter: _formatLabel,
           ),
           legend: Legend(
