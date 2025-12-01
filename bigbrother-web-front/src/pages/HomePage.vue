@@ -2,7 +2,7 @@
 
 import NavigatorBar from "@/components/NavigatorBar.vue";
 import RaceView from "@/components/sector/race/RaceView.vue";
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 import {RaceItemBean} from "@/components/sector/race/RaceViewBean";
 
 const sectorRaceView = ref<InstanceType<typeof RaceView> | null>(null)
@@ -16,6 +16,14 @@ function startAction() {
   // 调用 RaceView 组件的 addPairs 方法，传入 RaceItemBean
   sectorRaceView.value?.addPairs(raceItemBean);
 }
+
+function prepareRaceViewData() {
+  // 获取板块
+}
+
+onMounted(() => {
+
+})
 
 
 function resetAction() {
