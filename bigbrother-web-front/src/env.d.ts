@@ -13,3 +13,6 @@ declare module '@vue/runtime-core' {
   }
 }
 
+// 确保 Vue 的类型可以被正确识别
+import 'vue'
+
