@@ -17,8 +17,9 @@ function startAction() {
   sectorRaceView.value?.addPairs(raceItemBean);
 }
 
-function prepareRaceViewData() {
-  // 获取板块
+function prepareRaceViewSeries() {
+  // 获取x个板块，获取策略TODO，必须要有银行，券商作为锚定，或者以上证指数，xx指数作为锚定
+
 }
 
 onMounted(() => {
