@@ -5,6 +5,10 @@ import * as echarts from 'echarts';
 import type { EChartsOption } from 'echarts';
 
 
+function prepare() {
+
+}
+
 function addPairs(raceItemBean: RaceItemBean) {
   console.log("addPairs 方法被调用", raceItemBean);
 
@@ -64,6 +68,8 @@ function addPairs(raceItemBean: RaceItemBean) {
   // 更新图表
   updateChart();
 }
+
+
 
 // 使用 defineExpose 暴露方法给父组件
 defineExpose({
