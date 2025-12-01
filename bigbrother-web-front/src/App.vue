@@ -5,7 +5,9 @@ import NavigatorBar from "@/components/NavigatorBar.vue";
 </script>
 
 <template>
-
+  <keep-alive>
+    <router-view />
+  </keep-alive>
 </template>
 
 <style scoped>
