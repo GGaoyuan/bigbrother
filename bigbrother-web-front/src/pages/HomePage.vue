@@ -5,13 +5,16 @@ import RaceView from "@/components/sector/race/RaceView.vue";
 import {ref} from "vue";
 import {RaceItemBean} from "@/components/sector/race/RaceViewBean";
 
-const raceView = ref<InstanceType<typeof RaceView> | null>(null)
+const sectorRaceView = ref<InstanceType<typeof RaceView> | null>(null)
 
 function startAction() {
-  raceView.value?.receiveRaceBean = {
-    name: "test" // 根据实际需求设置值
-  }
   console.log("startAction");
+  // 创建 RaceItemBean 对象
+  const raceItemBean: RaceItemBean = {
+    name: "示例名称" // 根据实际需求设置值
+  };
+  // 调用 RaceView 组件的 addPairs 方法，传入 RaceItemBean
+  sectorRaceView.value?.addPairs(raceItemBean);
 }
 
 
