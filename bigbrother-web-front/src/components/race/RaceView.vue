@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RaceItemBean, RaceViewBean } from "@/components/sector/race/RaceViewBean";
+import type { RaceItemBean, RaceViewBean } from "@/components/race/RaceViewBean";
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import * as echarts from 'echarts';
 import type { EChartsOption } from 'echarts';

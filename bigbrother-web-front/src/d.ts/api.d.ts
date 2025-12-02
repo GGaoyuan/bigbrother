@@ -2,6 +2,7 @@
 type Promiser<T> = Promise<T>
 
 interface ApiObject {
-  getIdentifyingCode: (req?: any) => Promiser<any>;
+  getTest: (req?: any) => Promiser<any>;
+
 }
 

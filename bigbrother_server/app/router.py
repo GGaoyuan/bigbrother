@@ -1,3 +1,4 @@
+import akshare as ak
 from flask import Blueprint, request, jsonify
 bp = Blueprint('main', __name__)
 
@@ -6,9 +7,12 @@ bp = Blueprint('main', __name__)
 def home():
     return 'asdasdasda, World!'
 
-@bp.route('/test')
+@bp.route('/test', methods=['POST'])
 def test():
-    return '111111111, World!'
+    responseObj = {
+        "id": "123123123132"
+    }
+    return jsonify(responseObj)
 
 
 # GET 请求示例（默认就是 GET，可以不写 methods）

@@ -11,6 +11,15 @@ declare module '@vue/runtime-core' {
     RouterView: typeof import('vue-router')['RouterView']
     RouterLink: typeof import('vue-router')['RouterLink']
   }
+  
+  export interface ComponentCustomProperties {
+    $stores: typeof import('./stores/global')['stores']
+  }
+}
+
+// 全局类型声明
+declare global {
+  var $stores: typeof import('./stores/global')['stores']
 }
 
 // 确保 Vue 的类型可以被正确识别
