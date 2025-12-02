@@ -5,6 +5,7 @@ const api: ApiObject = {
     getTest: (req: any) => {
         return post("/test", req);
     },
+
 }
 
 export default api

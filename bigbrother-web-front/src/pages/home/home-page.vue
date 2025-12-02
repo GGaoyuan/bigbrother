@@ -10,14 +10,18 @@ const sectorRaceView = ref<InstanceType<typeof RaceView> | null>(null)
 
 function startAction() {
   console.log("startAction");
-  // 创建 RaceItemBean 对象
-  const raceItemBean: RaceItemBean = {
-    name: "示例名称" // 根据实际需求设置值
-  };
-  // 调用 RaceView 组件的 addPairs 方法，传入 RaceItemBean
-  sectorRaceView.value?.addPairs(raceItemBean);
+  // // 创建 RaceItemBean 对象
+  // const raceItemBean: RaceItemBean = {
+  //   name: "示例名称" // 根据实际需求设置值
+  // };
+  // // 调用 RaceView 组件的 addPairs 方法，传入 RaceItemBean
+  // sectorRaceView.value?.addPairs(raceItemBean);
 
   api.getTest()
+}
+
+function resetAction() {
+  console.log("resetAction");
 }
 
 function prepareRaceViewSeries() {
@@ -29,16 +33,11 @@ onMounted(() => {
 
 })
 
-
-function resetAction() {
-  console.log("resetAction");
-}
-
 </script>
 
 <template>
   <navigator-bar></navigator-bar>
-  <RaceView ref="sectorRaceView"></RaceView>
+<!--  <RaceView ref="sectorRaceView"></RaceView>-->
   <div>
     <a-button type="primary" @click="startAction">开始</a-button>
     <a-button @click="resetAction">重置</a-button>

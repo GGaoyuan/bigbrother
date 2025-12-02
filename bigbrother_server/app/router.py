@@ -7,12 +7,31 @@ bp = Blueprint('main', __name__)
 def home():
     return 'asdasdasda, World!'
 
+
+@bp.route('/stock/industry/summary')
+def home():
+    stock_board_industry_summary_ths_df = ak.stock_board_industry_summary_ths()
+    print(stock_board_industry_summary_ths_df)
+    return 'asdasdasda, World!'
+
+
+
+
 @bp.route('/test', methods=['POST'])
 def test():
     responseObj = {
         "id": "123123123132"
     }
     return jsonify(responseObj)
+
+
+@bp.route('/stock/fundFlowIndividual', methods=['POST'])
+def fundFlowIndividual():
+    responseObj = {
+        "id": "123123123132"
+    }
+    return jsonify(responseObj)
+
 
 
 # GET 请求示例（默认就是 GET，可以不写 methods）
