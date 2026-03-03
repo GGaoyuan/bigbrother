@@ -15,8 +15,28 @@ const router = createRouter({
     },
     {
       path: '/recap',
-      name: 'recap',
-      component: () => import('../views/RecapView.vue'),
+      name: 'recapMarket',
+      component: () => import('../views/RecapMarketView.vue'),
+    },
+    {
+      path: '/recap/indicators',
+      name: 'recapIndicators',
+      component: () => import('../views/RecapIndicatorsView.vue'),
+    },
+    {
+      path: '/recap/macro',
+      name: 'recapMacro',
+      component: () => import('../views/RecapMacroView.vue'),
+    },
+    {
+      path: '/timeline',
+      name: 'timeline',
+      component: () => import('../views/RecapThemesView.vue'),
+    },
+    {
+      path: '/theme_lib',
+      name: 'themeLibrary',
+      component: () => import('../views/ThemeLibraryView.vue'),
     },
     {
       path: '/order_flow',
