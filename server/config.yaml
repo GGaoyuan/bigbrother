@@ -1,7 +1,0 @@
-#飞书配置
-feishu:
-    app_id: 'cli_a79a36c6fdf6500c'
-    app_secret: 'Nu2HJ9UoynVZUnRiiuTZ5g4OgrUbgTUt'
-#日志配置
-log:
-    a: '12313'
