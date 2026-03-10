@@ -146,9 +146,10 @@ onUnmounted(() => {
   border-radius: 8px;
   background: var(--color-background-soft);
   padding: 1rem;
-  min-height: 320px;
+  height: 320px;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .info-list-title {
@@ -158,6 +159,7 @@ onUnmounted(() => {
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .info-list {
@@ -165,7 +167,9 @@ onUnmounted(() => {
   padding: 0;
   margin: 0;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .info-list-item {

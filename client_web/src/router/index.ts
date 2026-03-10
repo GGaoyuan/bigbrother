@@ -29,6 +29,27 @@ const router = createRouter({
       component: () => import('../views/RecapMacroView.vue'),
     },
     {
+      path: '/recap/dividend_yield',
+      name: 'recapDividendYield',
+      component: () => import('../views/RecapDividendYieldView.vue'),
+    },
+    {
+      path: '/recap/heatmap',
+      name: 'recapHeatmap',
+      component: () => import('../views/RecapHeatmapView.vue'),
+    },
+    {
+      path: '/recap/sector',
+      name: 'recapSector',
+      component: () => import('../views/RecapSectorView.vue'),
+      redirect: { name: 'recapSectorTab1' },
+      children: [
+        { path: 'tab1', name: 'recapSectorTab1', component: () => import('../views/sector/SectorTab1View.vue') },
+        { path: 'tab2', name: 'recapSectorTab2', component: () => import('../views/sector/SectorTab2View.vue') },
+        { path: 'tab3', name: 'recapSectorTab3', component: () => import('../views/sector/SectorTab3View.vue') },
+      ],
+    },
+    {
       path: '/timeline',
       name: 'timeline',
       component: () => import('../views/RecapThemesView.vue'),

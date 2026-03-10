@@ -5,6 +5,7 @@ import { RouterLink, RouterView, useRoute } from 'vue-router'
 const route = useRoute()
 const showTodaySubTabs = computed(() => route.path === '/' || route.path === '/market_anomaly')
 const showRecapSubTabs = computed(() => route.path.startsWith('/recap'))
+const showSectorSubTabs = computed(() => route.path.startsWith('/recap/sector'))
 
 const isTodayDataActive = computed(() => route.path === '/' || route.path === '/market_anomaly')
 const isRecapActive = computed(() => route.path.startsWith('/recap'))
@@ -34,11 +35,19 @@ const isOrderFlowActive = computed(() => route.path === '/order_flow')
         <RouterLink to="/recap" class="sub-tab" active-class="sub-tab--active" exact-active-class="sub-tab--active">市场面</RouterLink>
         <RouterLink to="/recap/indicators" class="sub-tab" active-class="sub-tab--active">指标面</RouterLink>
         <RouterLink to="/recap/macro" class="sub-tab" active-class="sub-tab--active">宏观经济</RouterLink>
+        <RouterLink to="/recap/dividend_yield" class="sub-tab" active-class="sub-tab--active">股息率测算</RouterLink>
+        <RouterLink to="/recap/heatmap" class="sub-tab" active-class="sub-tab--active">热力图</RouterLink>
+        <RouterLink to="/recap/sector" class="sub-tab" active-class="sub-tab--active">板块分析</RouterLink>
+      </nav>
+      <nav v-show="showSectorSubTabs" class="sub-tabs-nav">
+        <RouterLink to="/recap/sector/tab1" class="sub-tab" active-class="sub-tab--active">热力图</RouterLink>
+        <RouterLink to="/recap/sector/tab2" class="sub-tab" active-class="sub-tab--active">Tab2</RouterLink>
+        <RouterLink to="/recap/sector/tab3" class="sub-tab" active-class="sub-tab--active">Tab3</RouterLink>
       </nav>
     </div>
   </header>
 
-  <main class="main-content" :class="{ 'main-content--with-sub-tabs': showTodaySubTabs || showRecapSubTabs }">
+  <main class="main-content" :class="{ 'main-content--with-sub-tabs': (showTodaySubTabs || showRecapSubTabs) && !showSectorSubTabs, 'main-content--with-sector-tabs': showSectorSubTabs }">
     <RouterView />
   </main>
 </template>
@@ -142,5 +151,9 @@ const isOrderFlowActive = computed(() => route.path === '/order_flow')
 
 .main-content--with-sub-tabs {
   padding-top: 92px;
+}
+
+.main-content--with-sector-tabs {
+  padding-top: 132px;
 }
 </style>
