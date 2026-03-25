@@ -3,11 +3,12 @@ import { computed } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 
 const route = useRoute()
-const showTodaySubTabs = computed(() => route.path === '/' || route.path === '/market_anomaly')
+const showTodaySubTabs = computed(() => route.path === '/today' || route.path === '/market_anomaly')
 const showRecapSubTabs = computed(() => route.path.startsWith('/recap'))
 const showSectorSubTabs = computed(() => route.path.startsWith('/recap/sector'))
 
-const isTodayDataActive = computed(() => route.path === '/' || route.path === '/market_anomaly')
+const isMarketQuotesActive = computed(() => route.path === '/')
+const isTodayDataActive = computed(() => route.path === '/today' || route.path === '/market_anomaly')
 const isRecapActive = computed(() => route.path.startsWith('/recap'))
 const isTimelineActive = computed(() => route.path === '/timeline')
 const isThemeLibActive = computed(() => route.path === '/theme_lib')
@@ -21,14 +22,15 @@ const isOrderFlowActive = computed(() => route.path === '/order_flow')
         <RouterLink to="/" class="title-icon-link" aria-label="首页">
           <img src="/favicon.png" alt="" class="title-icon" />
         </RouterLink>
-        <RouterLink to="/" class="tab" :class="{ 'tab--active': isTodayDataActive }">今日数据</RouterLink>
+        <RouterLink to="/" class="tab" :class="{ 'tab--active': isMarketQuotesActive }">行情</RouterLink>
+        <RouterLink to="/today" class="tab" :class="{ 'tab--active': isTodayDataActive }">今日数据</RouterLink>
         <RouterLink to="/recap" class="tab" :class="{ 'tab--active': isRecapActive }">复盘</RouterLink>
         <RouterLink to="/timeline" class="tab" :class="{ 'tab--active': isTimelineActive }">时间轴</RouterLink>
         <RouterLink to="/theme_lib" class="tab" :class="{ 'tab--active': isThemeLibActive }">题材库</RouterLink>
         <RouterLink to="/order_flow" class="tab" :class="{ 'tab--active': isOrderFlowActive }">订单流</RouterLink>
       </nav>
       <nav v-show="showTodaySubTabs" class="sub-tabs-nav">
-        <RouterLink to="/" class="sub-tab" active-class="sub-tab--active" exact-active-class="sub-tab--active">今日大盘</RouterLink>
+        <RouterLink to="/today" class="sub-tab" active-class="sub-tab--active" exact-active-class="sub-tab--active">今日大盘</RouterLink>
         <RouterLink to="/market_anomaly" class="sub-tab" active-class="sub-tab--active">大盘异动</RouterLink>
       </nav>
       <nav v-show="showRecapSubTabs" class="sub-tabs-nav">

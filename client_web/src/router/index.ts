@@ -5,6 +5,11 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      name: 'marketQuotes',
+      component: () => import('../views/MarketQuotesView.vue'),
+    },
+    {
+      path: '/today',
       name: 'todayMarket',
       component: () => import('../views/TodayTradeDataView.vue'),
     },
