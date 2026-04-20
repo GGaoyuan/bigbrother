@@ -55,6 +55,26 @@ const router = createRouter({
       ],
     },
     {
+      path: '/heatmap',
+      name: 'heatmap',
+      redirect: { name: 'heatmapTheme' },
+    },
+    {
+      path: '/heatmap/theme',
+      name: 'heatmapTheme',
+      component: () => import('../views/heatmap/HeatmapThemeView.vue'),
+    },
+    {
+      path: '/heatmap/industry',
+      name: 'heatmapIndustry',
+      component: () => import('../views/heatmap/HeatmapIndustryView.vue'),
+    },
+    {
+      path: '/heatmap/change',
+      name: 'heatmapChange',
+      component: () => import('../views/heatmap/HeatmapChangeView.vue'),
+    },
+    {
       path: '/timeline',
       name: 'timeline',
       component: () => import('../views/RecapThemesView.vue'),
