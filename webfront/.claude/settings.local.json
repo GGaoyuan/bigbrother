@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Read(//Users/gaoyuan/Desktop/personalstation/bigbrother/**)",
+      "Bash(mv client_web webfront)"
+    ]
+  }
+}
