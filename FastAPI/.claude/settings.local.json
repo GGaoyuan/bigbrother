@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m uvicorn main:app --reload)",
+      "Bash(pip install:*)",
+      "Bash(curl -s http://127.0.0.1:8000/)",
+      "Bash(pkill:*)",
+      "Bash(chmod:*)"
+    ]
+  }
+}
