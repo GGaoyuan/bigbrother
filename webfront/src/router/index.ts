@@ -89,6 +89,11 @@ const router = createRouter({
       name: 'orderFlow',
       component: () => import('../views/OrderFlowView.vue'),
     },
+    {
+      path: '/intraday_flow',
+      name: 'intradayFlow',
+      component: () => import('../views/IntradayFlowView.vue'),
+    },
   ],
 })
 

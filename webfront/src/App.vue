@@ -15,6 +15,7 @@ const isHeatmapActive = computed(() => route.path.startsWith('/heatmap'))
 const isTimelineActive = computed(() => route.path === '/timeline')
 const isThemeLibActive = computed(() => route.path === '/theme_lib')
 const isOrderFlowActive = computed(() => route.path === '/order_flow')
+const isIntradayFlowActive = computed(() => route.path === '/intraday_flow')
 </script>
 
 <template>
@@ -79,6 +80,9 @@ const isOrderFlowActive = computed(() => route.path === '/order_flow')
         </RouterLink>
         <RouterLink to="/order_flow" class="nav-item" :class="{ 'nav-item--active': isOrderFlowActive }">
           订单流
+        </RouterLink>
+        <RouterLink to="/intraday_flow" class="nav-item" :class="{ 'nav-item--active': isIntradayFlowActive }">
+          分时资金流
         </RouterLink>
       </nav>
     </aside>
