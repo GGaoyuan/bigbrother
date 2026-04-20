@@ -3,7 +3,10 @@
     "allow": [
       "Bash(npm install:*)",
       "Read(//Users/gaoyuan/Desktop/personalstation/bigbrother/**)",
-      "Bash(mv client_web webfront)"
+      "Bash(mv client_web webfront)",
+      "Bash(npm run:*)",
+      "Bash(npm ls:*)",
+      "Bash(timeout 8 npx vite --port 5173)"
     ]
   }
 }
