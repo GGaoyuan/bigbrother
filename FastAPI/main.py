@@ -1,11 +1,14 @@
 from fastapi import FastAPI
+from app.api.v1.stock import router as stock_router
 
-app = FastAPI()
+app = FastAPI(title="Stock Data API", version="1.0.0")
+
+app.include_router(stock_router, prefix="/api/v1")
 
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Stock Data API"}
 
 
 @app.get("/health")
