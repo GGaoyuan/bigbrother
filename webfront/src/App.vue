@@ -9,6 +9,7 @@ const showSectorSubTabs = computed(() => route.path.startsWith('/recap/sector'))
 const showHeatmapSubTabs = computed(() => route.path.startsWith('/heatmap'))
 
 const isMarketQuotesActive = computed(() => route.path === '/')
+const isMarketSentimentActive = computed(() => route.path === '/market_sentiment')
 const isTodayDataActive = computed(() => route.path === '/today' || route.path === '/market_anomaly')
 const isRecapActive = computed(() => route.path.startsWith('/recap'))
 const isHeatmapActive = computed(() => route.path.startsWith('/heatmap'))
@@ -30,6 +31,10 @@ const isIntradayFlowActive = computed(() => route.path === '/intraday_flow')
       <nav class="sidebar-nav">
         <RouterLink to="/" class="nav-item" :class="{ 'nav-item--active': isMarketQuotesActive }">
           行情
+        </RouterLink>
+
+        <RouterLink to="/market_sentiment" class="nav-item" :class="{ 'nav-item--active': isMarketSentimentActive }">
+          市场情绪
         </RouterLink>
 
         <div class="nav-group">
