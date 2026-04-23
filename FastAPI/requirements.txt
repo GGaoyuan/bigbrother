@@ -1,6 +1,7 @@
 fastapi
 uvicorn[standard]
 pydantic-settings
+pyyaml
 baostock
 akshare
 tushare

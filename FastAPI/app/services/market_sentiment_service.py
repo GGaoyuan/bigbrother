@@ -2,6 +2,7 @@ from fastapi import HTTPException
 
 from app.providers.baostock import BaoStockProvider
 from app.providers.akshare import AKShareProvider
+from app.core.config import settings
 
 
 class MarketSentimentService:
@@ -10,14 +11,14 @@ class MarketSentimentService:
             "baostock": BaoStockProvider(),
             "akshare": AKShareProvider(),
         }
-        self._fallback_order = ["baostock", "akshare"]
+        # 从配置文件读取默认数据源
+        self._default_provider = settings.datasource
 
     async def get_market_stats(self, date: str) -> dict:
-        for name in self._fallback_order:
-            try:
-                return await self._providers[name].get_market_stats(date)
-            except Exception as e:
-                print(f"[{name}] get_market_stats 失败: {e}")
-                continue
-
-        raise HTTPException(status_code=503, detail="所有数据源均不可用")
+        try:
+            return await self._providers[self._default_provider].get_market_stats(date)
+        except Exception as e:
+            raise HTTPException(
+                status_code=503,
+                detail=f"{self._default_provider} 数据源不可用: {e}"
+            )

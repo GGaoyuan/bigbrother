@@ -1,0 +1,57 @@
+# ============================================
+# BigBrother 项目配置文件
+# 用于配置 FastAPI 后端和 WebFront 前端项目
+# ============================================
+
+# FastAPI 后端配置
+fastapi:
+  # 服务器配置
+  server:
+    host: 0.0.0.0
+    port: 8000
+    # 是否开启调试模式
+    debug: true
+    # 是否自动重载（开发环境建议开启）
+    reload: true
+    # 数据源配置
+    # 可选值: akshare, baostock, tushare
+    # akshare: 使用 AKShare 库获取股票数据（免费，无需 token）
+    # baostock: 使用 BaoStock 库获取股票数据（免费，需注册）
+    # tushare: 使用 Tushare 库获取股票数据（需付费 token）
+    datasource: akshare
+
+  # 跨域配置
+  cors:
+    # 允许的前端域名列表
+    allowed_origins:
+      - http://localhost:5173
+      - http://127.0.0.1:5173
+    # 是否允许携带凭证
+    allow_credentials: true
+
+  # 缓存配置
+  cache:
+    # 缓存类型: noop（无缓存）, redis, memory
+    type: noop
+    # Redis 配置（当 type 为 redis 时生效）
+    redis:
+      host: localhost
+      port: 6379
+      db: 0
+      # 缓存过期时间（秒）
+      expire: 3600
+
+# WebFront 前端配置
+webfront:
+  # API 基础路径
+  api_base_url: http://localhost:8000/api/v1
+
+  # 主题配置
+  theme:
+    # 默认主题: light, dark
+    default: light
+
+  # 页面配置
+  page:
+    # 每页显示数据条数
+    page_size: 20

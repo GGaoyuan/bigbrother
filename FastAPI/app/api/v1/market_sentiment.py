@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from datetime import datetime
 import akshare as ak
 import pandas as pd
 import random
+from app.schemas.response import ApiResponse
+from app.dependencies import verify_auth
 
 router = APIRouter()
 
@@ -98,8 +100,8 @@ def generate_mock_data(date_str: str) -> MarketSentimentResponse:
     )
 
 
-@router.post("/market-sentiment", response_model=MarketSentimentResponse)
-async def get_market_sentiment(body: MarketSentimentRequest):
+@router.post("/market-sentiment")
+async def get_market_sentiment(body: MarketSentimentRequest, _auth=Depends(verify_auth)):
     """
     获取指定日期的市场情绪数据（真实数据）
     使用 akshare 获取 A 股市场涨跌统计
@@ -113,7 +115,7 @@ async def get_market_sentiment(body: MarketSentimentRequest):
 
         if df is None or df.empty:
             print(f"警告: akshare 返回空数据，使用模拟数据")
-            return generate_mock_data(date_str)
+            return ApiResponse.ok(generate_mock_data(date_str))
 
         # 过滤掉无效行（最新价为空或0）
         df = df[df["最新价"].notna() & (df["最新价"] > 0)]
@@ -150,7 +152,7 @@ async def get_market_sentiment(body: MarketSentimentRequest):
             up_count, down_count, limit_up_count, limit_down_count, avg_change_pct
         )
 
-        return MarketSentimentResponse(
+        return ApiResponse.ok(MarketSentimentResponse(
             score=score,
             grid=[
                 GridItem(label="上涨", value=str(up_count), color="#e53935"),
@@ -165,9 +167,9 @@ async def get_market_sentiment(body: MarketSentimentRequest):
                 GridItem(label="最高连板", value=f"{max_streak}板", color="#e53935"),
                 GridItem(label="成交量", value=f"{int(total_volume)}亿", color="#1565c0"),
             ],
-        )
+        ))
 
     except Exception as e:
         # 网络错误或其他异常，降级使用模拟数据
         print(f"警告: akshare 获取数据失败 ({e})，使用模拟数据")
-        return generate_mock_data(date_str)
+        return ApiResponse.ok(generate_mock_data(date_str))
