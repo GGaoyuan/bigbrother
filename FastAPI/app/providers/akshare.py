@@ -1,3 +1,4 @@
+import asyncio
 import akshare as ak
 from .base import StockProvider
 from app.bean import DailyBarBean, RealtimeQuoteBean, MarketSentimentBean
@@ -6,11 +7,26 @@ from app.bean import DailyBarBean, RealtimeQuoteBean, MarketSentimentBean
 class AKShareProvider(StockProvider):
     """AKShare 数据提供方，优先使用东方财富数据源"""
 
+    def __init__(self):
+        # 设置 akshare 的请求超时时间（如果支持）
+        pass
+
+    async def _fetch_with_retry(self, func, *args, max_retries=3, **kwargs):
+        """带重试机制的数据获取"""
+        for attempt in range(max_retries):
+            try:
+                return await asyncio.to_thread(func, *args, **kwargs)
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    raise Exception(f"请求失败（已重试 {max_retries} 次）: {str(e)}")
+                await asyncio.sleep(1)  # 重试前等待 1 秒
+
     async def get_daily(self, code: str, start: str, end: str) -> list[DailyBarBean]:
         """获取 A 股日线数据（前复权）"""
         # AKShare 股票代码格式：去掉交易所前缀，如 sh.600000 -> 600000
         pure_code = code.split(".")[-1] if "." in code else code
-        df = ak.stock_zh_a_hist(
+        df = await self._fetch_with_retry(
+            ak.stock_zh_a_hist,
             symbol=pure_code,
             period="daily",
             start_date=start.replace("-", ""),
@@ -34,7 +50,7 @@ class AKShareProvider(StockProvider):
     async def get_realtime(self, code: str) -> RealtimeQuoteBean:
         """获取 A 股实时行情（东方财富）"""
         pure_code = code.split(".")[-1] if "." in code else code
-        df = ak.stock_zh_a_spot_em()
+        df = await self._fetch_with_retry(ak.stock_zh_a_spot_em)
         row = df[df["代码"] == pure_code]
         if row.empty:
             raise Exception(f"未找到股票: {code}")
@@ -51,7 +67,7 @@ class AKShareProvider(StockProvider):
 
     async def get_market_sentiment(self, date: str) -> MarketSentimentBean:
         """获取全市场情绪数据（东方财富实时行情）"""
-        df = ak.stock_zh_a_spot_em()
+        df = await self._fetch_with_retry(ak.stock_zh_a_spot_em)
         if df is None or df.empty:
             raise Exception("未获取到市场数据")
 

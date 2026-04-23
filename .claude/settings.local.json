@@ -5,7 +5,22 @@
       "Bash(find /Users/gaoyuan/Desktop/personalstation/bigbrother/webfront/src -type f \\\\\\(-name *.ts -o -name *.tsx -o -name *.js -o -name *.jsx \\\\\\))",
       "Bash(curl:*)",
       "Bash(python -m py_compile main.py)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(python:*)",
+      "Bash(source .venv/bin/activate)",
+      "WebSearch",
+      "Bash(python3:*)",
+      "Bash(/opt/anaconda3/bin/python3 -c \"import akshare as ak; print\\(ak.__version__\\)\")",
+      "Bash(uvicorn --version)",
+      "Bash(/opt/anaconda3/bin/python3 -c \"import akshare as ak; print\\(ak.__version__\\); df = ak.stock_zh_a_spot_em\\(\\); print\\(f'成功获取 {len\\(df\\)} 条数据'\\)\" 2>&1)",
+      "Bash(/opt/anaconda3/bin/pip install:*)",
+      "Bash(/opt/anaconda3/bin/python3 -c \"import akshare as ak; df = ak.stock_zh_a_spot_em\\(\\); print\\(f'成功获取 {len\\(df\\)} 条数据'\\)\" 2>&1)",
+      "Bash(/opt/anaconda3/bin/python3 -c \"\nimport akshare as ak\nprint\\('测试 stock_zh_a_spot_em...'\\)\ndf = ak.stock_zh_a_spot_em\\(\\)\nprint\\(f'成功！获取到 {len\\(df\\)} 条数据'\\)\nprint\\(df.head\\(3\\)\\)\n\" 2>&1)",
+      "Bash(/opt/anaconda3/bin/python3 -c \"\nimport requests\nurl = 'https://push2.eastmoney.com/api/qt/clist/get'\nparams = {'pn': 1, 'pz': 5}\nheaders = {\n    'User-Agent': 'Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0.0.0 Safari/537.36',\n    'Referer': 'https://quote.eastmoney.com/'\n}\nr = requests.get\\(url, params=params, headers=headers, timeout=10\\)\nprint\\(f'状态码: {r.status_code}'\\)\nprint\\('成功！'\\)\n\" 2>&1)",
+      "Bash(conda env:*)",
+      "Bash(/opt/anaconda3/envs/big_brother/bin/python -c \"import akshare as ak; print\\(f'akshare 版本: {ak.__version__}'\\)\" 2>&1)",
+      "Bash(/opt/anaconda3/envs/big_brother/bin/python -c \"import sys; print\\(sys.executable\\)\")",
+      "Bash(/opt/anaconda3/envs/big_brother/bin/python -c \"\nimport akshare as ak\nprint\\('测试 stock_zh_a_spot_em...'\\)\ndf = ak.stock_zh_a_spot_em\\(\\)\nprint\\(f'成功！获取到 {len\\(df\\)} 条数据'\\)\nprint\\(df.head\\(3\\)\\)\n\" 2>&1)"
     ]
   }
 }

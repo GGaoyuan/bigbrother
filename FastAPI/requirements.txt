@@ -3,5 +3,6 @@ uvicorn[standard]
 pydantic-settings
 pyyaml
 baostock
-akshare
+akshare>=1.12.0
 tushare
+requests
