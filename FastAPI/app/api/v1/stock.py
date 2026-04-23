@@ -2,11 +2,15 @@ from typing import Optional
 from fastapi import APIRouter, Depends
 from app.schemas.stock import ProviderEnum
 from app.schemas.response import ApiResponse
-from app.services.stock_service import StockService
+from app.providers.akshare import AKShareProvider
 from app.dependencies import verify_auth
+from app.core.config import settings
 
 router = APIRouter(prefix="/stock", tags=["stock"])
-service = StockService()
+
+_providers = {
+    "akshare": AKShareProvider(),
+}
 
 
 @router.get("/daily/{code}")
@@ -17,7 +21,9 @@ async def get_daily(
     provider: Optional[ProviderEnum] = ProviderEnum.BAOSTOCK,
     _auth=Depends(verify_auth),
 ):
-    data = await service.get_daily(code, start_date, end_date, provider.value if provider else None)
+    provider_name = provider.value if provider else settings.datasource
+    provider_instance = _providers[provider_name]
+    data = await provider_instance.get_daily(code, start_date, end_date)
     return ApiResponse.ok(data)
 
 
@@ -27,5 +33,7 @@ async def get_realtime(
     provider: Optional[ProviderEnum] = ProviderEnum.BAOSTOCK,
     _auth=Depends(verify_auth),
 ):
-    data = await service.get_realtime(code, provider.value if provider else None)
+    provider_name = provider.value if provider else settings.datasource
+    provider_instance = _providers[provider_name]
+    data = await provider_instance.get_realtime(code)
     return ApiResponse.ok(data)
