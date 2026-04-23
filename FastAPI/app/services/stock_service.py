@@ -3,7 +3,6 @@ from fastapi import HTTPException
 
 from app.providers.baostock import BaoStockProvider
 from app.providers.akshare import AKShareProvider
-from app.providers.tushare import TuShareProvider
 from app.cache.noop import get_cache
 
 
@@ -12,9 +11,8 @@ class StockService:
         self._providers = {
             "baostock": BaoStockProvider(),
             "akshare": AKShareProvider(),
-            "tushare": TuShareProvider(),
         }
-        self._fallback_order = ["baostock", "akshare", "tushare"]
+        self._fallback_order = ["baostock", "akshare"]
         self._cache = get_cache()
 
     async def get_daily(

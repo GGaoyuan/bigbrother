@@ -3,6 +3,8 @@
     <!-- 顶部：日历选择器 -->
     <div class="top-bar">
       <input type="date" class="date-picker" v-model="selectedDate" @change="onDateChange" />
+      <span v-if="loading" class="status-text">加载中...</span>
+      <span v-if="error" class="status-text error">{{ error }}</span>
     </div>
 
     <!-- 仪表盘区域 -->
@@ -31,6 +33,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
+import { fetchMarketSentiment, type GridItem } from '@/api/marketSentiment'
 
 const WEEK_DAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
 
@@ -39,44 +42,6 @@ function toLocalDateString(d: Date) {
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
-}
-
-// 用日期字符串做种子生成伪随机数，保证同一天数据一致
-function seededRand(seed: string, index: number) {
-  let h = index + 1
-  for (let i = 0; i < seed.length; i++) {
-    h = Math.imul(31, h) + seed.charCodeAt(i) | 0
-  }
-  return Math.abs(h % 1000) / 1000
-}
-
-function genDataForDate(date: string) {
-  const r = (i: number, min: number, max: number) => Math.round(seededRand(date, i) * (max - min) + min)
-  const rf = (i: number, min: number, max: number) => (seededRand(date, i) * (max - min) + min).toFixed(2)
-
-  const up = r(0, 1200, 3000)
-  const down = r(1, 800, 2500)
-  const limitUp = r(2, 20, 150)
-  const limitDown = r(3, 2, 40)
-  const blowRate = (seededRand(date, 4) * 30 + 5).toFixed(1)
-  const maxStreak = r(5, 1, 8)
-  const volume = r(6, 5000, 15000)
-  const sentimentScore = r(7, 10, 95)
-
-  return {
-    score: sentimentScore,
-    grid: [
-      { label: '上涨', value: String(up), color: '#e53935' },
-      { label: '下跌', value: String(down), color: '#43a047' },
-      { label: '涨跌对比', value: rf(8, 0.5, 2.5), color: up > down ? '#e53935' : '#43a047', sub: '涨/跌' },
-      { label: '涨停', value: String(limitUp), color: '#e53935' },
-      { label: '跌停', value: String(limitDown), color: '#43a047' },
-      { label: '涨跌停对比', value: rf(9, 1, 10), color: limitUp > limitDown ? '#e53935' : '#43a047', sub: '涨停/跌停' },
-      { label: '炸板率', value: `${blowRate}%`, color: '#fb8c00' },
-      { label: '最高连板', value: `${maxStreak}板`, color: '#e53935' },
-      { label: '成交量', value: `${volume}亿`, color: '#1565c0' },
-    ],
-  }
 }
 
 const selectedDate = ref(toLocalDateString(new Date()))
@@ -94,8 +59,25 @@ const lineRef = ref<HTMLElement | null>(null)
 let gaugeChart: echarts.ECharts | null = null
 let lineChart: echarts.ECharts | null = null
 
-const currentData = ref(genDataForDate(selectedDate.value))
-const gridItems = computed(() => currentData.value.grid)
+const loading = ref(false)
+const error = ref<string | null>(null)
+const sentimentScore = ref(0)
+const gridItems = ref<GridItem[]>([])
+
+async function loadData(date: string) {
+  loading.value = true
+  error.value = null
+  try {
+    const data = await fetchMarketSentiment(date)
+    sentimentScore.value = data.score
+    gridItems.value = data.grid
+    updateGauge(data.score)
+  } catch (e) {
+    error.value = '数据加载失败，请确认后端服务已启动'
+  } finally {
+    loading.value = false
+  }
+}
 
 function getGaugeLabel(val: number) {
   if (val < 20) return '极度悲观'
@@ -108,7 +90,7 @@ function getGaugeLabel(val: number) {
 function initGauge() {
   if (!gaugeRef.value) return
   gaugeChart = echarts.init(gaugeRef.value)
-  updateGauge(currentData.value.score)
+  updateGauge(0)
 }
 
 function updateGauge(score: number) {
@@ -219,8 +201,7 @@ function initLine() {
 }
 
 function onDateChange() {
-  currentData.value = genDataForDate(selectedDate.value)
-  updateGauge(currentData.value.score)
+  loadData(selectedDate.value)
 }
 
 function onResize() {
@@ -231,6 +212,7 @@ function onResize() {
 onMounted(() => {
   initGauge()
   initLine()
+  loadData(selectedDate.value)
   window.addEventListener('resize', onResize)
 })
 
@@ -252,6 +234,18 @@ onUnmounted(() => {
 .top-bar {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+}
+
+.status-text {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  opacity: 0.6;
+}
+
+.status-text.error {
+  color: #e53935;
+  opacity: 1;
 }
 
 .date-picker {

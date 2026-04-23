@@ -46,3 +46,33 @@ class AKShareProvider(StockProvider):
             "volume": float(r["成交量"]),
             "provider": "akshare",
         }
+
+    async def get_market_stats(self, date: str) -> dict[str, Any]:
+        """获取市场统计数据（使用东方财富实时数据）"""
+        df = ak.stock_zh_a_spot_em()
+
+        if df is None or df.empty:
+            raise Exception("未获取到市场数据")
+
+        # 过滤掉无效行
+        df = df[df["最新价"].notna() & (df["最新价"] > 0)]
+
+        # 统计数据
+        up_count = int((df["涨跌幅"] > 0).sum())
+        down_count = int((df["涨跌幅"] < 0).sum())
+        limit_up_count = int((df["涨跌幅"] >= 9.9).sum())
+        limit_down_count = int((df["涨跌幅"] <= -9.9).sum())
+        avg_change_pct = float(df["涨跌幅"].mean())
+        total_volume = float(df["成交额"].sum()) if "成交额" in df.columns else 0
+        max_change_pct = float(df["涨跌幅"].max())
+
+        return {
+            "up_count": up_count,
+            "down_count": down_count,
+            "limit_up_count": limit_up_count,
+            "limit_down_count": limit_down_count,
+            "avg_change_pct": avg_change_pct,
+            "total_volume": total_volume,
+            "max_change_pct": max_change_pct,
+            "provider": "akshare",
+        }
