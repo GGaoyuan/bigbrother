@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.stock import router as stock_router
 from app.api.v1.market_sentiment import router as sentiment_router
-from app.schemas.response import ApiResponse
+from app.core.response import ApiResponse
 from app.core.config import settings
 
 app = FastAPI(title="Stock Data API", version="1.0.0")

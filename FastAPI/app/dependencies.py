@@ -1,6 +1,6 @@
 from fastapi import Header, HTTPException
 from typing import Optional
-from app.schemas.response import ApiResponse
+from app.core.response import ApiResponse
 
 
 async def verify_auth(

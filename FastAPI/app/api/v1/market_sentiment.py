@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 import random
-from app.schemas.response import ApiResponse
+from app.core.response import ApiResponse
 from app.dependencies import verify_auth
 from app.core.config import settings
 from app.providers.akshare import AKShareProvider
