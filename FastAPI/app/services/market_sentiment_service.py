@@ -16,7 +16,7 @@ class MarketSentimentService:
 
     async def get_market_stats(self, date: str) -> dict:
         try:
-            return await self._providers[self._default_provider].get_market_stats(date)
+            return await self._providers[self._default_provider].get_market_sentiment(date)
         except Exception as e:
             raise HTTPException(
                 status_code=503,

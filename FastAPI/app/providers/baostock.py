@@ -37,7 +37,7 @@ class BaoStockProvider(StockProvider):
     async def get_realtime(self, code: str) -> dict[str, Any]:
         raise NotImplementedError("BaoStock 不支持实时行情")
 
-    async def get_market_stats(self, date: str) -> dict[str, Any]:
+    async def get_market_sentiment(self, date: str) -> dict[str, Any]:
         """获取市场统计数据"""
         lg = bs.login()
         if lg.error_code != "0":

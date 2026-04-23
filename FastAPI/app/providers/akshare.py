@@ -47,7 +47,7 @@ class AKShareProvider(StockProvider):
             "provider": "akshare",
         }
 
-    async def get_market_stats(self, date: str) -> dict[str, Any]:
+    async def get_market_sentiment(self, date: str) -> dict[str, Any]:
         """获取市场统计数据（使用东方财富实时数据）"""
         df = ak.stock_zh_a_spot_em()
 

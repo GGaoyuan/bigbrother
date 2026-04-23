@@ -10,7 +10,7 @@ class StockProvider(ABC):
     async def get_realtime(self, code: str) -> dict[str, Any]: ...
 
     @abstractmethod
-    async def get_market_stats(self, date: str) -> dict[str, Any]:
+    async def get_market_sentiment(self, date: str) -> dict[str, Any]:
         """
         获取市场统计数据
 
