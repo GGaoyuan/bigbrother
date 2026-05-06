@@ -66,8 +66,8 @@ class AKShareProvider(StockProvider):
         )
 
     async def get_market_sentiment(self, date: str) -> MarketSentimentBean:
-        """获取全市场情绪数据（东方财富实时行情）"""
-        df = await self._fetch_with_retry(ak.stock_zh_a_spot_em)
+        """获取全市场情绪数据（同花顺数据源）"""
+        df = await self._fetch_with_retry(ak.stock_zh_a_spot)
         if df is None or df.empty:
             raise Exception("未获取到市场数据")
 
@@ -93,12 +93,8 @@ class AKShareProvider(StockProvider):
         # 总成交额（元）
         total_volume = float(df["成交额"].sum()) if "成交额" in df.columns else 0.0
 
-        # 成交量相较昨日变化（%）：若数据源提供昨日成交额字段则计算
+        # 成交量相较昨日变化（%）：同花顺数据源暂不提供昨日成交额字段
         volume_vs_yesterday = None
-        if "成交额" in df.columns and "昨日成交额" in df.columns:
-            yesterday_volume = float(df["昨日成交额"].sum())
-            if yesterday_volume > 0:
-                volume_vs_yesterday = round((total_volume - yesterday_volume) / yesterday_volume * 100, 2)
 
         return MarketSentimentBean(
             up_count=up_count,

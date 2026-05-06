@@ -26,3 +26,22 @@ async def root():
 @app.get("/health")
 async def health_check():
     return ApiResponse.ok({"status": "healthy"})
+
+
+
+if __name__ == '__main__':
+    import akshare as ak
+
+    print("测试 akshare 数据获取...")
+    try:
+        # df = ak.stock_individual_info_em(symbol="000001")
+        # df = ak.stock_xgsr_ths()
+        df = ak.stock_zygc_em(symbol="000066")
+
+        print(f"✓ 成功获取")
+        print(df)
+        #
+        # print("\n前 3 条数据：")
+        # print(df.head(3)[["代码", "名称", "最新价", "涨跌幅"]])
+    except Exception as e:
+        print(f"✗ 获取失败: {e}")
