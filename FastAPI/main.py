@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.stock import router as stock_router
 from app.api.v1.market_sentiment import router as sentiment_router
 from app.api.v1.popularity import router as popularity_router
+from app.api.v1.data_provider import router as data_provider_router
 from app.core.response import ApiResponse
 from app.core.config import settings
 
@@ -18,11 +19,12 @@ app.add_middleware(
 app.include_router(stock_router, prefix="/api/v1")
 app.include_router(sentiment_router, prefix="/api/v1")
 app.include_router(popularity_router, prefix="/api/v1")
+app.include_router(data_provider_router, prefix="/api/v1")
 
 
 @app.get("/")
 async def root():
-    return ApiResponse.ok({"message": "Stock Data API"})
+    return ApiResponse.ok({"message": "aaa Data API"})
 
 
 @app.get("/health")
@@ -32,5 +34,6 @@ async def health_check():
 
 
 if __name__ == '__main__':
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    pass
+    # import uvicorn
+    # uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
