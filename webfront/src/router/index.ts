@@ -99,6 +99,16 @@ const router = createRouter({
       name: 'intradayFlow',
       component: () => import('../views/IntradayFlowView.vue'),
     },
+    {
+      path: '/popularity/top-list',
+      name: 'topList',
+      component: () => import('../views/TopListView.vue'),
+    },
+    {
+      path: '/popularity/hot-rank',
+      name: 'hotRank',
+      component: () => import('../views/HotRankView.vue'),
+    },
   ],
 })
 

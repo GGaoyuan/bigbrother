@@ -4,5 +4,6 @@ pydantic-settings
 pyyaml
 baostock
 akshare
+efinance
 tushare
 requests

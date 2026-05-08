@@ -5,7 +5,7 @@ from app.bean import DailyBarBean, RealtimeQuoteBean, MarketSentimentBean
 
 
 class AKShareProvider(StockProvider):
-    """AKShare 数据提供方，优先使用东方财富数据源"""
+    """AKShare 数据提供方，优先使用 efinance 数据源，其次使用同花顺数据源"""
 
     def __init__(self):
         # 设置 akshare 的请求超时时间（如果支持）

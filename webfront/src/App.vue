@@ -1,22 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { RouterLink, RouterView, useRoute } from 'vue-router'
-
-const route = useRoute()
-const showTodaySubTabs = computed(() => route.path === '/today' || route.path === '/market_anomaly')
-const showRecapSubTabs = computed(() => route.path.startsWith('/recap'))
-const showSectorSubTabs = computed(() => route.path.startsWith('/recap/sector'))
-const showHeatmapSubTabs = computed(() => route.path.startsWith('/heatmap'))
-
-const isMarketQuotesActive = computed(() => route.path === '/')
-const isMarketSentimentActive = computed(() => route.path === '/market_sentiment')
-const isTodayDataActive = computed(() => route.path === '/today' || route.path === '/market_anomaly')
-const isRecapActive = computed(() => route.path.startsWith('/recap'))
-const isHeatmapActive = computed(() => route.path.startsWith('/heatmap'))
-const isTimelineActive = computed(() => route.path === '/timeline')
-const isThemeLibActive = computed(() => route.path === '/theme_lib')
-const isOrderFlowActive = computed(() => route.path === '/order_flow')
-const isIntradayFlowActive = computed(() => route.path === '/intraday_flow')
+import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
@@ -29,66 +12,25 @@ const isIntradayFlowActive = computed(() => route.path === '/intraday_flow')
       </div>
 
       <nav class="sidebar-nav">
-        <RouterLink to="/" class="nav-item" :class="{ 'nav-item--active': isMarketQuotesActive }">
-          行情
-        </RouterLink>
-
-        <RouterLink to="/market_sentiment" class="nav-item" :class="{ 'nav-item--active': isMarketSentimentActive }">
-          市场情绪
-        </RouterLink>
-
-        <div class="nav-group">
-          <RouterLink to="/today" class="nav-item" :class="{ 'nav-item--active': isTodayDataActive }">
-            今日数据
-          </RouterLink>
-          <nav v-show="showTodaySubTabs" class="sub-nav">
-            <RouterLink to="/today" class="sub-nav-item" active-class="sub-nav-item--active" exact-active-class="sub-nav-item--active">今日大盘</RouterLink>
-            <RouterLink to="/market_anomaly" class="sub-nav-item" active-class="sub-nav-item--active">大盘异动</RouterLink>
-          </nav>
-        </div>
-
-        <div class="nav-group">
-          <RouterLink to="/recap" class="nav-item" :class="{ 'nav-item--active': isRecapActive }">
-            复盘
-          </RouterLink>
-          <nav v-show="showRecapSubTabs" class="sub-nav">
-            <RouterLink to="/recap" class="sub-nav-item" active-class="sub-nav-item--active" exact-active-class="sub-nav-item--active">市场面</RouterLink>
-            <RouterLink to="/recap/indicators" class="sub-nav-item" active-class="sub-nav-item--active">指标面</RouterLink>
-            <RouterLink to="/recap/macro" class="sub-nav-item" active-class="sub-nav-item--active">宏观经济</RouterLink>
-            <RouterLink to="/recap/dividend_yield" class="sub-nav-item" active-class="sub-nav-item--active">股息率测算</RouterLink>
-            <RouterLink to="/recap/heatmap" class="sub-nav-item" active-class="sub-nav-item--active">热力图</RouterLink>
-            <RouterLink to="/recap/sector" class="sub-nav-item" active-class="sub-nav-item--active">板块分析</RouterLink>
-          </nav>
-          <nav v-show="showSectorSubTabs" class="sub-nav sub-nav--nested">
-            <RouterLink to="/recap/sector/tab1" class="sub-nav-item" active-class="sub-nav-item--active">热力图</RouterLink>
-            <RouterLink to="/recap/sector/tab2" class="sub-nav-item" active-class="sub-nav-item--active">Tab2</RouterLink>
-            <RouterLink to="/recap/sector/tab3" class="sub-nav-item" active-class="sub-nav-item--active">Tab3</RouterLink>
-          </nav>
-        </div>
-
-        <div class="nav-group">
-          <RouterLink to="/heatmap" class="nav-item" :class="{ 'nav-item--active': isHeatmapActive }">
-            热力图
-          </RouterLink>
-          <nav v-show="showHeatmapSubTabs" class="sub-nav">
-            <RouterLink to="/heatmap/theme" class="sub-nav-item" active-class="sub-nav-item--active">题材热力图</RouterLink>
-            <RouterLink to="/heatmap/industry" class="sub-nav-item" active-class="sub-nav-item--active">行业热力图</RouterLink>
-            <RouterLink to="/heatmap/change" class="sub-nav-item" active-class="sub-nav-item--active">涨跌热力图</RouterLink>
-          </nav>
-        </div>
-
-        <RouterLink to="/timeline" class="nav-item" :class="{ 'nav-item--active': isTimelineActive }">
-          时间轴
-        </RouterLink>
-        <RouterLink to="/theme_lib" class="nav-item" :class="{ 'nav-item--active': isThemeLibActive }">
-          题材库
-        </RouterLink>
-        <RouterLink to="/order_flow" class="nav-item" :class="{ 'nav-item--active': isOrderFlowActive }">
-          订单流
-        </RouterLink>
-        <RouterLink to="/intraday_flow" class="nav-item" :class="{ 'nav-item--active': isIntradayFlowActive }">
-          分时资金流
-        </RouterLink>
+        <RouterLink to="/" class="nav-item">行情</RouterLink>
+        <RouterLink to="/market_sentiment" class="nav-item">市场情绪</RouterLink>
+        <RouterLink to="/today" class="nav-item">今日大盘</RouterLink>
+        <RouterLink to="/market_anomaly" class="nav-item">大盘异动</RouterLink>
+        <RouterLink to="/recap" class="nav-item" exact-active-class="nav-item--active">市场面</RouterLink>
+        <RouterLink to="/recap/indicators" class="nav-item">指标面</RouterLink>
+        <RouterLink to="/recap/macro" class="nav-item">宏观经济</RouterLink>
+        <RouterLink to="/recap/dividend_yield" class="nav-item">股息率测算</RouterLink>
+        <RouterLink to="/recap/heatmap" class="nav-item">热力图（复盘）</RouterLink>
+        <RouterLink to="/recap/sector" class="nav-item">板块分析</RouterLink>
+        <RouterLink to="/heatmap/theme" class="nav-item">题材热力图</RouterLink>
+        <RouterLink to="/heatmap/industry" class="nav-item">行业热力图</RouterLink>
+        <RouterLink to="/heatmap/change" class="nav-item">涨跌热力图</RouterLink>
+        <RouterLink to="/timeline" class="nav-item">时间轴</RouterLink>
+        <RouterLink to="/theme_lib" class="nav-item">题材库</RouterLink>
+        <RouterLink to="/order_flow" class="nav-item">订单流</RouterLink>
+        <RouterLink to="/intraday_flow" class="nav-item">分时资金流</RouterLink>
+        <RouterLink to="/popularity/top-list" class="nav-item">龙虎榜统计</RouterLink>
+        <RouterLink to="/popularity/hot-rank" class="nav-item">热榜</RouterLink>
       </nav>
     </aside>
 
@@ -139,10 +81,6 @@ const isIntradayFlowActive = computed(() => route.path === '/intraday_flow')
   padding: 0.5rem 0;
 }
 
-.nav-group {
-  margin-bottom: 0.25rem;
-}
-
 .nav-item {
   display: block;
   padding: 0.75rem 1.25rem;
@@ -159,42 +97,11 @@ const isIntradayFlowActive = computed(() => route.path === '/intraday_flow')
   background: var(--color-background-mute);
 }
 
+.nav-item.router-link-active,
 .nav-item--active {
   color: #1565c0;
   background: var(--color-background-soft);
   border-left-color: #1565c0;
-}
-
-.sub-nav {
-  padding: 0.25rem 0;
-  background: var(--color-background-mute);
-}
-
-.sub-nav--nested {
-  background: var(--color-background-soft);
-}
-
-.sub-nav-item {
-  display: block;
-  padding: 0.5rem 1.25rem 0.5rem 2.5rem;
-  font-size: 0.875rem;
-  color: var(--color-text);
-  text-decoration: none;
-  transition: all 0.2s;
-}
-
-.sub-nav-item:hover {
-  color: var(--color-heading);
-  background: rgba(0, 0, 0, 0.03);
-}
-
-.sub-nav-item--active {
-  font-weight: 600;
-  color: #1565c0;
-}
-
-.sub-nav--nested .sub-nav-item {
-  padding-left: 3.5rem;
 }
 
 .main-content {
