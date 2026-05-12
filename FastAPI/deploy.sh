@@ -22,6 +22,6 @@ else
 fi
 
 cd "$SCRIPT_DIR"
-nohup $UVICORN main:app --host 0.0.0.0 --port 8000 >> "$LOG_FILE" 2>&1 &
+nohup $UVICORN main:app --host 0.0.0.0 --port 80 >> "$LOG_FILE" 2>&1 &
 echo $! > "$PID_FILE"
 echo "服务已启动 (PID: $!, 日志: $LOG_FILE)"

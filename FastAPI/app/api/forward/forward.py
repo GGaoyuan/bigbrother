@@ -10,14 +10,14 @@ import pandas as pd
 router = APIRouter()
 
 
-class ProviderRequest(BaseModel):
+class ForwardRequest(BaseModel):
     source: str
     fn: str
     param: Optional[dict] = None
 
 
-@router.post("/provider")
-async def get_data_provider(body: ProviderRequest, _auth=Depends(verify_auth)):
+@router.post("/forward")
+async def forward_request(body: ForwardRequest, _auth=Depends(verify_auth)):
     try:
         if body.source == "ak":
             module = ak
