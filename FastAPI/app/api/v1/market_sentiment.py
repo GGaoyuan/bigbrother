@@ -2,15 +2,11 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from app.core.response import ApiResponse
 from app.dependencies import verify_auth
-from app.core.config import settings
-from app.providers.akshare import AKShareProvider
 from app.bean import MarketSentimentBean
+import app.service.fundation_service as svc
+
 
 router = APIRouter()
-
-_providers = {
-    "akshare": AKShareProvider(),
-}
 
 
 class MarketSentimentRequest(BaseModel):
@@ -96,9 +92,8 @@ def build_response(stats: MarketSentimentBean) -> MarketSentimentResponse:
 
 @router.post("/market-sentiment")
 async def get_market_sentiment(body: MarketSentimentRequest, _auth=Depends(verify_auth)):
-    provider = _providers[settings.datasource]
     try:
-        stats = await provider.get_market_sentiment(body.date)
+        stats = await svc.get_market_sentiment()
         return ApiResponse.ok(build_response(stats))
     except Exception as e:
         return ApiResponse.error(500, str(e))

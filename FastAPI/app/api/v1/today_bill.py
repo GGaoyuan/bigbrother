@@ -49,3 +49,20 @@ async def get_today_bill(body: TodayBillRequest, _auth=Depends(verify_auth)):
         return ApiResponse.ok(data)
     except Exception as e:
         return ApiResponse.error(500, str(e))
+
+
+class RealtimeQuotesRequest(BaseModel):
+    codes: List[str]  # 股票代码列表
+
+
+@router.post("/stock/realtime-quotes")
+async def get_realtime_quotes(body: RealtimeQuotesRequest, _auth=Depends(verify_auth)):
+    """获取多只股票实时行情"""
+    try:
+        df = await asyncio.to_thread(ef.stock.get_realtime_quotes)
+        if df is None or df.empty:
+            return ApiResponse.ok({})
+        df = df[df["股票代码"].isin(body.codes)]
+        return ApiResponse.ok(df.to_dict(orient="records"))
+    except Exception as e:
+        return ApiResponse.error(500, str(e))

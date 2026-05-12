@@ -4,7 +4,7 @@ from app.api.v1.stock import router as stock_router
 from app.api.v1.market_sentiment import router as sentiment_router
 from app.api.v1.popularity import router as popularity_router
 from app.api.forward.forward import router as data_provider_router
-from app.api.v1.today_bill import router as today_bill_router
+from app.api.v1.fundation import router as fundation_router
 from app.core.response import ApiResponse
 from app.core.config import settings
 
@@ -21,7 +21,7 @@ app.include_router(stock_router, prefix="/api/v1")
 app.include_router(sentiment_router, prefix="/api/v1")
 app.include_router(popularity_router, prefix="/api/v1")
 app.include_router(data_provider_router, prefix="/api/v1")
-app.include_router(today_bill_router, prefix="/api/v1")
+app.include_router(fundation_router, prefix="/api/v1")
 
 
 @app.get("/")

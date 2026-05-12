@@ -14,6 +14,7 @@
           {{ item.name }}
         </span>
         <span v-if="selectedItems.length === 0" class="legend-empty">请从下方选择题材或行业</span>
+        <span v-if="loading" class="legend-loading">加载中...</span>
       </div>
       <div class="chart-container">
         <canvas ref="chartCanvas"></canvas>
@@ -40,14 +41,6 @@
           </div>
           <div class="item-body">
             <div class="item-name">{{ item.name }}</div>
-            <div class="item-meta">
-              <span class="item-net" :class="item.net >= 0 ? 'pos' : 'neg'">
-                {{ item.net >= 0 ? '+' : '' }}{{ (item.net / 10000).toFixed(2) }}亿
-              </span>
-              <span class="item-change" :class="item.change >= 0 ? 'pos' : 'neg'">
-                {{ item.change >= 0 ? '+' : '' }}{{ item.change }}%
-              </span>
-            </div>
           </div>
           <div
             v-if="item.selected"
@@ -78,14 +71,6 @@
           </div>
           <div class="item-body">
             <div class="item-name">{{ item.name }}</div>
-            <div class="item-meta">
-              <span class="item-net" :class="item.net >= 0 ? 'pos' : 'neg'">
-                {{ item.net >= 0 ? '+' : '' }}{{ (item.net / 10000).toFixed(2) }}亿
-              </span>
-              <span class="item-change" :class="item.change >= 0 ? 'pos' : 'neg'">
-                {{ item.change >= 0 ? '+' : '' }}{{ item.change }}%
-              </span>
-            </div>
           </div>
           <div
             v-if="item.selected"
@@ -104,6 +89,13 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 const chartCanvas = ref<HTMLCanvasElement | null>(null)
 
+const BASE_URL = 'http://0.0.0.0:80/api/v1'
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'token': 'gaoyuanzuishuai',
+  'uid': '1993',
+}
+
 const LINE_COLORS = [
   '#1565c0', '#e53935', '#2e7d32', '#f57c00', '#6a1b9a',
   '#00838f', '#ad1457', '#558b2f', '#4527a0', '#00695c',
@@ -116,67 +108,94 @@ function nextColor() {
   return c
 }
 
+interface TodayBillItem {
+  time: string
+  main_net_inflow: number
+  small_net_inflow: number
+  medium_net_inflow: number
+  large_net_inflow: number
+  super_large_net_inflow: number
+}
+
 interface DataItem {
   id: string
+  code: string
   name: string
-  inflow: number
-  outflow: number
-  net: number
-  change: number
   selected: boolean
   color: string
-  // 固定的模拟分时数据（210个点）
   series: number[]
 }
 
-function makeSeries(seed: number): number[] {
-  let v = seed
-  return Array.from({ length: 210 }, (_, i) => {
-    v += Math.sin(i / 15 + seed) * 800 + (Math.random() - 0.48) * 600
-    return v
+const timeLabels = ref<string[]>([])
+const loading = ref(false)
+
+async function fetchBillData(codes: string[]): Promise<Record<string, TodayBillItem[]>> {
+  const res = await fetch(`${BASE_URL}/stock/today-bill`, {
+    method: 'POST',
+    headers: HEADERS,
+    body: JSON.stringify({ codes }),
   })
+  if (!res.ok) throw new Error(`请求失败: ${res.status}`)
+  const json = await res.json()
+  return json.data
 }
 
 const themeData = ref<DataItem[]>([
-  { id: 'theme-1', name: '人工智能', inflow: 123400, outflow: 89200, net: 34200, change: 2.35, selected: false, color: '', series: makeSeries(1.2) },
-  { id: 'theme-2', name: '新能源车', inflow: 98700, outflow: 112000, net: -13300, change: -0.87, selected: false, color: '', series: makeSeries(2.5) },
-  { id: 'theme-3', name: '半导体', inflow: 156000, outflow: 103000, net: 53000, change: 3.12, selected: false, color: '', series: makeSeries(0.7) },
-  { id: 'theme-4', name: '医疗器械', inflow: 67800, outflow: 71000, net: -3200, change: -0.21, selected: false, color: '', series: makeSeries(3.1) },
-  { id: 'theme-5', name: '军工', inflow: 89000, outflow: 65000, net: 24000, change: 1.56, selected: false, color: '', series: makeSeries(1.8) },
-  { id: 'theme-6', name: '数字经济', inflow: 110000, outflow: 95000, net: 15000, change: 0.92, selected: false, color: '', series: makeSeries(4.0) },
-  { id: 'theme-7', name: '储能', inflow: 78000, outflow: 82000, net: -4000, change: -0.35, selected: false, color: '', series: makeSeries(2.2) },
-  { id: 'theme-8', name: '机器人', inflow: 134000, outflow: 88000, net: 46000, change: 2.78, selected: false, color: '', series: makeSeries(5.0) },
+  { id: 'theme-1', code: 'BK0457', name: '人工智能', selected: false, color: '', series: [] },
+  { id: 'theme-2', code: 'BK0021', name: '新能源车', selected: false, color: '', series: [] },
+  { id: 'theme-3', code: 'BK0447', name: '半导体', selected: false, color: '', series: [] },
+  { id: 'theme-4', code: 'BK0438', name: '医疗器械', selected: false, color: '', series: [] },
+  { id: 'theme-5', code: 'BK0428', name: '军工', selected: false, color: '', series: [] },
+  { id: 'theme-6', code: 'BK0975', name: '数字经济', selected: false, color: '', series: [] },
+  { id: 'theme-7', code: 'BK1012', name: '储能', selected: false, color: '', series: [] },
+  { id: 'theme-8', code: 'BK0952', name: '机器人', selected: false, color: '', series: [] },
 ])
 
 const industryData = ref<DataItem[]>([
-  { id: 'ind-1', name: '电子', inflow: 234000, outflow: 189000, net: 45000, change: 1.89, selected: false, color: '', series: makeSeries(0.3) },
-  { id: 'ind-2', name: '汽车', inflow: 178000, outflow: 192000, net: -14000, change: -0.65, selected: false, color: '', series: makeSeries(1.1) },
-  { id: 'ind-3', name: '医药生物', inflow: 145000, outflow: 123000, net: 22000, change: 0.98, selected: false, color: '', series: makeSeries(3.5) },
-  { id: 'ind-4', name: '计算机', inflow: 196000, outflow: 154000, net: 42000, change: 2.14, selected: false, color: '', series: makeSeries(0.9) },
-  { id: 'ind-5', name: '国防军工', inflow: 112000, outflow: 98000, net: 14000, change: 0.73, selected: false, color: '', series: makeSeries(2.8) },
-  { id: 'ind-6', name: '有色金属', inflow: 88000, outflow: 102000, net: -14000, change: -0.54, selected: false, color: '', series: makeSeries(4.4) },
-  { id: 'ind-7', name: '食品饮料', inflow: 76000, outflow: 69000, net: 7000, change: 0.41, selected: false, color: '', series: makeSeries(1.6) },
-  { id: 'ind-8', name: '银行', inflow: 201000, outflow: 185000, net: 16000, change: 0.28, selected: false, color: '', series: makeSeries(3.8) },
+  { id: 'ind-1', code: 'BK0448', name: '电子', selected: false, color: '', series: [] },
+  { id: 'ind-2', code: 'BK0481', name: '汽车', selected: false, color: '', series: [] },
+  { id: 'ind-3', code: 'BK0465', name: '医药生物', selected: false, color: '', series: [] },
+  { id: 'ind-4', code: 'BK0447', name: '计算机', selected: false, color: '', series: [] },
+  { id: 'ind-5', code: 'BK0428', name: '国防军工', selected: false, color: '', series: [] },
+  { id: 'ind-6', code: 'BK0478', name: '有色金属', selected: false, color: '', series: [] },
+  { id: 'ind-7', code: 'BK0456', name: '食品饮料', selected: false, color: '', series: [] },
+  { id: 'ind-8', code: 'BK0475', name: '银行', selected: false, color: '', series: [] },
 ])
 
 const selectedItems = computed(() =>
   [...themeData.value, ...industryData.value].filter(i => i.selected)
 )
 
-function toggleItem(item: DataItem) {
+async function toggleItem(item: DataItem) {
   item.selected = !item.selected
   if (item.selected) {
     item.color = nextColor()
+    loading.value = true
+    try {
+      const data = await fetchBillData([item.code])
+      const bills: TodayBillItem[] = data[item.code] || []
+      item.series = bills.map(b => b.main_net_inflow)
+      if (timeLabels.value.length === 0 && bills.length > 0) {
+        timeLabels.value = bills.map(b => b.time)
+      }
+    } catch (e) {
+      console.error(e)
+      item.series = []
+    } finally {
+      loading.value = false
+    }
+    await nextTick()
+    drawChart()
   } else {
     item.color = ''
+    item.series = []
+    drawChart()
   }
 }
 
 // ─── 绘图 ─────────────────────────────────────────────────────────────────────
 
 const PAD = { l: 60, r: 20, t: 20, b: 40 }
-const TIME_LABELS = ['9:30', '10:30', '11:30', '13:00', '14:00', '15:00']
-const TIME_IDXS   = [0, 42, 84, 120, 162, 209]
 
 function drawChart() {
   const canvas = chartCanvas.value
@@ -198,7 +217,7 @@ function drawChart() {
 
   ctx.clearRect(0, 0, W, H)
 
-  const active = selectedItems.value
+  const active = selectedItems.value.filter(i => i.series.length > 0)
   if (active.length === 0) {
     ctx.fillStyle = '#aaa'
     ctx.font = '14px sans-serif'
@@ -207,13 +226,13 @@ function drawChart() {
     return
   }
 
-  // 全局 min/max（跨所有选中 series）
+  const maxLen = Math.max(...active.map(i => i.series.length))
   const allValues = active.flatMap(i => i.series)
   const minVal = Math.min(...allValues)
   const maxVal = Math.max(...allValues)
   const range = maxVal - minVal || 1
 
-  const toX = (i: number) => l + (i / 209) * (W - l - r)
+  const toX = (i: number) => l + (i / (maxLen - 1 || 1)) * (W - l - r)
   const toY = (v: number) => t + (1 - (v - minVal) / range) * (H - t - b)
 
   // 零线
@@ -249,16 +268,20 @@ function drawChart() {
     ctx.fillText((v / 10000).toFixed(1) + '亿', l - 6, toY(v) + 4)
   })
 
-  // X 轴标签
+  // X 轴标签（从 timeLabels 中均匀取 6 个）
   ctx.textAlign = 'center'
   ctx.fillStyle = '#888'
-  TIME_LABELS.forEach((label, i) => {
-    ctx.fillText(label, toX(TIME_IDXS[i]), H - b + 16)
-  })
+  const labels = timeLabels.value
+  if (labels.length > 0) {
+    const n = labels.length
+    const step = Math.max(1, Math.floor(n / 5))
+    const idxs = [...new Set([0, step, step * 2, step * 3, step * 4, n - 1])]
+    idxs.forEach(idx => {
+      ctx.fillText(labels[idx], toX(idx), H - b + 16)
+    })
+  }
 }
 
-// 选中项变化或日期变化时重绘
-watch(selectedItems, () => nextTick(drawChart), { deep: true })
 watch(selectedDate, () => nextTick(drawChart))
 
 const handleResize = () => drawChart()
@@ -334,6 +357,11 @@ onUnmounted(() => {
 .legend-empty {
   font-size: 0.8rem;
   color: #aaa;
+}
+
+.legend-loading {
+  font-size: 0.8rem;
+  color: #888;
 }
 
 .chart-container {
@@ -433,20 +461,6 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-.item-meta {
-  display: flex;
-  gap: 0.4rem;
-  margin-top: 0.2rem;
-}
-
-.item-net,
-.item-change {
-  font-size: 0.72rem;
-}
-
-.pos { color: #c62828; }
-.neg { color: #2e7d32; }
 
 /* 选中时底部颜色条 */
 .item-color-bar {

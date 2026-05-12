@@ -1,37 +1,26 @@
-from typing import Optional
 from fastapi import APIRouter, Depends
-from app.bean import ProviderEnum
 from app.core.response import ApiResponse
-from app.providers.akshare import AKShareProvider
 from app.dependencies import verify_auth
-from app.core.config import settings
+import app.service.fundation_service as svc
 
 router = APIRouter(prefix="/stock", tags=["stock"])
 
-_providers = {
-    "akshare": AKShareProvider(),
-}
-
 
 @router.get("/daily/{code}")
-async def get_daily(
-    code: str,
-    start_date: str,
-    end_date: str,
-    provider: Optional[ProviderEnum] = None,
-    _auth=Depends(verify_auth),
-):
-    provider_name = provider.value if provider else settings.datasource
-    data = await _providers[provider_name].get_daily(code, start_date, end_date)
-    return ApiResponse.ok(data)
+async def get_daily(code: str, start_date: str, end_date: str, _auth=Depends(verify_auth)):
+    """获取单只股票日线数据"""
+    try:
+        data = await svc.get_daily(code, start_date, end_date)
+        return ApiResponse.ok(data)
+    except Exception as e:
+        return ApiResponse.error(500, str(e))
 
 
 @router.get("/realtime/{code}")
-async def get_realtime(
-    code: str,
-    provider: Optional[ProviderEnum] = None,
-    _auth=Depends(verify_auth),
-):
-    provider_name = provider.value if provider else settings.datasource
-    data = await _providers[provider_name].get_realtime(code)
-    return ApiResponse.ok(data)
+async def get_realtime(code: str, _auth=Depends(verify_auth)):
+    """获取单只股票实时行情"""
+    try:
+        data = await svc.get_realtime_quotes([code])
+        return ApiResponse.ok(data[0] if data else None)
+    except Exception as e:
+        return ApiResponse.error(500, str(e))
