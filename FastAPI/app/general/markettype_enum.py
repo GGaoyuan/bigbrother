@@ -1,7 +1,6 @@
-from enum import IntEnum
+from enum import Enum
 
-
-class MarketTypeEnum(IntEnum):
+class MarketTypeEnum(Enum):
     """市场类型枚举"""
 
     # A 股市场
