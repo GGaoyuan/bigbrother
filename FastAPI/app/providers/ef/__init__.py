@@ -1,3 +1,3 @@
-from app.providers.ef.ef_provider import EFProvider
+from app.providers.ef import ef_provider
 
-__all__ = ["EFProvider"]
+__all__ = ["ef_provider"]

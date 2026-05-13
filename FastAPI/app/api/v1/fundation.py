@@ -10,7 +10,6 @@ router = APIRouter(prefix="/fundation", tags=["fundation"])
 
 class SectorsRequest(BaseModel):
     type: int  #1：行业，2：概念，3：全部
-
 @router.post("/realtime-sectors")
 async def get_realtime_sectors(body: SectorsRequest, _auth=Depends(verify_auth)):
     """获取板块的实时行情"""

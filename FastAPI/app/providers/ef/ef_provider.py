@@ -5,6 +5,24 @@ from app.general.markettype_enum import MarketTypeEnum
 from app.providers.ef.bean.realtime_quote_bean import RealtimeQuoteBean
 
 
+# 设置 efinance 的请求头，反爬虫
+_headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Referer": "https://quote.eastmoney.com/",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-site",
+}
+
+# 设置 efinance 的全局请求头
+if hasattr(ef, 'session'):
+    ef.session.headers.update(_headers)
+
+
 def _safe_float(val) -> float:
     """安全转换为浮点数，处理 None 和 NaN"""
     try:
@@ -63,8 +81,8 @@ async def get_realtime_quotes(market_type: MarketTypeEnum) -> List[RealtimeQuote
     result = []
     for _, row in df.iterrows():
         result.append(RealtimeQuoteBean(
-            code=str(row.get("股票代码", "")),
-            name=str(row.get("股票名称", "")),
+            stock_code=str(row.get("股票代码", "")),
+            stock_name=str(row.get("股票名称", "")),
             price=_safe_float(row.get("最新价")),
             change=_safe_float(row.get("涨跌额")),
             change_pct=_safe_float(row.get("涨跌幅")),

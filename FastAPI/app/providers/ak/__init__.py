@@ -1,3 +1,3 @@
-from app.providers.ak.ak_provider import AKProvider
+from app.providers.ak import ak_provider
 
-__all__ = ["AKProvider"]
+__all__ = ["ak_provider"]

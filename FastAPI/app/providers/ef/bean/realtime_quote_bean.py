@@ -3,8 +3,8 @@ from typing import Optional
 
 
 class RealtimeQuoteBean(BaseModel):
-    code: str
-    name: Optional[str] = None
+    stock_code: str
+    stock_name: Optional[str] = None
     price: float
     change: Optional[float] = None
     change_pct: Optional[float] = None
