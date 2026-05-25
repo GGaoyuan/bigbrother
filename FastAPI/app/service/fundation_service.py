@@ -1,6 +1,3 @@
-from pydantic import BaseModel
-from app.providers.ef import ef_provider
-from app.providers.ak import ak_provider
 from app.general.markettype_enum import MarketTypeEnum
 import asyncio
 

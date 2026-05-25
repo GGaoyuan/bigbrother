@@ -2,8 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.forward.forward import router as data_provider_router
 from app.api.v1.fundation import router as fundation_router
-from app.core.response import ApiResponse
-from app.core.config import settings
+from app.base.api_response import ApiResponse
+from app.config.config import settings
+from pytdx.hq import TdxHq_API
+
 
 app = FastAPI(title="Stock Data API", version="1.0.0")
 
@@ -29,6 +31,19 @@ async def health_check():
 
 
 
+# if __name__ == '__main__':
+#     import uvicorn
+#     uvicorn.run("main:app", host="0.0.0.0", port=80, reload=True)
+
+
 if __name__ == '__main__':
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=80, reload=True)
+    api = TdxHq_API()
+    if api.connect('119.147.212.81', 7709):
+        df = api.get_security_quotes([(0, '000001'), (1, '600300')])
+        print(df)
+        print("11111111")
+    else:
+        print("222222")
+
+    api.disconnect()
+    pass

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from typing import List
-from app.core.response import ApiResponse
+from app.base.api_response import ApiResponse
 from app.general.dependencies import verify_auth
 import app.service.fundation_service as svc
 

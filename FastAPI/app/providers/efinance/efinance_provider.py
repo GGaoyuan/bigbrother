@@ -2,7 +2,7 @@ import asyncio
 import efinance as ef
 from typing import List
 from app.general.markettype_enum import MarketTypeEnum
-from app.providers.ef.bean.realtime_quote_bean import RealtimeQuoteBean
+from app.providers.efinance.bean.realtime_quote_bean import RealtimeQuoteBean
 
 
 # 设置 efinance 的请求头，反爬虫

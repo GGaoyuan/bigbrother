@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from typing import Optional
-from app.core.response import ApiResponse
+from app.base.api_response import ApiResponse
 from app.general.dependencies import verify_auth
 import efinance as ef
 import akshare as ak
@@ -19,9 +19,9 @@ class ForwardRequest(BaseModel):
 @router.post("/forward")
 async def forward_request(body: ForwardRequest, _auth=Depends(verify_auth)):
     try:
-        if body.source == "ak":
+        if body.source == "akshare":
             module = ak
-        elif body.source == "ef":
+        elif body.source == "efinance":
             module = ef
         else:
             return ApiResponse.error(400, f"不支持的 source: {body.source}")

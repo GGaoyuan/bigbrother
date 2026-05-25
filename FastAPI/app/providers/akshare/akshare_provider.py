@@ -1,7 +1,7 @@
 import asyncio
 import akshare as ak
 from typing import List
-from app.providers.ef.bean.realtime_quote_bean import RealtimeQuoteBean
+from app.providers.efinance.bean.realtime_quote_bean import RealtimeQuoteBean
 
 
 def _safe_float(val) -> float:
