@@ -1,40 +1,24 @@
 import asyncio
 import akshare as ak
+import pandas as pd
 from typing import List
-from app.providers.efinance_provider.bean.realtime_quote_bean import RealtimeQuoteBean
 
 
-def _safe_float(val) -> float:
-    """安全转换为浮点数，处理 None 和 NaN"""
-    try:
-        v = float(val) if val is not None else 0.0
-        return 0.0 if (v != v) else v
-    except (ValueError, TypeError):
-        return 0.0
-
-
-async def get_realtime_quotes() -> List[RealtimeQuoteBean]:
+async def get_concept_board_list() -> pd.DataFrame:
     """
-    获取全市场实时行情，数据来源新浪
-
-    Returns:
-        实时行情列表
+    获取同花顺概念板块列表（名称+代码）。
     """
-    df = await asyncio.to_thread(ak.stock_zh_a_spot)
-
+    df = await asyncio.to_thread(ak.stock_board_concept_name_ths)
     if df is None or df.empty:
-        return []
+        return pd.DataFrame()
+    return df
 
-    result = []
-    for _, row in df.iterrows():
-        result.append(RealtimeQuoteBean(
-            stock_code=str(row.get("代码", "")),
-            stock_name=str(row.get("名称", "")),
-            price=_safe_float(row.get("最新价")),
-            change=_safe_float(row.get("涨跌额")),
-            change_pct=_safe_float(row.get("涨跌幅")),
-            volume=_safe_float(row.get("成交量")),
-            provider="akshare",
-        ))
 
-    return result
+async def get_industry_board_list() -> pd.DataFrame:
+    """
+    获取同花顺行业板块列表（名称+代码）。
+    """
+    df = await asyncio.to_thread(ak.stock_board_industry_name_ths)
+    if df is None or df.empty:
+        return pd.DataFrame()
+    return df
