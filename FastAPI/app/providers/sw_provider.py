@@ -1,10 +1,35 @@
 import asyncio
 from typing import List
+
 import akshare as ak
 import pandas as pd
-from typing import Optional
-from pydantic import BaseModel
-from model.sw_industry_index_model import SwIndustryIndexModel
+
+from app.providers.model.sw_industry_index_model import SwIndustryIndexModel
+from app.providers.model.sw_industry_component_model import SwIndustryComponentModel
+
+
+async def get_sw_index_component(symbol: str) -> List[SwIndustryComponentModel]:
+    """
+    获取申万行业成分股列表。
+
+    参数:
+        symbol: 行业代码（不含.SI后缀），如 "801010"
+
+    映射: 证券代码 -> stock_code, 证券名称 -> stock_name,
+         最新权重 -> sw_weight, 计入日期 -> sw_inclusion_date
+    """
+    df = await asyncio.to_thread(ak.index_component_sw, symbol)
+    if df is None or df.empty:
+        return []
+    return [
+        SwIndustryComponentModel(
+            stock_code=row["证券代码"],
+            stock_name=row["证券名称"],
+            sw_weight=row.get("最新权重"),
+            sw_inclusion_date=str(row["计入日期"]) if pd.notna(row.get("计入日期")) else None,
+        )
+        for _, row in df.iterrows()
+    ]
 
 
 async def get_sw_index_first_info() -> List[SwIndustryIndexModel]:
