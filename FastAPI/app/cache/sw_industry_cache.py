@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
 from .base import BaseCache
@@ -8,6 +9,13 @@ from .base import BaseCache
 _CACHE_DIR = os.path.join(os.path.dirname(__file__), "data")
 _SW_INDUSTRY_FILE = os.path.join(_CACHE_DIR, "sw_industry.json")
 _SW_INDUSTRY_TTL = 86400  # 1天（秒）
+
+
+class _DateEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (date, datetime)):
+            return obj.isoformat()
+        return super().default(obj)
 
 
 class SwIndustryCache(BaseCache):
@@ -33,7 +41,7 @@ class SwIndustryCache(BaseCache):
             "data": value,
         }
         with open(_SW_INDUSTRY_FILE, "w", encoding="utf-8") as f:
-            json.dump(cache, f, ensure_ascii=False)
+            json.dump(cache, f, ensure_ascii=False, cls=_DateEncoder)
 
 
 sw_industry_cache = SwIndustryCache()

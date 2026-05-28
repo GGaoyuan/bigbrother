@@ -3,7 +3,7 @@ import efinance as ef
 import urllib3
 import requests
 # import adata
-from app.providers.akshare_ths_provider import _patch_akshare_session
+from app.providers.ak_provider import _patch_akshare_session
 
 # 申万研究所(swsresearch.com)证书链不完整，对该域名跳过 SSL 验证
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
