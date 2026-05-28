@@ -2,12 +2,12 @@ import asyncio
 from typing import Dict, List
 
 from app.cache.sw_industry_cache import sw_industry_cache
-from app.providers.sw_provider import (
+from app.providers.sw_industry_index import (
     get_sw_index_first_info,
     get_sw_index_second_info,
     get_sw_index_third_info,
-    get_sw_index_component,
 )
+from app.providers.sw_industry_component import get_sw_index_component
 
 _CONCURRENCY = 25
 

@@ -1,38 +1,43 @@
+from typing import Optional
+from pydantic import BaseModel
 import asyncio
 from typing import List
-
 import akshare as ak
 import pandas as pd
 
-from app.providers.model.sw_industry_index_model import SwIndustryIndexModel
-from app.providers.model.sw_industry_component_model import SwIndustryComponentModel
+
+class SwIndustryIndex(BaseModel):
+    # 申万行业级别
+    sw_level: Optional[int] = None
+
+    # 申万行业代码（如 "801010.SI"）
+    sw_industry_code: Optional[str] = None
+
+    # 申万行业名称（如 "农林牧渔"）
+    sw_industry_name: Optional[str] = None
+
+    # 申万上级行业名称（二三级行业所属的上级行业）
+    sw_parent_industry: Optional[str] = None
+
+    # 申万行业成份个数
+    sw_component_count: Optional[int] = None
+
+    # 静态市盈率
+    pe_static: Optional[float] = None
+
+    # TTM(滚动)市盈率
+    pe_ttm: Optional[float] = None
+
+    # 市净率
+    pb: Optional[float] = None
+
+    # 静态股息率
+    dividend_yield: Optional[float] = None
 
 
-async def get_sw_index_component(symbol: str) -> List[SwIndustryComponentModel]:
-    """
-    获取申万行业成分股列表。
-
-    参数:
-        symbol: 行业代码（不含.SI后缀），如 "801010"
-
-    映射: 证券代码 -> stock_code, 证券名称 -> stock_name,
-         最新权重 -> sw_weight, 计入日期 -> sw_inclusion_date
-    """
-    df = await asyncio.to_thread(ak.index_component_sw, symbol)
-    if df is None or df.empty:
-        return []
-    return [
-        SwIndustryComponentModel(
-            stock_code=row["证券代码"],
-            stock_name=row["证券名称"],
-            sw_weight=row.get("最新权重"),
-            sw_inclusion_date=str(row["计入日期"]) if pd.notna(row.get("计入日期")) else None,
-        )
-        for _, row in df.iterrows()
-    ]
 
 
-async def get_sw_index_first_info() -> List[SwIndustryIndexModel]:
+async def get_sw_index_first_info() -> List[SwIndustryIndex]:
     """
     获取申万一级行业指数信息。
 
@@ -44,7 +49,7 @@ async def get_sw_index_first_info() -> List[SwIndustryIndexModel]:
     if df is None or df.empty:
         return []
     return [
-        SwIndustryIndexModel(
+        SwIndustryIndex(
             sw_level=1,
             sw_industry_code=row["行业代码"],
             sw_industry_name=row["行业名称"],
@@ -58,7 +63,7 @@ async def get_sw_index_first_info() -> List[SwIndustryIndexModel]:
     ]
 
 
-async def get_sw_index_second_info() -> List[SwIndustryIndexModel]:
+async def get_sw_index_second_info() -> List[SwIndustryIndex]:
     """
     获取申万二级行业指数信息。
 
@@ -71,7 +76,7 @@ async def get_sw_index_second_info() -> List[SwIndustryIndexModel]:
     if df is None or df.empty:
         return []
     return [
-        SwIndustryIndexModel(
+        SwIndustryIndex(
             sw_level=2,
             sw_industry_code=row["行业代码"],
             sw_industry_name=row["行业名称"],
@@ -86,7 +91,7 @@ async def get_sw_index_second_info() -> List[SwIndustryIndexModel]:
     ]
 
 
-async def get_sw_index_third_info() -> List[SwIndustryIndexModel]:
+async def get_sw_index_third_info() -> List[SwIndustryIndex]:
     """
     获取申万三级行业指数信息。
 
@@ -99,7 +104,7 @@ async def get_sw_index_third_info() -> List[SwIndustryIndexModel]:
     if df is None or df.empty:
         return []
     return [
-        SwIndustryIndexModel(
+        SwIndustryIndex(
             sw_level=3,
             sw_industry_code=row["行业代码"],
             sw_industry_name=row["行业名称"],
