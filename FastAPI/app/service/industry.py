@@ -1,7 +1,10 @@
 import asyncio
+import os
+import time
 from typing import Dict, List
 
-from app.cache.sw_industry_cache import sw_industry_cache
+import pandas as pd
+
 from app.providers.sw_industry_index import (
     get_sw_index_first_info,
     get_sw_index_second_info,
@@ -9,72 +12,121 @@ from app.providers.sw_industry_index import (
 )
 from app.providers.sw_industry_component import get_sw_index_component
 
-_CONCURRENCY = 25
+# CSV 缓存目录与文件路径
+_CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cache", "data")
+_FIRST_CSV = os.path.join(_CACHE_DIR, "sw_industry_first.csv")
+_SECOND_CSV = os.path.join(_CACHE_DIR, "sw_industry_second.csv")
+_THIRD_CSV = os.path.join(_CACHE_DIR, "sw_industry_third.csv")
+_STOCK_INDUSTRY_CSV = os.path.join(_CACHE_DIR, "sw_stock_industry.csv")
+
+# 缓存有效期 1 天
+_TTL_SECONDS = 86400
+
+# 拉取成分股的并发数，太高会被申万限流
+_COMPONENT_CONCURRENCY = 5
+
+
+def _is_fresh(path: str) -> bool:
+    """判断文件是否存在且未过期"""
+    if not os.path.exists(path):
+        return False
+    return (time.time() - os.path.getmtime(path)) <= _TTL_SECONDS
+
+
+def _read_csv(path: str) -> List[dict]:
+    """读取 CSV 并转为 dict 列表"""
+    df = pd.read_csv(path, dtype=str, keep_default_na=False)
+    return df.to_dict(orient="records")
+
+
+def _write_csv(path: str, items: List[dict]) -> None:
+    """将 dict 列表写入 CSV"""
+    os.makedirs(_CACHE_DIR, exist_ok=True)
+    pd.DataFrame(items).to_csv(path, index=False, encoding="utf-8-sig")
 
 
 async def get_sw_industry() -> Dict[str, List[dict]]:
     """
-    获取申万一二三级行业数据及每个行业的成分股，带本地文件缓存（1天过期）。
+    获取申万一级、二级、三级行业列表。
+    分别缓存到 sw_industry_first/second/third.csv，缓存有效期 1 天。
+    缓存命中则读 CSV，否则重新拉取并写入。
     """
-    cached = await sw_industry_cache.get()
-    if cached is not None:
-        return cached
+    levels = [
+        ("first", _FIRST_CSV, get_sw_index_first_info),
+        ("second", _SECOND_CSV, get_sw_index_second_info),
+        ("third", _THIRD_CSV, get_sw_index_third_info),
+    ]
 
-    first_list, second_list, third_list = await asyncio.gather(
-        _dump_list(get_sw_index_first_info()),
-        _dump_list(get_sw_index_second_info()),
-        _dump_list(get_sw_index_third_info()),
-    )
+    async def _load_one(path: str, fetcher) -> List[dict]:
+        if _is_fresh(path):
+            return _read_csv(path)
+        items = [u.model_dump() for u in await fetcher()]
+        _write_csv(path, items)
+        return items
 
-    sem = asyncio.Semaphore(_CONCURRENCY)
-    await _fill_stocks(third_list, sem)
+    # 串行执行，避免并发请求被申万限流（返回空页面导致解析失败）
+    result: Dict[str, List[dict]] = {}
+    for name, path, fetcher in levels:
+        result[name] = await _load_one(path, fetcher)
 
-    _aggregate_by_parent(second_list, third_list)
-    _aggregate_by_parent(first_list, second_list)
-
-    data = {"first": first_list, "second": second_list, "third": third_list}
-    await sw_industry_cache.set(value=data)
-    return data
-
-
-async def _dump_list(coro) -> List[dict]:
-    """await 一个返回 Pydantic 列表的协程并转成 dict 列表。"""
-    items = await coro
-    return [u.model_dump() for u in items]
+    return result
 
 
-async def _fill_stocks(industry_list: List[dict], sem: asyncio.Semaphore) -> None:
-    """为行业列表中的每个行业并发获取成分股。"""
+async def get_sw_stock_industry() -> List[dict]:
+    """
+    获取所有股票的三级申万行业归属。
+    缓存到 sw_stock_industry.csv，缓存有效期 1 天。
+    缓存命中则直接读 CSV，否则遍历所有三级行业拉取成分股并反向映射后写入。
 
-    async def _fetch_one(item: dict):
-        code = item["sw_industry_code"].replace(".SI", "")
+    每条记录字段：
+        stock_code, stock_name, sw_industry_code, sw_industry_name,
+        sw_parent_industry, sw_weight, sw_inclusion_date
+    """
+    if _is_fresh(_STOCK_INDUSTRY_CSV):
+        return _read_csv(_STOCK_INDUSTRY_CSV)
+
+    # 拿到所有三级行业（会复用三级行业 CSV 缓存）
+    industry_data = await get_sw_industry()
+    third_list = industry_data.get("third", [])
+
+    sem = asyncio.Semaphore(_COMPONENT_CONCURRENCY)
+
+    async def _fetch_one(industry: dict) -> List[dict]:
+        # 行业代码去掉 .SI 后缀
+        code = (industry.get("sw_industry_code") or "").replace(".SI", "")
+        if not code:
+            return []
         async with sem:
             try:
                 stocks = await get_sw_index_component(code)
-                item["stocks"] = [s.model_dump() for s in stocks]
             except Exception:
-                item["stocks"] = []
+                return []
+        return [
+            {
+                "stock_code": s.stock_code,
+                "stock_name": s.stock_name,
+                "sw_industry_code": industry.get("sw_industry_code"),
+                "sw_industry_name": industry.get("sw_industry_name"),
+                "sw_parent_industry": industry.get("sw_parent_industry"),
+                "sw_weight": s.sw_weight,
+                "sw_inclusion_date": s.sw_inclusion_date,
+            }
+            for s in stocks
+        ]
 
-    await asyncio.gather(*[_fetch_one(item) for item in industry_list])
+    grouped = await asyncio.gather(*[_fetch_one(item) for item in third_list])
 
-
-def _aggregate_by_parent(parent_list: List[dict], child_list: List[dict]) -> None:
-    """按上级行业名称把子级成分股聚合到父级，按 stock_code 去重。"""
-    grouped: Dict[str, List[dict]] = {}
-    for child in child_list:
-        parent_name = child.get("sw_parent_industry")
-        if not parent_name:
-            continue
-        grouped.setdefault(parent_name, []).extend(child.get("stocks") or [])
-
-    for parent in parent_list:
-        merged = grouped.get(parent["sw_industry_name"], [])
-        seen = set()
-        unique: List[dict] = []
-        for s in merged:
-            code = s.get("stock_code")
-            if code in seen:
+    # 扁平化并按 stock_code 去重，避免一只股票出现在多个三级行业里造成重复行
+    seen = set()
+    flat: List[dict] = []
+    for rows in grouped:
+        for row in rows:
+            code = row.get("stock_code")
+            if not code or code in seen:
                 continue
             seen.add(code)
-            unique.append(s)
-        parent["stocks"] = unique
+            flat.append(row)
+
+    _write_csv(_STOCK_INDUSTRY_CSV, flat)
+    return flat
+
