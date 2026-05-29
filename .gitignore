@@ -6,3 +6,4 @@ __pycache__/account.cpython-310.pyc
 test_strategy/__pycache__/feishu.cpython-310.pyc
 test_strategy/__pycache__/__init__.cpython-310.pyc
 test_strategy/__pycache__/factors.cpython-310.pyc
+FastAPI/app/cache/data/
