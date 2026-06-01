@@ -1,47 +1,59 @@
-import json
 import os
 import time
-from datetime import date, datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
+
+import pandas as pd
 
 from .base import BaseCache
 
+# 缓存目录
 _CACHE_DIR = os.path.join(os.path.dirname(__file__), "data")
-_SW_INDUSTRY_FILE = os.path.join(_CACHE_DIR, "sw_industry.json")
-_SW_INDUSTRY_TTL = 86400  # 1天（秒）
 
+# 申万行业相关的缓存键 -> CSV 文件名
+_KEY_TO_FILE = {
+    "sw_industry_first": "sw_industry_first.csv",        # 一级行业
+    "sw_industry_second": "sw_industry_second.csv",      # 二级行业
+    "sw_industry_third": "sw_industry_third.csv",        # 三级行业
+    "sw_stock_industry": "sw_stock_industry.csv",        # 三级行业对应的全市场股票
+}
 
-class _DateEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, (date, datetime)):
-            return obj.isoformat()
-        return super().default(obj)
+# 默认缓存有效期 3 天（秒）
+_DEFAULT_TTL = 3 * 86400
 
 
 class SwIndustryCache(BaseCache):
-    """申万行业数据文件缓存，过期时间 1 天。"""
+    """
+    申万行业数据 CSV 文件缓存。
+    每个 key 对应一个 CSV 文件，过期时间默认 3 天，由文件 mtime 判断鲜度。
+    """
 
-    async def get(self, key: str = "sw_industry") -> Optional[Dict[str, List[dict]]]:
-        if not os.path.exists(_SW_INDUSTRY_FILE):
-            return None
-        try:
-            with open(_SW_INDUSTRY_FILE, "r", encoding="utf-8") as f:
-                cache = json.load(f)
-        except (json.JSONDecodeError, IOError):
-            return None
+    def _path(self, key: str) -> str:
+        """根据 key 取对应 CSV 文件的绝对路径"""
+        if key not in _KEY_TO_FILE:
+            raise ValueError(f"未注册的缓存 key: {key}")
+        return os.path.join(_CACHE_DIR, _KEY_TO_FILE[key])
 
-        if time.time() - cache.get("cached_at", 0) > _SW_INDUSTRY_TTL:
-            return None
-        return cache.get("data")
+    def is_fresh(self, key: str, ttl: Optional[int] = None) -> bool:
+        """判断指定 key 的缓存是否存在且未过期"""
+        path = self._path(key)
+        if not os.path.exists(path):
+            return False
+        return (time.time() - os.path.getmtime(path)) <= (ttl or _DEFAULT_TTL)
 
-    async def set(self, key: str = "sw_industry", value: Any = None, ttl: Optional[int] = None) -> None:
+    async def get(self, key: str) -> Optional[List[dict]]:
+        """读取 CSV 缓存（不做鲜度判断，由调用方先用 is_fresh 检查）"""
+        path = self._path(key)
+        if not os.path.exists(path):
+            return None
+        df = pd.read_csv(path, dtype=str, keep_default_na=False)
+        return df.to_dict(orient="records")
+
+    async def set(self, key: str, value: Any = None, ttl: Optional[int] = None) -> None:
+        """将 dict 列表写入对应 CSV 文件，ttl 仅用于文档语义（实际由 mtime 判断）"""
+        path = self._path(key)
         os.makedirs(_CACHE_DIR, exist_ok=True)
-        cache = {
-            "cached_at": time.time(),
-            "data": value,
-        }
-        with open(_SW_INDUSTRY_FILE, "w", encoding="utf-8") as f:
-            json.dump(cache, f, ensure_ascii=False, cls=_DateEncoder)
+        items = value or []
+        pd.DataFrame(items).to_csv(path, index=False, encoding="utf-8-sig")
 
 
 sw_industry_cache = SwIndustryCache()

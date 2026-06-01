@@ -1,6 +1,6 @@
 ---
 name: provider-organization
-description: FastAPI 项目（FastAPI/）中 provider 层的组织规范。在 app/providers/ 下新增、修改或重构数据获取代码时使用。规则：所有外部数据框架（akshare/efinance/baostock/tushare/qstock 等）的调用都写在 app/providers/ 下；按返回的 model 类型分文件，同 model 的方法合并到一个文件，不同 model 各自一个文件；model 字段名遵循 stock-field-mapping skill 的统一命名，不同含义字段必须用不同英文名，避免重名歧义。Examples："新增一个获取概念板块的接口"、"重构 provider 文件结构"、"akshare 这个新接口写哪个文件"、"两个 provider 返回字段冲突怎么办"。
+description: FastAPI 项目（FastAPI/）中 provider 层的组织规范。在 app/providers/ 下新增、修改或重构数据获取代码时使用。规则：所有外部数据框架（akshare/efinance/baostock/tushare/qstock 等）的调用都写在 app/providers/ 下；按返回的 model 类型分文件，同 model 的方法合并到一个文件，不同 model 各自一个文件；model 字段名遵循 stock-field-mapping skill 的统一命名，不同含义字段必须用不同英文名，避免重名歧义；新增/修改字段后必须同步到 FastAPI/app/field_map.md 总对照表。Examples："新增一个获取概念板块的接口"、"重构 provider 文件结构"、"akshare 这个新接口写哪个文件"、"两个 provider 返回字段冲突怎么办"、"加了新字段忘了同步对照表"。
 ---
 
 # Provider 组织规范
@@ -144,3 +144,21 @@ class Industry(BaseModel):
 2. 找不到 → 新建文件，文件名描述 model 含义
 3. 设计字段时查 stock-field-mapping skill，没有的字段按命名约定补齐并更新对照表
 4. 全局搜一遍新字段名，确认没和其它 model 同名异义
+5. **同步字段对照表**：将新增的字段名和对应的中文含义追加到 `FastAPI/app/field_map.md` 文件中，保持该文件是项目内所有 model 字段的完整对照表
+
+### 关于 `app/field_map.md`
+
+这是项目内的字段对照总表，每次新增或修改 model 字段后**必须同步更新**。格式示例：
+
+```markdown
+| 英文字段 | 中文含义 | 所属 model |
+| --- | --- | --- |
+| stock_code | 股票代码 | 通用 |
+| sw_industry_l1_name | 申万一级行业名称 | SwIndustryThirdCons |
+```
+
+维护原则：
+- 每次新增 provider 或修改 model 字段后，立即更新此文件
+- 按字段分类组织（基础信息、行情、估值、资金流向等）
+- 标注字段所属的 model，方便排查同名冲突
+- 此文件是唯一权威来源，代码中的字段命名以此为准
