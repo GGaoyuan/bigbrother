@@ -34,3 +34,9 @@
 | net_profit_yoy_q2 | 归母净利润同比增长（二季度末，%） |
 | revenue_yoy_q3 | 营业收入同比增长（三季度末，%） |
 | revenue_yoy_q2 | 营业收入同比增长（二季度末，%） |
+| change_pct | 涨跌幅（%） |
+| turnover_rate | 换手率（%） |
+| turnover | 成交额（元） |
+| fund_inflow | 流入资金（元） |
+| fund_outflow | 流出资金（元） |
+| fund_net_inflow | 资金净流入（元，流入-流出） |

@@ -22,7 +22,16 @@
       "Bash(/opt/anaconda3/envs/big_brother/bin/python -c \"import sys; print\\(sys.executable\\)\")",
       "Bash(/opt/anaconda3/envs/big_brother/bin/python -c \"\nimport akshare as ak\nprint\\('测试 stock_zh_a_spot_em...'\\)\ndf = ak.stock_zh_a_spot_em\\(\\)\nprint\\(f'成功！获取到 {len\\(df\\)} 条数据'\\)\nprint\\(df.head\\(3\\)\\)\n\" 2>&1)",
       "Bash(/opt/anaconda3/envs/big_brother/bin/python main.py)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(pnpm create *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm approve-builds *)",
+      "Bash(pnpm rebuild *)",
+      "Bash(pnpm build *)",
+      "Read(//Users/gaoyuan/**)",
+      "Bash(echo \"=== exit: $? \\(0=found, 1=not found, 2=no file\\) ===\")",
+      "Bash(zsh -lic 'which cargo && cargo --version')",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }

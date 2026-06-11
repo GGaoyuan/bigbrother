@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from app.base.api_response import ApiResponse
-from app.general.dependencies import verify_auth
-import app.service.fundation_service as svc
+from app.base.user_auth import verify_auth
 
 router = APIRouter(prefix="/fundation", tags=["fundation"])
 
