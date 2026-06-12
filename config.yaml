@@ -1,10 +1,10 @@
 # ============================================
 # BigBrother 项目配置文件
-# 用于配置 FastAPI 后端和 WebFront 前端项目
+# 用于配置 backend 后端和 WebFront 前端项目
 # ============================================
 
-# FastAPI 后端配置
-fastapi:
+# backend 后端配置
+backend:
   # 服务器配置
   server:
     host: 0.0.0.0

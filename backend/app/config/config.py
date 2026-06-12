@@ -11,30 +11,30 @@ class Settings:
         if config_path.exists():
             with open(config_path, "r", encoding="utf-8") as f:
                 config = yaml.safe_load(f)
-                self._fastapi_config = config.get("fastapi", {})
+                self._backend_config = config.get("backend", {})
         else:
-            self._fastapi_config = {}
+            self._backend_config = {}
 
     @property
     def datasource(self) -> str:
         """获取数据源配置，默认为 akshare"""
-        return self._fastapi_config.get("server", {}).get("datasource", "akshare")
+        return self._backend_config.get("server", {}).get("datasource", "akshare")
 
     @property
     def host(self) -> str:
-        return self._fastapi_config.get("server", {}).get("host", "0.0.0.0")
+        return self._backend_config.get("server", {}).get("host", "0.0.0.0")
 
     @property
     def port(self) -> int:
-        return self._fastapi_config.get("server", {}).get("port", 8000)
+        return self._backend_config.get("server", {}).get("port", 8000)
 
     @property
     def debug(self) -> bool:
-        return self._fastapi_config.get("server", {}).get("debug", False)
+        return self._backend_config.get("server", {}).get("debug", False)
 
     @property
     def allowed_origins(self) -> list[str]:
-        return self._fastapi_config.get("cors", {}).get("allowed_origins", [])
+        return self._backend_config.get("cors", {}).get("allowed_origins", [])
 
 
 settings = Settings()
