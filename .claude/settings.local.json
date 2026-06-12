@@ -35,7 +35,15 @@
       "Bash(find . -name \"*.iml\" -not -path \"*/node_modules/*\")",
       "Bash(find . -type d -name \".idea\" -not -path \"*/node_modules/*\")",
       "Bash(find . -name \"modules.xml\")",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(/opt/anaconda3/envs/big_brother/bin/python -c \"import fastapi, uvicorn; print\\('deps ok'\\)\")",
+      "Bash(/opt/anaconda3/envs/big_brother/bin/uvicorn main:app --host 127.0.0.1 --port 8000)",
+      "Bash(echo \"started pid $!\")",
+      "Read(//tmp/**)",
+      "Bash(pkill -f \"uvicorn main:app\")",
+      "Read(//private/tmp/**)",
+      "Bash(/opt/anaconda3/envs/big_brother/bin/python *)",
+      "Bash(ps -p 40374 -o pid,command)"
     ]
   }
 }

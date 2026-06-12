@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from typing import Optional
 from app.base.api_response import ApiResponse
-from app.general.dependencies import verify_auth
+from app.base.user_auth import verify_auth
 import efinance as ef
 import akshare as ak
 import pandas as pd
