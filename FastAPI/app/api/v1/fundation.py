@@ -11,9 +11,24 @@ class SectorsRequest(BaseModel):
 @router.post("/realtime-sectors")
 async def get_realtime_sectors(body: SectorsRequest, _auth=Depends(verify_auth)):
     """获取板块的实时行情"""
-    try:
-        data = await svc.get_realtime_sectors(body.type)
-        return ApiResponse.ok(data)
-    except Exception as e:
-        return ApiResponse.error(500, str(e))
+    # try:
+    #     data = await svc.get_realtime_sectors(body.type)
+    #     return ApiResponse.ok(data)
+    # except Exception as e:
+    #     return ApiResponse.error(500, str(e))
+    pass
+
+
+@router.post("/sw-industry")
+async def get_sw_industry(_auth=Depends(verify_auth)):
+    """获取申万的行业分类"""
+
+    # 返回一二三级，都返回
+    pass
+
+
+
+
+
+
 
