@@ -31,7 +31,11 @@
       "Read(//Users/gaoyuan/**)",
       "Bash(echo \"=== exit: $? \\(0=found, 1=not found, 2=no file\\) ===\")",
       "Bash(zsh -lic 'which cargo && cargo --version')",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(find . -name \"*.iml\" -not -path \"*/node_modules/*\")",
+      "Bash(find . -type d -name \".idea\" -not -path \"*/node_modules/*\")",
+      "Bash(find . -name \"modules.xml\")",
+      "Bash(git mv *)"
     ]
   }
 }
