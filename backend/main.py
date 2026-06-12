@@ -37,13 +37,4 @@ async def health_check():
 
 
 if __name__ == '__main__':
-    api = TdxHq_API()
-    if api.connect('119.147.212.81', 7709):
-        df = api.get_security_quotes([(0, '000001'), (1, '600300')])
-        print(df)
-        print("11111111")
-    else:
-        print("222222")
-
-    api.disconnect()
     pass
