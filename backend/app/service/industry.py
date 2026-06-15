@@ -1,14 +1,16 @@
 import asyncio
 import random
-from typing import Dict, List
+from typing import Awaitable, Callable, Dict, List
 
-from app.cache.sw_industry_cache import sw_industry_cache
+from app.cache.file_cache import file_cache
+from app.cache.policy import CachePolicy
 from app.providers.sw_industry_index import (
     get_sw_index_first_info,
     get_sw_index_second_info,
     get_sw_index_third_info,
 )
 from app.providers.sw_industry_component import get_sw_index_component
+from app.service.fetch import with_cache
 
 # 拉取成分股的并发数，太高会被申万限流
 _COMPONENT_CONCURRENCY = 5
@@ -18,35 +20,40 @@ _REQUEST_JITTER_RANGE = (0.3, 0.8)
 _MAX_RETRIES = 3
 
 
+def _make_dump_fetcher(
+    fetcher: Callable[[], Awaitable[list]],
+) -> Callable[[], Awaitable[List[dict]]]:
+    async def _fetch() -> List[dict]:
+        items = await fetcher()
+        return [u.model_dump() for u in items]
+
+    return _fetch
+
+
 async def get_sw_industry() -> Dict[str, List[dict]]:
     """
     一次性获取申万一级、二级、三级行业列表。
-    分别缓存到 sw_industry_first/second/third.csv，缓存有效期 3 天。
+    分别缓存到 sw_industry_first/second/third.csv。
     任一级别命中缓存就读 CSV，否则重新拉取并写入。串行拉取避免被申万限流。
     """
     levels = [
-        ("first", "sw_industry_first", get_sw_index_first_info),
-        ("second", "sw_industry_second", get_sw_index_second_info),
-        ("third", "sw_industry_third", get_sw_index_third_info),
+        ("first", "sw_industry_first", get_sw_index_first_info, CachePolicy.WEEKLY),
+        ("second", "sw_industry_second", get_sw_index_second_info, CachePolicy.WEEKLY),
+        ("third", "sw_industry_third", get_sw_index_third_info, CachePolicy.WEEKLY),
     ]
 
     result: Dict[str, List[dict]] = {}
-    for name, key, fetcher in levels:
-        if sw_industry_cache.is_fresh(key):
-            result[name] = await sw_industry_cache.get(key) or []
-            continue
-        items = [u.model_dump() for u in await fetcher()]
-        await sw_industry_cache.set(key, items)
-        result[name] = items
+    for name, key, fetcher, policy in levels:
+        result[name] = await with_cache(
+            file_cache, key, policy, _make_dump_fetcher(fetcher)
+        )
 
     return result
 
 
-async def get_sw_stock_industry() -> List[dict]:
+async def _fetch_sw_stock_industry() -> List[dict]:
     """
-    一次性获取所有三级申万行业对应的股票，并补齐每只股票的一/二/三级行业归属。
-    缓存到 sw_stock_industry.csv，缓存有效期 3 天。
-    缓存命中直接读 CSV，否则遍历所有三级行业拉取成分股。
+    遍历所有三级行业拉取成分股，并补齐每只股票的一/二/三级行业归属。
 
     防封禁与效率平衡：
       - Semaphore 限制并发为 5
@@ -59,15 +66,11 @@ async def get_sw_stock_industry() -> List[dict]:
         sw_industry_l2_code, sw_industry_l2_name,
         sw_industry_l3_code, sw_industry_l3_name
     """
-    if sw_industry_cache.is_fresh("sw_stock_industry"):
-        return await sw_industry_cache.get("sw_stock_industry") or []
-
     industry_data = await get_sw_industry()
     first_list = industry_data.get("first", [])
     second_list = industry_data.get("second", [])
     third_list = industry_data.get("third", [])
 
-    # 行业名 -> 行业代码 映射，用于由父级行业名反查代码
     first_name_to_code = {
         item.get("sw_industry_name"): item.get("sw_industry_code")
         for item in first_list
@@ -78,7 +81,6 @@ async def get_sw_stock_industry() -> List[dict]:
         for item in second_list
         if item.get("sw_industry_name")
     }
-    # 二级行业名 -> 其上级（一级）行业名
     second_name_to_parent = {
         item.get("sw_industry_name"): item.get("sw_parent_industry")
         for item in second_list
@@ -88,18 +90,14 @@ async def get_sw_stock_industry() -> List[dict]:
     sem = asyncio.Semaphore(_COMPONENT_CONCURRENCY)
 
     async def _fetch_with_retry(industry: dict) -> List[dict]:
-        """拉取单个三级行业的成分股，并补齐一/二/三级行业字段。
-        若上级行业映射缺失，对应的代码/名称留空字符串，不影响主流程。"""
         l3_code = industry.get("sw_industry_code") or ""
         l3_name = industry.get("sw_industry_name") or ""
         l2_name = industry.get("sw_parent_industry") or ""
 
-        # 容错：找不到二级/一级行业时留空，避免 None 影响 CSV 写入
         l2_code = second_name_to_code.get(l2_name) or ""
         l1_name = second_name_to_parent.get(l2_name) or ""
         l1_code = first_name_to_code.get(l1_name) or ""
 
-        # akshare 接口需要去掉 .SI 后缀
         symbol = l3_code.replace(".SI", "")
         if not symbol:
             return []
@@ -131,7 +129,6 @@ async def get_sw_stock_industry() -> List[dict]:
 
     grouped = await asyncio.gather(*[_fetch_with_retry(item) for item in third_list])
 
-    # 按 stock_code 去重
     seen: set = set()
     flat: List[dict] = []
     for rows in grouped:
@@ -142,5 +139,17 @@ async def get_sw_stock_industry() -> List[dict]:
             seen.add(code)
             flat.append(row)
 
-    await sw_industry_cache.set("sw_stock_industry", flat)
     return flat
+
+
+async def get_sw_stock_industry() -> List[dict]:
+    """
+    一次性获取所有三级申万行业对应的股票，并补齐每只股票的一/二/三级行业归属。
+    缓存到 sw_stock_industry.csv，缓存有效期 1 个月。
+    """
+    return await with_cache(
+        file_cache,
+        "sw_stock_industry",
+        CachePolicy.MONTHLY,
+        _fetch_sw_stock_industry,
+    )

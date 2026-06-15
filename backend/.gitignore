@@ -38,3 +38,6 @@ wheels/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Cache data
+app/cache/data/
