@@ -5,11 +5,11 @@ pyyaml~=6.0.1
 baostock
 akshare~=1.18.64
 efinance~=0.5.8
+pywencai
 tushare
 requests
 
 pydantic~=2.13.4
 pandas~=2.2.2
-yaml~=0.2.5
 pytdx~=1.72
 adata~=2.9.5

@@ -1,55 +1,98 @@
 # Provider 接口目录
 
-`app/providers/` 下所有 provider 文件的接口索引。新增/修改 provider 接口时**必须**同步本文件，详见 `provider-doc-sync` skill。
+`app/providers/` 下所有 provider 文件的接口索引。
 
-> 字段命名见 `app/field_map.md`，文件组织规范见 `provider-organization` skill。
+---
+
+## index_data.py
+
+返回 model：`IndexDailyBar` / `IndexSpotQuote`
+数据源：akshare（东财）
+用途：三大指数及风格指数行情
+
+| 方法 | 数据源接口 | 参数 | 返回 |
+| --- | --- | --- | --- |
+| get_index_daily_hist | ak.index_zh_a_hist | symbol, start_date, end_date | List[IndexDailyBar] |
+| get_core_indices_daily | 上证/深成/创业板 | 无 | List[IndexDailyBar] |
+| get_style_indices_daily | 沪深300/中证500/1000/2000 | 无 | List[IndexDailyBar] |
+| get_index_spot_quotes | ak.stock_zh_index_spot_em | 无 | List[IndexSpotQuote] |
+
+---
+
+## market_breadth.py
+
+返回 model：`MarketSummary` / `LimitPoolStock` / `FundFlowRank`
+数据源：akshare
+用途：市场宽度、涨跌停池、资金流排名
+
+| 方法 | 数据源接口 | 参数 | 返回 |
+| --- | --- | --- | --- |
+| get_sse_summary | ak.stock_sse_summary | 无 | List[MarketSummary] |
+| get_szse_summary | ak.stock_szse_summary | date | List[MarketSummary] |
+| get_market_turnover_snapshot | ak.stock_zh_a_spot_em 聚合 | 无 | dict |
+| get_limit_up_pool | ak.stock_zt_pool_em | date | List[LimitPoolStock] |
+| get_limit_down_pool | ak.stock_zt_pool_dtgc_em | date | List[LimitPoolStock] |
+| get_broken_limit_pool | ak.stock_zt_pool_zbgc_em | date | List[LimitPoolStock] |
+| get_strong_pool | ak.stock_zt_pool_strong_em | date | List[LimitPoolStock] |
+| get_individual_fund_flow_rank | ak.stock_individual_fund_flow_rank | indicator | List[FundFlowRank] |
+
+---
+
+## board_data.py
+
+返回 model：`BoardQuote` / `SectorFundFlow`
+数据源：akshare
+用途：东财/同花顺板块行情与资金流
+
+| 方法 | 数据源接口 | 参数 | 返回 |
+| --- | --- | --- | --- |
+| get_concept_board_quotes | ak.stock_board_concept_name_em | 无 | List[BoardQuote] |
+| get_industry_board_quotes | ak.stock_board_industry_name_em | 无 | List[BoardQuote] |
+| get_sector_fund_flow_rank | ak.stock_sector_fund_flow_rank | indicator, sector_type | List[SectorFundFlow] |
+| get_ths_concept_fund_flow | ak.stock_fund_flow_concept | symbol | List[SectorFundFlow] |
+| get_ths_industry_fund_flow | ak.stock_fund_flow_industry | symbol | List[SectorFundFlow] |
+
+---
+
+## capital_data.py
+
+返回 model：`NorthboundFlow` / `MarginBalance` / `DragonTigerEntry` / `MarketFundFlow`
+数据源：akshare
+用途：北向、两融、龙虎榜、大盘资金流
+
+| 方法 | 数据源接口 | 参数 | 返回 |
+| --- | --- | --- | --- |
+| get_northbound_summary | ak.stock_hsgt_fund_flow_summary_em | 无 | List[NorthboundFlow] |
+| get_northbound_hist | ak.stock_hsgt_hist_em | symbol | List[NorthboundFlow] |
+| get_margin_sse | ak.stock_margin_sse | start_date, end_date | List[MarginBalance] |
+| get_margin_szse | ak.stock_margin_szse | date | List[MarginBalance] |
+| get_dragon_tiger_list | ak.stock_lhb_detail_em | start_date, end_date | List[DragonTigerEntry] |
+| get_market_fund_flow | ak.stock_market_fund_flow | 无 | List[MarketFundFlow] |
+
+---
+
+## news_macro.py
+
+返回 model：`NewsItem` / `MacroIndicator` / `OverseasQuote`
+数据源：akshare / pywencai（可选）
+用途：消息面与海外联动
+
+| 方法 | 数据源接口 | 参数 | 返回 |
+| --- | --- | --- | --- |
+| get_stock_news | ak.stock_news_em | symbol | List[NewsItem] |
+| get_macro_market_operation | ak.macro_china_market_operation | 无 | List[MacroIndicator] |
+| get_macro_lpr | ak.macro_china_lpr | 无 | List[MacroIndicator] |
+| get_us_index_quotes | ak.index_us_stock_sina | symbol | List[OverseasQuote] |
+| get_pywencai_hot_concepts | pywencai.get | query | List[dict] |
 
 ---
 
 ## individual_net_inflow.py
 
-返回 model：`ThsIndividualNetInflow`
-数据源：akshare（同花顺）
-用途：同花顺全市场个股资金流向（即时快照）
-
-| 方法 | 数据源接口 | 参数 | 返回 | 说明 |
-| --- | --- | --- | --- | --- |
-| get_ths_individual_net_inflow | ak.stock_fund_flow_individual(symbol="即时") | 无 | List[ThsIndividualNetInflow] | 全市场个股流入/流出/净额/成交额（已解析单位） |
+（保留）同花顺全市场个股资金流
 
 ---
 
-## sw_industry_component.py
+## sw_industry_index.py / sw_industry_component.py / sw_industry_third_cons.py
 
-返回 model：`SwIndustryComponent`
-数据源：akshare（申万官方）
-用途：申万行业成分股基础信息（代码、名称、权重、纳入日期）
-
-| 方法 | 数据源接口 | 参数 | 返回 | 说明 |
-| --- | --- | --- | --- | --- |
-| get_sw_index_component | ak.index_component_sw | symbol: str（行业代码，不含 .SI） | List[SwIndustryComponent] | 单个申万行业的成分股列表 |
-
----
-
-## sw_industry_index.py
-
-返回 model：`SwIndustryIndex`
-数据源：akshare（申万官方）
-用途：申万一/二/三级行业指数信息（代码、名称、上级行业、估值指标）
-
-| 方法 | 数据源接口 | 参数 | 返回 | 说明 |
-| --- | --- | --- | --- | --- |
-| get_sw_index_first_info | ak.sw_index_first_info | 无 | List[SwIndustryIndex] | 申万一级行业指数信息 |
-| get_sw_index_second_info | ak.sw_index_second_info | 无 | List[SwIndustryIndex] | 申万二级行业指数信息 |
-| get_sw_index_third_info | ak.sw_index_third_info | 无 | List[SwIndustryIndex] | 申万三级行业指数信息 |
-
----
-
-## sw_industry_third_cons.py
-
-返回 model：`SwIndustryThirdCons`
-数据源：akshare（乐咕乐股）
-用途：申万三级行业成分股的详细信息（估值、市值、业绩同比等）
-
-| 方法 | 数据源接口 | 参数 | 返回 | 说明 |
-| --- | --- | --- | --- | --- |
-| get_sw_index_third_cons | ak.sw_index_third_cons | symbol: str（三级行业代码，需带 .SI） | List[SwIndustryThirdCons] | 单个三级行业成分股的全字段信息 |
+（保留）申万行业体系
