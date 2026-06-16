@@ -43,7 +43,22 @@
       "Bash(pkill -f \"uvicorn main:app\")",
       "Read(//private/tmp/**)",
       "Bash(/opt/anaconda3/envs/big_brother/bin/python *)",
-      "Bash(ps -p 40374 -o pid,command)"
+      "Bash(ps -p 40374 -o pid,command)",
+      "Bash(pnpm -v)",
+      "Bash(npm -v)",
+      "Bash(cargo --version)",
+      "Bash(rustc --version)",
+      "Bash(rustup --version)",
+      "Read(//Users/admin/.cargo/**)",
+      "Bash(pnpm vue-tsc *)",
+      "Bash(xcode-select -p)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(pkill -f \"target/debug/desktop\")",
+      "Bash(pkill -f \"pnpm dev\")",
+      "Bash(pnpm desktop:workaround *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "mastergo-magic-mcp"
+  ]
 }
