@@ -55,7 +55,11 @@
       "Bash(echo \"exit=$?\")",
       "Bash(pkill -f \"target/debug/desktop\")",
       "Bash(pkill -f \"pnpm dev\")",
-      "Bash(pnpm desktop:workaround *)"
+      "Bash(pnpm desktop:workaround *)",
+      "Bash(pnpm remove *)",
+      "Bash(pnpm add *)",
+      "Bash(pkill -9 -f \"target/debug/desktop\")",
+      "Bash(pkill -9 -f \"vite\")"
     ]
   },
   "enabledMcpjsonServers": [
