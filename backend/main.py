@@ -7,10 +7,11 @@ from app.api.v1.breadth import router as breadth_router
 from app.api.v1.capital import router as capital_router
 from app.api.v1.market import router as market_router
 from app.api.v1.sector import router as sector_router
+from app.api.v2.router import router as desktop_router
 from app.base.api_response import ApiResponse
 from app.config.config import settings
 
-app = FastAPI(title="A-Stock Analysis API", version="1.0.0")
+app = FastAPI(title="BigBrother API", version="2.0.0", description="v1: 市场分析 | v2: 桌面端")
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,11 +26,12 @@ app.include_router(breadth_router, prefix="/api/v1")
 app.include_router(sector_router, prefix="/api/v1")
 app.include_router(capital_router, prefix="/api/v1")
 app.include_router(analysis_router, prefix="/api/v1")
+app.include_router(desktop_router, prefix="/api/v2")
 
 
 @app.get("/")
 async def root():
-    return ApiResponse.ok({"message": "A-Stock Analysis API"})
+    return ApiResponse.ok({"message": "BigBrother API", "v1": "analysis", "v2": "desktop"})
 
 
 @app.get("/health")

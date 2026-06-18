@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { type HTMLAttributes, computed } from 'vue'
 import { cn } from '@/lib/utils'
+import { type BadgeVariants, badgeVariants } from './variants'
 
 const props = defineProps<{
+  variant?: BadgeVariants['variant']
   class?: HTMLAttributes['class']
 }>()
 
-const computedClass = computed(() => cn('flex flex-col gap-1.5 p-6', props.class))
+const computedClass = computed(() =>
+  cn(badgeVariants({ variant: props.variant }), props.class)
+)
 </script>
 
 <template>

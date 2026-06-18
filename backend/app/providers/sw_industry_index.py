@@ -117,3 +117,39 @@ async def get_sw_index_third_info() -> List[SwIndustryIndex]:
         )
         for _, row in df.iterrows()
     ]
+
+
+class SwIndexBar(BaseModel):
+    # 交易日期（YYYY-MM-DD）
+    trade_date: Optional[str] = None
+    # 收盘点位
+    close: Optional[float] = None
+    # 成交额（亿元）
+    turnover: Optional[float] = None
+
+
+async def get_sw_index_hist(symbol: str, period: str = "day") -> List[SwIndexBar]:
+    """
+    获取申万行业/综合指数历史日线。
+
+    symbol: 申万指数代码（不带 .SI 后缀），如 "801003"=申万A指，"801010"=农林牧渔。
+    period: day / week / month。
+
+    返回按日期升序排列的 (trade_date, close, turnover) 序列。
+    """
+    df = await asyncio.to_thread(ak.index_hist_sw, symbol=symbol, period=period)
+    if df is None or df.empty:
+        return []
+
+    bars: List[SwIndexBar] = []
+    for _, row in df.iterrows():
+        raw_date = row.get("日期")
+        trade_date = str(raw_date)[:10] if raw_date is not None else None
+        bars.append(
+            SwIndexBar(
+                trade_date=trade_date,
+                close=row.get("收盘"),
+                turnover=row.get("成交额"),
+            )
+        )
+    return bars

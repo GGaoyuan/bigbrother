@@ -1,5 +1,8 @@
 # A 股市场分析 API 文档
 
+> **v1**：市场分析专用（指数、宽度、板块、资金、消息面）  
+> **v2**：桌面端专用（基础行情、行业分类等）→ 见 [`API_v2.md`](./API_v2.md)
+
 > 测试时间：2026-06-15  
 > 测试环境：macOS + Python 3.12 + `.venv`  
 > 完整机器可读结果见 [`api_test_results.json`](./api_test_results.json)
