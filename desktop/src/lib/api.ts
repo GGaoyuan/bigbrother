@@ -79,4 +79,32 @@ export const marketCapApi = {
   industryTree: () => postV2<IndustryTree>('/market-cap/industry-tree'),
   industryTrend: (symbol: string) =>
     postV2<IndustryTrend>('/market-cap/industry-trend', { symbol }),
+  totalVolume: () => postV2<TotalMarketCap>('/market-cap/total-volume'),
+  industryVolume: (symbol: string) =>
+    postV2<IndustryTrend>('/market-cap/industry-volume', { symbol }),
+}
+
+// ─── 板块资金流类型 ───────────────────────────────────────────────────
+export interface SectorFlowItem {
+  sector_name: string
+  change_pct: number | null
+  fund_net_inflow: number | null
+  datasource?: string
+}
+
+export interface SectorFlowRanking {
+  inflow: SectorFlowItem[]
+  outflow: SectorFlowItem[]
+  all: SectorFlowItem[]
+}
+
+export interface SectorFlowTrend {
+  sector_name: string
+  points: TrendPoint[]
+}
+
+export const sectorFlowApi = {
+  ranking: () => postV2<SectorFlowRanking>('/sector-flow/ranking'),
+  trend: (sectorName: string) =>
+    postV2<SectorFlowTrend>('/sector-flow/trend', { sector_name: sectorName }),
 }

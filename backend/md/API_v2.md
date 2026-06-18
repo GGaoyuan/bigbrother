@@ -27,6 +27,10 @@
 | `/api/v2/market-cap/total` | POST | A股总市值走势（申万A指代理，DAILY 缓存） |
 | `/api/v2/market-cap/industry-tree` | POST | 申万行业分类树（WEEKLY 缓存） |
 | `/api/v2/market-cap/industry-trend` | POST | 单行业指数走势，用于图表叠加（按行业 DAILY 缓存） |
+| `/api/v2/market-cap/total-volume` | POST | A股总成交额走势（申万A指成交额代理，DAILY 缓存） |
+| `/api/v2/market-cap/industry-volume` | POST | 单行业成交额走势，用于图表叠加（按行业 DAILY 缓存） |
+| `/api/v2/sector-flow/ranking` | POST | 今日板块资金流入/流出排行 + 全量列表（DAILY 缓存） |
+| `/api/v2/sector-flow/trend` | POST | 单板块资金流历史走势，用于图表叠加（按板块 DAILY 缓存） |
 
 ---
 

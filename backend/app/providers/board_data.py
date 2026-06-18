@@ -27,6 +27,15 @@ class SectorFundFlow(BaseModel):
     indicator: Optional[str] = None
 
 
+class SectorFlowHistBar(BaseModel):
+    # 交易日期（YYYY-MM-DD）
+    trade_date: Optional[str] = None
+    # 主力净流入-净额（元）
+    main_net_inflow: Optional[float] = None
+    # 主力净流入-净占比（%）
+    main_net_inflow_pct: Optional[float] = None
+
+
 async def get_concept_board_quotes() -> List[BoardQuote]:
     df = await asyncio.to_thread(ak.stock_board_concept_name_em)
     if df is None or df.empty:
@@ -120,3 +129,29 @@ async def get_ths_industry_fund_flow(symbol: str = "即时") -> List[SectorFundF
         )
         for _, row in df.iterrows()
     ]
+
+
+async def get_sector_fund_flow_hist(sector_name: str) -> List[SectorFlowHistBar]:
+    """
+    单个行业板块的资金流历史时序（东财）。
+
+    sector_name: 行业板块名称，如 "电源设备"。
+    返回按日期升序的 (trade_date, main_net_inflow, main_net_inflow_pct)。
+    """
+    df = await asyncio.to_thread(ak.stock_sector_fund_flow_hist, symbol=sector_name)
+    if df is None or df.empty:
+        return []
+
+    bars: List[SectorFlowHistBar] = []
+    for _, row in df.iterrows():
+        raw_date = row.get("日期")
+        trade_date = str(raw_date)[:10] if raw_date is not None else None
+        bars.append(
+            SectorFlowHistBar(
+                trade_date=trade_date,
+                main_net_inflow=safe_float(row.get("主力净流入-净额")),
+                main_net_inflow_pct=safe_float(row.get("主力净流入-净占比")),
+            )
+        )
+    bars.sort(key=lambda b: b.trade_date or "")
+    return bars

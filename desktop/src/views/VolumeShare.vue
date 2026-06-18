@@ -15,7 +15,7 @@ import {
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-const totalName = ref('A股总市值')
+const totalName = ref('A股成交额')
 const L1 = ref<IndustryNode[]>([])
 const L2 = ref<IndustryNode[]>([])
 const L3 = ref<IndustryNode[]>([])
@@ -46,7 +46,7 @@ const chartContainer = ref<HTMLElement | null>(null)
 let chart: IChartApi | null = null
 let mainSeries: any = null
 const activeSeries = new Map<string, any>() // code -> LineSeries
-const trendCache = new Map<string, TrendPoint[]>() // code -> points
+const volumeCache = new Map<string, TrendPoint[]>() // code -> points
 
 function initChart() {
   if (!chartContainer.value) return
@@ -63,9 +63,9 @@ function initChart() {
   })
 
   mainSeries = chart.addSeries(AreaSeries, {
-    topColor: 'rgba(59, 130, 246, 0.4)',
-    bottomColor: 'rgba(59, 130, 246, 0.0)',
-    lineColor: 'rgba(59, 130, 246, 1)',
+    topColor: 'rgba(34, 197, 94, 0.4)',
+    bottomColor: 'rgba(34, 197, 94, 0.0)',
+    lineColor: 'rgba(34, 197, 94, 1)',
     lineWidth: 2,
   })
 
@@ -82,14 +82,14 @@ async function loadInitialData() {
   loading.value = true
   error.value = null
   try {
-    const [total, tree] = await Promise.all([
-      marketCapApi.total(),
+    const [volume, tree] = await Promise.all([
+      marketCapApi.totalVolume(),
       marketCapApi.industryTree(),
     ])
 
-    totalName.value = total.name
+    totalName.value = volume.name
     if (mainSeries) {
-      mainSeries.setData(total.points)
+      mainSeries.setData(volume.points)
       chart?.timeScale().fitContent()
     }
 
@@ -114,7 +114,7 @@ async function handleRefresh() {
     }
   }
   activeSeries.clear()
-  trendCache.clear()
+  volumeCache.clear()
 
   // 重新加载数据
   await loadInitialData()
@@ -143,15 +143,15 @@ async function toggleIndustry(code: string | null) {
   selectedCodes.value = next
 
   try {
-    let points = trendCache.get(code)
+    let points = volumeCache.get(code)
     if (!points) {
       const loadingNext = new Set(loadingCodes.value)
       loadingNext.add(code)
       loadingCodes.value = loadingNext
 
-      const trend = await marketCapApi.industryTrend(code)
-      points = trend.points
-      trendCache.set(code, points)
+      const volume = await marketCapApi.industryVolume(code)
+      points = volume.points
+      volumeCache.set(code, points)
     }
 
     // 拉取期间可能已被取消勾选
@@ -203,9 +203,9 @@ onUnmounted(() => {
     <!-- Page Header -->
     <div class="flex items-start justify-between">
       <div>
-        <h1 class="text-3xl font-bold tracking-tight">A股总市值</h1>
+        <h1 class="text-3xl font-bold tracking-tight">成交量占比</h1>
         <p class="text-muted-foreground">
-          Total market capitalization of A-share stocks with industry breakdown
+          Trading volume distribution across industries
         </p>
       </div>
       <Button
@@ -247,7 +247,7 @@ onUnmounted(() => {
           </div>
         </div>
         <p class="mt-2 text-xs text-muted-foreground">
-          勾选下方行业，在图表中叠加显示该行业指数走势（与申万A指同量纲，便于对比）
+          勾选下方行业，在图表中叠加显示该行业成交额走势（与全市场同量纲，便于对比占比）
         </p>
       </CardContent>
     </Card>

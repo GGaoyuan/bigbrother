@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LayoutDashboard, Users, BarChart3, Settings, TrendingUp } from '@lucide/vue'
+import { LayoutDashboard, Users, BarChart3, Settings, TrendingUp, PieChart, ArrowLeftRight } from '@lucide/vue'
 import type { FunctionalComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import { cn } from '@/lib/utils'
@@ -14,6 +14,8 @@ const navItems: NavItem[] = [
   { title: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
   { title: 'Users', to: '/users', icon: Users },
   { title: 'A股总市值', to: '/market-cap', icon: TrendingUp },
+  { title: '成交量占比', to: '/volume-share', icon: PieChart },
+  { title: '板块资金流', to: '/sector-flow', icon: ArrowLeftRight },
   { title: 'Volume Profile', to: '/volume-profile', icon: BarChart3 },
   { title: 'Settings', to: '/settings', icon: Settings },
 ]

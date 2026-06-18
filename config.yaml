@@ -26,6 +26,10 @@ backend:
     allowed_origins:
       - http://localhost:5173
       - http://127.0.0.1:5173
+      - http://localhost:1420
+      - http://127.0.0.1:1420
+      - tauri://localhost
+      - https://tauri.localhost
     # 是否允许携带凭证
     allow_credentials: true
 

@@ -6,7 +6,9 @@ from app.base.user_auth import verify_auth
 from app.service.market_cap import (
     get_industry_tree,
     get_industry_trend,
+    get_industry_volume,
     get_total_market_cap_trend,
+    get_total_volume_trend,
 )
 
 router = APIRouter(prefix="/market-cap", tags=["v2-market-cap"])
@@ -41,6 +43,26 @@ async def get_industry_trend_api(body: IndustryTrendRequest, _auth=Depends(verif
     """单个申万行业指数走势，用于叠加到总市值图表（按行业每日缓存）。"""
     try:
         data = await get_industry_trend(body.symbol)
+        return ApiResponse.ok(data)
+    except Exception as e:
+        return ApiResponse.error(500, str(e))
+
+
+@router.post("/total-volume")
+async def get_total_volume_api(_auth=Depends(verify_auth)):
+    """A股总成交额走势（申万A指成交额代理，每日缓存）。"""
+    try:
+        data = await get_total_volume_trend()
+        return ApiResponse.ok(data)
+    except Exception as e:
+        return ApiResponse.error(500, str(e))
+
+
+@router.post("/industry-volume")
+async def get_industry_volume_api(body: IndustryTrendRequest, _auth=Depends(verify_auth)):
+    """单个申万行业成交额走势，用于叠加到成交量图表（按行业每日缓存）。"""
+    try:
+        data = await get_industry_volume(body.symbol)
         return ApiResponse.ok(data)
     except Exception as e:
         return ApiResponse.error(500, str(e))
