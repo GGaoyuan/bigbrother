@@ -108,3 +108,35 @@ export const sectorFlowApi = {
   trend: (sectorName: string) =>
     postV2<SectorFlowTrend>('/sector-flow/trend', { sector_name: sectorName }),
 }
+
+// ─── 板块日内资金流类型 ───────────────────────────────────────────────
+export interface SectorIntradaySnapshot {
+  code: string
+  name: string
+  net_inflow: number // 亿元
+}
+
+export interface IntradayPoint {
+  time: string // HH:MM
+  net_inflow: number // 截至该分钟累计（亿）
+}
+
+export interface SectorIntradayTrend {
+  code: string
+  name: string
+  points: IntradayPoint[]
+}
+
+export interface SectorIntradayRanking {
+  ranking: SectorIntradaySnapshot[]
+  inflow_trends: SectorIntradayTrend[]
+  outflow_trends: SectorIntradayTrend[]
+}
+
+export const sectorIntradayApi = {
+  ranking: (topN: number = 12, bottomN: number = 12) =>
+    postV2<SectorIntradayRanking>('/sector-intraday/ranking', {
+      top_n: topN,
+      bottom_n: bottomN,
+    }),
+}
