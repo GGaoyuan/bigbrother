@@ -1,9 +1,8 @@
 from typing import Dict, List, Optional
 
-from app.cache.file_cache import file_cache
-from app.cache.policy import CachePolicy
+from app.cache import CacheTTL
 from app.providers.sw_industry_index import SwIndexBar, get_sw_index_hist
-from app.service.fetch import with_cache
+from app.service.fetch import with_json_cache
 from app.service.industry import get_sw_industry
 
 # 申万A指，代表全市场总市值走势
@@ -36,7 +35,7 @@ async def get_total_market_cap_trend() -> Dict[str, object]:
             "points": _bars_to_points(bars),
         }
 
-    return await with_cache(file_cache, cache_key, CachePolicy.DAILY, _fetch)
+    return await with_json_cache(cache_key, CacheTTL.DAILY, _fetch)
 
 
 async def get_industry_trend(symbol: str) -> Dict[str, object]:
@@ -55,7 +54,7 @@ async def get_industry_trend(symbol: str) -> Dict[str, object]:
             "points": _bars_to_points(bars),
         }
 
-    return await with_cache(file_cache, cache_key, CachePolicy.DAILY, _fetch)
+    return await with_json_cache(cache_key, CacheTTL.DAILY, _fetch)
 
 
 async def get_industry_tree() -> Dict[str, List[dict]]:
@@ -86,7 +85,7 @@ async def get_total_volume_trend() -> Dict[str, object]:
             "points": points,
         }
 
-    return await with_cache(file_cache, cache_key, CachePolicy.DAILY, _fetch)
+    return await with_json_cache(cache_key, CacheTTL.DAILY, _fetch)
 
 
 async def get_industry_volume(symbol: str) -> Dict[str, object]:
@@ -110,4 +109,4 @@ async def get_industry_volume(symbol: str) -> Dict[str, object]:
             "points": points,
         }
 
-    return await with_cache(file_cache, cache_key, CachePolicy.DAILY, _fetch)
+    return await with_json_cache(cache_key, CacheTTL.DAILY, _fetch)

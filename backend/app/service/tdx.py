@@ -1,10 +1,9 @@
 from typing import Dict, List
 
-from app.cache.file_cache import file_cache
-from app.cache.policy import CachePolicy
+from app.cache import CacheTTL
 from app.providers.tdx_data import get_tdx_daily_kline, get_tdx_quotes
 from app.service.bean import tag_datasource
-from app.service.fetch import with_cache
+from app.service.fetch import with_json_cache
 
 
 async def get_tdx_realtime_quotes(symbols: List[str]) -> List[dict]:
@@ -29,4 +28,4 @@ async def get_tdx_kline(symbol: str, offset: int = 60) -> Dict[str, object]:
         rows = tag_datasource(bars, "TDX")
         return {"code": symbol, "bars": rows}
 
-    return await with_cache(file_cache, cache_key, CachePolicy.DAILY, _fetch)
+    return await with_json_cache(cache_key, CacheTTL.DAILY, _fetch)

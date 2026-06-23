@@ -1,13 +1,12 @@
 from typing import Dict, List, Optional
 
-from app.cache.file_cache import file_cache
-from app.cache.policy import CachePolicy
+from app.cache import CacheTTL
 from app.providers.board_data import (
     get_sector_fund_flow_hist,
     get_sector_fund_flow_rank,
 )
 from app.service.bean import tag_datasource
-from app.service.fetch import with_cache
+from app.service.fetch import with_json_cache
 
 
 async def get_sector_flow_ranking(
@@ -52,7 +51,7 @@ async def get_sector_flow_ranking(
 
         return {"inflow": inflow, "outflow": outflow, "all": all_sorted}
 
-    return await with_cache(file_cache, cache_key, CachePolicy.DAILY, _fetch)
+    return await with_json_cache(cache_key, CacheTTL.DAILY, _fetch)
 
 
 async def get_sector_flow_trend(sector_name: str) -> Dict[str, object]:
@@ -75,4 +74,4 @@ async def get_sector_flow_trend(sector_name: str) -> Dict[str, object]:
         ]
         return {"sector_name": safe_name, "points": points}
 
-    return await with_cache(file_cache, cache_key, CachePolicy.DAILY, _fetch)
+    return await with_json_cache(cache_key, CacheTTL.DAILY, _fetch)

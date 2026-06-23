@@ -1,29 +1,33 @@
-from typing import Awaitable, Callable, TypeVar
+from typing import Awaitable, Callable, List, TypeVar
 
-from app.cache.base import BaseCache
-from app.cache.policy import CachePolicy
+from app.cache import CacheTTL, csv_cache, json_cache
 
 T = TypeVar("T")
 
 
-async def with_cache(
-    cache: BaseCache,
+async def with_json_cache(
     key: str,
-    policy: CachePolicy,
+    ttl: CacheTTL,
     fetcher: Callable[[], Awaitable[T]],
 ) -> T:
-    """
-    Service 层统一缓存入口。
-    policy=NONE 时直接调 provider；否则按自然日/周/月边界判断缓存鲜度。
-    """
-    if policy == CachePolicy.NONE:
-        return await fetcher()
+    """JSON 缓存包装：命中即返回，未命中调 fetcher 并写回 json_cache。"""
+    cached = await json_cache.get(key)
+    if cached is not None:
+        return cached
+    value = await fetcher()
+    await json_cache.set(key, value, ttl=ttl)
+    return value
 
-    if cache.is_fresh(key, policy):
-        cached = await cache.get(key)
-        if cached is not None:
-            return cached
 
-    data = await fetcher()
-    await cache.set(key, data)
-    return data
+async def with_csv_cache(
+    key: str,
+    ttl: CacheTTL,
+    fetcher: Callable[[], Awaitable[List[dict]]],
+) -> List[dict]:
+    """CSV 缓存包装：命中即返回行集合，未命中调 fetcher 并写回 csv_cache。"""
+    cached = await csv_cache.get(key)
+    if cached is not None:
+        return cached
+    rows = await fetcher()
+    await csv_cache.set(key, rows, ttl=ttl)
+    return rows

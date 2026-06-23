@@ -2,15 +2,14 @@ import asyncio
 import random
 from typing import Awaitable, Callable, Dict, List
 
-from app.cache.file_cache import file_cache
-from app.cache.policy import CachePolicy
+from app.cache import CacheTTL
 from app.providers.sw_industry_index import (
     get_sw_index_first_info,
     get_sw_index_second_info,
     get_sw_index_third_info,
 )
 from app.providers.sw_industry_component import get_sw_index_component
-from app.service.fetch import with_cache
+from app.service.fetch import with_csv_cache
 
 # 拉取成分股的并发数，太高会被申万限流
 _COMPONENT_CONCURRENCY = 5
@@ -37,15 +36,15 @@ async def get_sw_industry() -> Dict[str, List[dict]]:
     任一级别命中缓存就读 CSV，否则重新拉取并写入。串行拉取避免被申万限流。
     """
     levels = [
-        ("first", "sw_industry_first", get_sw_index_first_info, CachePolicy.WEEKLY),
-        ("second", "sw_industry_second", get_sw_index_second_info, CachePolicy.WEEKLY),
-        ("third", "sw_industry_third", get_sw_index_third_info, CachePolicy.WEEKLY),
+        ("first", "sw_industry_first", get_sw_index_first_info, CacheTTL.WEEKLY),
+        ("second", "sw_industry_second", get_sw_index_second_info, CacheTTL.WEEKLY),
+        ("third", "sw_industry_third", get_sw_index_third_info, CacheTTL.WEEKLY),
     ]
 
     result: Dict[str, List[dict]] = {}
-    for name, key, fetcher, policy in levels:
-        result[name] = await with_cache(
-            file_cache, key, policy, _make_dump_fetcher(fetcher)
+    for name, key, fetcher, ttl in levels:
+        result[name] = await with_csv_cache(
+            key, ttl, _make_dump_fetcher(fetcher)
         )
 
     return result
@@ -147,9 +146,8 @@ async def get_sw_stock_industry() -> List[dict]:
     一次性获取所有三级申万行业对应的股票，并补齐每只股票的一/二/三级行业归属。
     缓存到 sw_stock_industry.csv，缓存有效期 1 个月。
     """
-    return await with_cache(
-        file_cache,
+    return await with_csv_cache(
         "sw_stock_industry",
-        CachePolicy.MONTHLY,
+        CacheTTL.MONTHLY,
         _fetch_sw_stock_industry,
     )
