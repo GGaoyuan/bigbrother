@@ -1,37 +1,34 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.forward.forward import router as forward_router
-from app.api.v1.analysis import router as analysis_router
-from app.api.v1.breadth import router as breadth_router
-from app.api.v1.capital import router as capital_router
-from app.api.v1.market import router as market_router
-from app.api.v1.sector import router as sector_router
 from app.api.v2.router import router as desktop_router
 from app.base.api_response import ApiResponse
-from app.config.config import settings
 
-app = FastAPI(title="BigBrother API", version="2.0.0", description="v1: 市场分析 | v2: 桌面端")
+# CORS 白名单（dev 模式：vite 1420 是 desktop，5173 是 webfront；打包 Tauri 用 tauri://localhost）
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:1420",
+    "http://127.0.0.1:1420",
+    "tauri://localhost",
+    "https://tauri.localhost",
+]
+
+app = FastAPI(title="BigBrother API", version="2.0.0", description="v2: 桌面端")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(forward_router, prefix="/api/v1")
-app.include_router(market_router, prefix="/api/v1")
-app.include_router(breadth_router, prefix="/api/v1")
-app.include_router(sector_router, prefix="/api/v1")
-app.include_router(capital_router, prefix="/api/v1")
-app.include_router(analysis_router, prefix="/api/v1")
 app.include_router(desktop_router, prefix="/api/v2")
 
 
 @app.get("/")
 async def root():
-    return ApiResponse.ok({"message": "BigBrother API", "v1": "analysis", "v2": "desktop"})
+    return ApiResponse.ok({"message": "BigBrother API", "v2": "desktop"})
 
 
 @app.get("/health")
@@ -42,4 +39,4 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host=settings.host, port=settings.port, reload=settings.debug)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

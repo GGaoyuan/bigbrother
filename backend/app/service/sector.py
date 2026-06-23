@@ -1,6 +1,5 @@
 from typing import Dict, List, Optional
 
-from app.base.datasource_from import DatasourceFrom
 from app.cache.file_cache import file_cache
 from app.cache.policy import CachePolicy
 from app.providers.board_data import (
@@ -35,8 +34,7 @@ async def get_realtime_sectors(sector_type: int = 3) -> Dict[str, List[dict]]:
             tasks.append(get_industry_board_quotes())
         grouped = await asyncio.gather(*tasks)
         for key, items in zip(keys, grouped):
-            source = DatasourceFrom.EAST_MONEY
-            result[key] = tag_datasource(items, source)
+            result[key] = tag_datasource(items, "EAST_MONEY")
         return result
 
     return await with_cache(file_cache, cache_key, CachePolicy.NONE, _fetch)
@@ -51,7 +49,7 @@ async def get_sector_fund_flow(
     async def _fetch():
         return tag_datasource(
             await get_sector_fund_flow_rank(indicator, sector_type),
-            DatasourceFrom.EAST_MONEY,
+            "EAST_MONEY",
         )
 
     return await with_cache(file_cache, cache_key, CachePolicy.DAILY, _fetch)

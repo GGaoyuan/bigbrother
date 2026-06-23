@@ -1,6 +1,5 @@
 from typing import Dict, List, Optional
 
-from app.base.datasource_from import DatasourceFrom
 from app.cache.file_cache import file_cache
 from app.cache.policy import CachePolicy
 from app.providers.board_data import (
@@ -37,7 +36,7 @@ async def get_sector_flow_ranking(
             for it in items
             if it.sector_name
         ]
-        tagged = tag_datasource(rows, DatasourceFrom.EAST_MONEY)
+        tagged = tag_datasource(rows, "EAST_MONEY")
 
         inflow = sorted(
             [r for r in tagged if (r.get("fund_net_inflow") or 0) > 0],
