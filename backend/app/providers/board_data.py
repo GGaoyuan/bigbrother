@@ -4,7 +4,8 @@ from typing import List, Optional
 import akshare as ak
 from pydantic import BaseModel
 
-from app.providers.base.parsers import safe_float, safe_int, safe_str
+
+from app.providers.client.parsers import safe_float, safe_int, safe_str
 
 
 class BoardQuote(BaseModel):

@@ -6,7 +6,7 @@ import akshare as ak
 import pandas as pd
 from pydantic import BaseModel
 
-from app.providers.base.parsers import safe_float, safe_str
+from app.providers.client.parsers import safe_float, safe_str
 
 
 class NewsItem(BaseModel):

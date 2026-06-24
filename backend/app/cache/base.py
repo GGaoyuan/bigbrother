@@ -11,7 +11,7 @@ from typing import Any, Optional
 
 from app.cache.ttl import CacheTTL
 
-# 项目根目录的 data/（与 backend/ 同级）：app/cache/base.py -> 上四层 = 项目根
+# 项目根目录的 data/（与 backend/ 同级）：app/cache/client.py -> 上四层 = 项目根
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 DEFAULT_CACHE_DIR = PROJECT_ROOT / "data"
 
