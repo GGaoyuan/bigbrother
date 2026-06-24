@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Literal
+from typing import ClassVar, Literal
 
 
 TtlKind = Literal["rolling", "daily", "weekly", "monthly"]
@@ -16,6 +16,13 @@ class CacheTTL:
 
     kind: TtlKind
     rolling_seconds: int = 0
+
+    # 预定义常量（类变量，不是实例字段）
+    NONE: ClassVar["CacheTTL"]
+    HOURLY: ClassVar["CacheTTL"]
+    DAILY: ClassVar["CacheTTL"]
+    WEEKLY: ClassVar["CacheTTL"]
+    MONTHLY: ClassVar["CacheTTL"]
 
     @staticmethod
     def rolling(seconds: int) -> "CacheTTL":
@@ -43,6 +50,7 @@ class CacheTTL:
         return (now or datetime.now()) < self.expires_at(cached_at)
 
 
+CacheTTL.NONE = CacheTTL(kind="rolling", rolling_seconds=0)
 CacheTTL.HOURLY = CacheTTL(kind="rolling", rolling_seconds=3600)
 CacheTTL.DAILY = CacheTTL(kind="daily")
 CacheTTL.WEEKLY = CacheTTL(kind="weekly")

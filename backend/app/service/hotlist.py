@@ -1,28 +1,20 @@
 """热榜 service — 涨跌停池、资金流排行（完全符合 BaseService 规范）。
 
 使用示例：
-    # 方式1：用 BaseService（推荐，有错误封装）
     service = LimitPoolsService()
     result = await service.execute()
     if result.success:
         pools = result.data
-
-    # 方式2：直接调用函数（兼容旧代码）
-    pools = await get_limit_pools()
 """
 
 import asyncio
 from typing import Dict, List
 
-from app.providers.hotlist import (
-    FundFlowRankProvider,
-    LimitDownPoolProvider,
-    LimitUpPoolProvider,
-)
+from app.providers.hotlist import FundFlowRankProvider
+from app.providers.limit_pool import LimitDownPoolProvider, LimitUpPoolProvider
 from app.service.base_service import BaseService
 
 
-# ========== 基于 BaseService 的新接口（推荐）==========
 class LimitPoolsService(BaseService[Dict[str, List[dict]]]):
     """涨停池 + 跌停池 Service
 
@@ -60,22 +52,3 @@ class FundFlowRankingService(BaseService[Dict[str, List[dict]]]):
         inflow = [x for x in all_items if x["main_net_inflow"] > 0][: self.limit]
         outflow = [x for x in all_items if x["main_net_inflow"] < 0][: self.limit]
         return {"inflow": inflow, "outflow": outflow}
-
-
-# ========== 兼容旧接口（向后兼容，直接调用）==========
-async def get_limit_pools() -> Dict[str, List[dict]]:
-    """涨停池 + 跌停池（兼容旧代码，直接返回数据或抛异常）"""
-    result = await LimitPoolsService().execute()
-    if not result.success:
-        raise RuntimeError(result.error)
-    return result.data
-
-
-async def get_fund_flow_ranking(
-    indicator: str = "今日", limit: int = 100
-) -> Dict[str, List[dict]]:
-    """个股资金流排行（兼容旧代码，失败时返回空，降级处理）"""
-    result = await FundFlowRankingService(indicator, limit).execute()
-    if not result.success:
-        return {"inflow": [], "outflow": []}  # 降级
-    return result.data

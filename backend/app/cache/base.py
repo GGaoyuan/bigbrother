@@ -75,14 +75,18 @@ class Cache(ABC):
 
     # ---------- 路径与 meta ----------
 
-    def _data_path(self, key: str) -> Path:
-        return self._cache_dir / f"{_safe_name(key)}.{self._content_type}"
+    def _dir_for(self, namespace: str) -> Path:
+        """根据 namespace 返回缓存子目录（namespace 为空时用根目录）。"""
+        return self._cache_dir / namespace if namespace else self._cache_dir
 
-    def _meta_path(self, key: str) -> Path:
-        return self._cache_dir / f"{_safe_name(key)}.{self._content_type}.meta.json"
+    def _data_path(self, key: str, namespace: str = "") -> Path:
+        return self._dir_for(namespace) / f"{_safe_name(key)}.{self._content_type}"
 
-    def _load_meta(self, key: str) -> Optional[CacheMeta]:
-        path = self._meta_path(key)
+    def _meta_path(self, key: str, namespace: str = "") -> Path:
+        return self._dir_for(namespace) / f"{_safe_name(key)}.{self._content_type}.meta.json"
+
+    def _load_meta(self, key: str, namespace: str = "") -> Optional[CacheMeta]:
+        path = self._meta_path(key, namespace)
         if not path.exists():
             return None
         try:
@@ -103,10 +107,10 @@ class Cache(ABC):
         tmp.write_bytes(data)
         os.replace(tmp, path)
 
-    def _write_entry(self, key: str, payload: bytes, ttl: CacheTTL) -> None:
+    def _write_entry(self, key: str, payload: bytes, ttl: CacheTTL, namespace: str = "") -> None:
         now = datetime.now()
         expires_at = ttl.expires_at(now)
-        self._atomic_write(self._data_path(key), payload)
+        self._atomic_write(self._data_path(key, namespace), payload)
         meta = {
             "key": key,
             "content_type": self._content_type,
@@ -115,42 +119,48 @@ class Cache(ABC):
             "size": len(payload),
         }
         self._atomic_write(
-            self._meta_path(key),
+            self._meta_path(key, namespace),
             json.dumps(meta, ensure_ascii=False, indent=2).encode("utf-8"),
         )
 
-    def _read_payload_if_fresh(self, key: str) -> Optional[bytes]:
-        meta = self._load_meta(key)
+    def _read_payload_if_fresh(self, key: str, namespace: str = "") -> Optional[bytes]:
+        meta = self._load_meta(key, namespace)
         if meta is None:
             return None
         if datetime.now() >= meta.expires_at:
             return None
-        data_path = self._data_path(key)
+        data_path = self._data_path(key, namespace)
         if not data_path.exists():
             return None
         return data_path.read_bytes()
 
     # ---------- 公共接口 ----------
 
-    async def get(self, key: str) -> Optional[Any]:
-        """命中且未过期返回反序列化后的值，否则返回 None。"""
-        data = await asyncio.to_thread(self._read_payload_if_fresh, key)
+    async def get(self, key: str, namespace: str = "") -> Optional[Any]:
+        """命中且未过期返回反序列化后的值，否则返回 None。
+
+        namespace: 缓存子目录（不同 provider 用不同 namespace 隔离）。
+        """
+        data = await asyncio.to_thread(self._read_payload_if_fresh, key, namespace)
         return None if data is None else self._decode(data)
 
-    async def set(self, key: str, value: Any, *, ttl: CacheTTL) -> None:
-        """序列化后原子写入；同时刷新 meta。"""
-        await asyncio.to_thread(self._write_entry, key, self._encode(value), ttl)
+    async def set(self, key: str, value: Any, *, ttl: CacheTTL, namespace: str = "") -> None:
+        """序列化后原子写入；同时刷新 meta。
 
-    async def delete(self, key: str) -> bool:
+        namespace: 缓存子目录（不同 provider 用不同 namespace 隔离）。
+        """
+        await asyncio.to_thread(self._write_entry, key, self._encode(value), ttl, namespace)
+
+    async def delete(self, key: str, namespace: str = "") -> bool:
         """删除该 key 的负载与 meta，返回是否实际删除了文件。"""
 
         def _do() -> bool:
             removed = False
-            data_path = self._data_path(key)
+            data_path = self._data_path(key, namespace)
             if data_path.exists():
                 data_path.unlink()
                 removed = True
-            meta_path = self._meta_path(key)
+            meta_path = self._meta_path(key, namespace)
             if meta_path.exists():
                 meta_path.unlink()
                 removed = True
@@ -158,22 +168,24 @@ class Cache(ABC):
 
         return await asyncio.to_thread(_do)
 
-    async def clear(self, prefix: str = "") -> int:
-        """删除原始 key 以 prefix 开头、且属于本子类 content_type 的所有条目。"""
+    async def clear(self, prefix: str = "", namespace: str = "") -> int:
+        """删除原始 key 以 prefix 开头、且属于本子类 content_type 的所有条目。
+
+        namespace: 限定在某个子目录内清理（默认整个缓存目录）。
+        """
 
         def _do() -> int:
-            if not self._cache_dir.exists():
+            target_dir = self._dir_for(namespace)
+            if not target_dir.exists():
                 return 0
             count = 0
             suffix = f".{self._content_type}.meta.json"
-            for meta_file in self._cache_dir.glob(f"*{suffix}"):
+            for meta_file in target_dir.glob(f"*{suffix}"):
                 try:
                     raw = json.loads(meta_file.read_text(encoding="utf-8"))
                     if not raw.get("key", "").startswith(prefix):
                         continue
-                    data_path = self._cache_dir / (
-                        meta_file.name[: -len(".meta.json")]
-                    )
+                    data_path = target_dir / (meta_file.name[: -len(".meta.json")])
                     if data_path.exists():
                         data_path.unlink()
                     meta_file.unlink()
