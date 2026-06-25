@@ -5,7 +5,7 @@ import akshare as ak
 from pydantic import BaseModel
 
 
-from app.providers.client.parsers import safe_float, safe_int, safe_str
+from app.base.safe_value import safe_float, safe_int, safe_str
 
 
 class BoardQuote(BaseModel):

@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from mootdx.quotes import Quotes
 
-from app.providers.client.parsers import safe_float, safe_str
+from app.base.safe_value import safe_float, safe_str
 from app.providers.model.tdx_data import TdxKlineBar, TdxQuote
 
 # 标准市场行情客户端（直连通达信行情服务器，无需客户端/虚拟机）

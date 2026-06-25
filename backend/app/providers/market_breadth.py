@@ -6,8 +6,8 @@ import akshare as ak
 import pandas as pd
 from pydantic import BaseModel
 
-from app.providers.client.parsers import safe_float, safe_int, safe_str
-from app.providers.client.trading_date import recent_trade_dates
+from app.base.safe_value import safe_float, safe_int, safe_str
+from app.base.date_tool import recent_trade_dates
 
 
 class MarketSummary(BaseModel):

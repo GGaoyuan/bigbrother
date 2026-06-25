@@ -1,12 +1,12 @@
 import asyncio
 import json
-from typing import Any, List, Optional
+from typing import List, Optional
 
 import akshare as ak
 import pandas as pd
 from pydantic import BaseModel
 
-from app.providers.client.parsers import safe_float, safe_str
+from app.base.safe_value import safe_float, safe_str
 
 
 class NewsItem(BaseModel):
