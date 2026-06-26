@@ -1,4 +1,6 @@
 """个股资金流排行 provider（完全符合 BaseProvider 规范）
+# DEPRECATED: 此文件使用 akshare/efinance/adata 数据源，已禁用，需要迁移到 easy_tdx/mootdx
+
 
 数据源：akshare 东财个股资金流排行接口（不稳定，需重试）
 不缓存：ttl=CacheTTL.NONE（需要缓存时改 ttl 即可）

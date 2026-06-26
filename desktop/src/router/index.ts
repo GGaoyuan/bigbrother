@@ -3,6 +3,7 @@ import Dashboard from '@/views/Dashboard.vue'
 import Users from '@/views/Users.vue'
 import Settings from '@/views/Settings.vue'
 import VolumeProfile from '@/views/VolumeProfile.vue'
+import IndexChart from '@/views/IndexChart.vue'
 import MarketCap from '@/views/MarketCap.vue'
 import VolumeShare from '@/views/VolumeShare.vue'
 import SectorFlow from '@/views/SectorFlow.vue'
@@ -50,10 +51,16 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '日内资金流向' },
   },
   {
+    path: '/index-chart',
+    name: 'index-chart',
+    component: IndexChart,
+    meta: { title: '指数行情' },
+  },
+  {
     path: '/volume-profile',
     name: 'volume-profile',
     component: VolumeProfile,
-    meta: { title: 'Volume Profile' },
+    meta: { title: '成交量分布图' },
   },
   {
     path: '/settings',

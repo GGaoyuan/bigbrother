@@ -1,4 +1,6 @@
 """板块日内资金流——离线板块表 + efinance today_bill 并发聚合。
+# DEPRECATED: 此文件使用 akshare/efinance/adata 数据源，已禁用，需要迁移到 easy_tdx/mootdx
+
 
 数据策略（唯一稳定可用方案）：
 1. 静态 JSON 维护 50+ 热门概念板块代码+名称（sector_codes.json）

@@ -1,4 +1,6 @@
 import asyncio
+# DEPRECATED: 此文件使用 akshare/efinance/adata 数据源，已禁用，需要迁移到 easy_tdx/mootdx
+
 from datetime import datetime
 from typing import List, Optional
 

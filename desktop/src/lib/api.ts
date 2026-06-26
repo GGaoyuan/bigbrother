@@ -140,3 +140,55 @@ export const sectorIntradayApi = {
       bottom_n: bottomN,
     }),
 }
+
+// ─── 指数 K 线类型 ────────────────────────────────────────────────────
+export interface IndexInfo {
+  symbol: string
+  name: string
+}
+
+export interface IndexKlineBar {
+  trade_date: string | null
+  open: number | null
+  high: number | null
+  low: number | null
+  close: number | null
+  volume: number | null
+  amount: number | null
+  change_pct: number | null
+}
+
+export interface IndexKline {
+  symbol: string
+  name: string
+  period: string // day | week | month
+  bars: IndexKlineBar[]
+}
+
+export const indexApi = {
+  list: () => postV2<IndexInfo[]>('/index/list'),
+  kline: (symbol: string, period: string = 'day', limit: number = 500) =>
+    postV2<IndexKline>('/index/kline', { symbol, period, limit }),
+}
+
+// ─── 成交量分布 K 线类型 ──────────────────────────────────────────────
+export interface VolumeKlineBar {
+  datetime: string | null
+  open: number | null
+  high: number | null
+  low: number | null
+  close: number | null
+  volume: number | null
+  amount: number | null
+}
+
+export interface VolumeKline {
+  symbol: string
+  period: string // 1m | 5m | 30m | day
+  bars: VolumeKlineBar[]
+}
+
+export const volumeProfileApi = {
+  kline: (symbol: string, period: string = 'day', count: number = 300) =>
+    postV2<VolumeKline>('/volume-profile/kline', { symbol, period, count }),
+}

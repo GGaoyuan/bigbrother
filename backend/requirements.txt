@@ -14,3 +14,4 @@ pandas~=2.2.2
 pytdx~=1.72
 adata~=2.9.5
 easy_tdx~=1.14.5
+mootdx~=0.11.7
