@@ -8,6 +8,7 @@ import MarketCap from '@/views/MarketCap.vue'
 import VolumeShare from '@/views/VolumeShare.vue'
 import SectorFlow from '@/views/SectorFlow.vue'
 import SectorIntradayFlow from '@/views/SectorIntradayFlow.vue'
+import SectorRiverFlow from '@/views/SectorRiverFlow.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -49,6 +50,12 @@ const routes: RouteRecordRaw[] = [
     name: 'sector-intraday',
     component: SectorIntradayFlow,
     meta: { title: '日内资金流向' },
+  },
+  {
+    path: '/sector-river',
+    name: 'sector-river',
+    component: SectorRiverFlow,
+    meta: { title: '板块资金河流图' },
   },
   {
     path: '/index-chart',

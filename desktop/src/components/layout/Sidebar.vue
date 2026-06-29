@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LayoutDashboard, Users, BarChart3, Settings, TrendingUp, PieChart, ArrowLeftRight, Activity, LineChart } from '@lucide/vue'
+import { LayoutDashboard, Users, BarChart3, Settings, TrendingUp, PieChart, ArrowLeftRight, Activity, LineChart, Waves } from '@lucide/vue'
 import type { FunctionalComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import { cn } from '@/lib/utils'
@@ -11,15 +11,16 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { title: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  { title: 'Users', to: '/users', icon: Users },
-  { title: 'A股总市值', to: '/market-cap', icon: TrendingUp },
-  { title: '成交量占比', to: '/volume-share', icon: PieChart },
-  { title: '板块资金流', to: '/sector-flow', icon: ArrowLeftRight },
-  { title: '日内资金流向', to: '/sector-intraday', icon: Activity },
-  { title: '指数行情', to: '/index-chart', icon: LineChart },
-  { title: '成交量分布图', to: '/volume-profile', icon: BarChart3 },
-  { title: 'Settings', to: '/settings', icon: Settings },
+  { title: 'Dashboard(未完成)', to: '/dashboard', icon: LayoutDashboard },
+  { title: 'Users(未完成)', to: '/users', icon: Users },
+  { title: 'A股总市值(未完成)', to: '/market-cap', icon: TrendingUp },
+  { title: '成交量占比(未完成)', to: '/volume-share', icon: PieChart },
+  { title: '板块资金流(未完成)', to: '/sector-flow', icon: ArrowLeftRight },
+  { title: '日内资金流向(未完成)', to: '/sector-intraday', icon: Activity },
+  { title: '板块资金河流图(未完成)', to: '/sector-river', icon: Waves },
+  { title: '指数行情(未完成)', to: '/index-chart', icon: LineChart },
+  { title: '成交量分布图(未完成)', to: '/volume-profile', icon: BarChart3 },
+  { title: 'Settings(未完成)', to: '/settings', icon: Settings },
 ]
 
 const route = useRoute()
