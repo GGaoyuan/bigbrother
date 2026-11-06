@@ -1,81 +1,44 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import {
+  METRIC_ID,
+  type DataCategoryId,
+  type DataSeriesConfig,
+  type MetricId,
+} from '../../common/appConfig'
+import { useAppConfigStore } from '../../common/appConfigStore'
 
-type Dataset = {
-  name: string;
-  code: string;
-  category: string;
-}
-
-const groups = [
-  'A股个股',
-  'A股指数',
-  'A股指数估值',
-  '融资融券',
-]
-const activeGroup = ref<string | null>(null)
+const appConfigStore = useAppConfigStore()
+const config = computed(() => appConfigStore.config!)
+const categories = computed(() => config.value.dataCategories)
+const activeCategoryId = ref<DataCategoryId | null>(null)
 const search = ref('')
-const selectedMetric = ref('收盘价')
-const selected = ref<Dataset | null>(null)
-const added = ref<(Dataset & {
-  metric: string;
-})[]>([])
-const metrics = [
-  '收盘价',
-  '开盘价',
-  '最高价',
-  '最低价',
-  '成交量',
-  '成交额',
-  '涨跌幅',
-]
-const datasets: Record<string, Dataset[]> = {
-  A股个股: [
-    { name: '贵州茅台', code: '600519.SH', category: '白酒' },
-    { name: '宁德时代', code: '300750.SZ', category: '电池' },
-    { name: '中国平安', code: '601318.SH', category: '保险' },
-    { name: '比亚迪', code: '002594.SZ', category: '汽车' },
-  ],
-  A股指数: [
-    { name: '上证指数', code: '000001.SH', category: '上交所' },
-    { name: '深证成指', code: '399001.SZ', category: '深交所' },
-    { name: '沪深300', code: '000300.SH', category: '宽基指数' },
-    { name: '创业板指', code: '399006.SZ', category: '深交所' },
-  ],
-  A股指数估值: [
-    { name: '沪深300 PE-TTM', code: '000300.SH', category: '市盈率' },
-    { name: '上证指数 PE-TTM', code: '000001.SH', category: '市盈率' },
-    { name: '中证500 PB', code: '000905.SH', category: '市净率' },
-  ],
-  融资融券: [
-    { name: '两市融资余额', code: 'FIN.MARGIN', category: '融资余额' },
-    { name: '沪市融资余额', code: 'SH.MARGIN', category: '上交所' },
-    { name: '深市融资余额', code: 'SZ.MARGIN', category: '深交所' },
-  ],
-}
-const visibleDatasets = computed(() =>
-  (datasets[activeGroup.value ?? ''] ?? []).filter((row) =>
-    `${row.name}${row.code}${row.category}`.toLowerCase().includes(search.value.toLowerCase()),
+const selectedMetricId = ref<MetricId>(METRIC_ID.CLOSE)
+const selected = ref<DataSeriesConfig | null>(null)
+const addedSeriesKeys = ref<string[]>([])
+const activeCategory = computed(
+  () => categories.value.find((category) => category.id === activeCategoryId.value) ?? null,
+)
+const visibleSeries = computed(() =>
+  (activeCategory.value?.series ?? []).filter((series) =>
+    `${series.label}${series.code}${series.categoryLabel}`
+      .toLowerCase()
+      .includes(search.value.toLowerCase()),
   ),
 )
 
-function toggleGroup(group: string) {
-  activeGroup.value = activeGroup.value === group ? null : group
+function toggleCategory(categoryId: DataCategoryId) {
+  activeCategoryId.value = activeCategoryId.value === categoryId ? null : categoryId
   selected.value = null
   search.value = ''
 }
 
 function addDataset() {
   if (!selected.value) return
-  if (
-    !added.value.some(
-      (item) =>
-        item.code === selected.value?.code &&
-        item.name === selected.value?.name &&
-        item.metric === selectedMetric.value,
-    )
-  ) {
-    added.value.push({ ...selected.value, metric: selectedMetric.value })
+  const seriesKey = `${selected.value.id}:${selectedMetricId.value}`
+
+  if (!addedSeriesKeys.value.includes(seriesKey)) {
+    addedSeriesKeys.value.push(seriesKey)
   }
 }
 </script>
@@ -83,70 +46,72 @@ function addDataset() {
 <template>
   <section class="data-browser workspace-pane">
     <div class="section-title">
-      <span>数据源</span><span class="section-hint">MARKET DATA</span>
+      <span>{{ config.sidebar.marketDataLabel }}</span>
+      <span class="section-hint">{{ config.sidebar.marketDataHint }}</span>
     </div>
-    <nav class="group-list" aria-label="数据类别">
-      <div v-for="group in groups" :key="group" class="group-entry">
+    <nav class="group-list" :aria-label="config.sidebar.dataCategoriesLabel">
+      <div v-for="category in categories" :key="category.id" class="group-entry">
         <button
           class="group-item"
-          :class="{ selected: activeGroup === group }"
-          :aria-expanded="activeGroup === group"
-          @click="toggleGroup(group)"
+          :class="{ selected: activeCategoryId === category.id }"
+          :aria-expanded="activeCategoryId === category.id"
+          @click="toggleCategory(category.id)"
         >
-          <span class="group-icon">{{
-            group === '融资融券'
-              ? '↗'
-              : group.includes('估值')
-                ? '◷'
-                : group.includes('指数')
-                  ? '▥'
-                  : '◉'
-          }}</span
-          >{{ group }}<span class="chevron" :class="{ expanded: activeGroup === group }">›</span>
+          <span class="group-icon">{{ category.icon }}</span>
+          {{ category.label }}
+          <span class="chevron" :class="{ expanded: activeCategoryId === category.id }">›</span>
         </button>
-        <div v-if="activeGroup === group" class="dataset-panel">
+        <div v-if="activeCategoryId === category.id" class="dataset-panel">
           <div class="panel-heading">
             <div>
-              <strong>{{ group }}</strong
-              ><small>选择数据系列并添加到图表</small>
+              <strong>{{ category.label }}</strong>
+              <small>{{ config.sidebar.selectSeriesHint }}</small>
             </div>
-            <span class="count">{{ visibleDatasets.length }}</span>
+            <span class="count">{{ visibleSeries.length }}</span>
           </div>
           <label class="search-box"
-            ><span>⌕</span><input v-model="search" :placeholder="`搜索${group}…`"
+            ><span>⌕</span><input v-model="search" :placeholder="config.sidebar.searchPlaceholder"
           /></label>
-          <div class="rows-label">名称 <span>代码</span></div>
+          <div class="rows-label">
+            {{ config.sidebar.seriesNameLabel }}
+            <span>{{ config.sidebar.seriesCodeLabel }}</span>
+          </div>
           <div class="dataset-list">
             <button
-              v-for="row in visibleDatasets"
-              :key="row.name"
+              v-for="series in visibleSeries"
+              :key="series.id"
               class="dataset-row"
-              :class="{ chosen: selected?.name === row.name }"
-              @click="selected = row"
+              :class="{ chosen: selected?.id === series.id }"
+              @click="selected = series"
             >
               <span class="row-dot"></span
               ><span class="row-info"
-                ><strong>{{ row.name }}</strong
-                ><small>{{ row.category }}</small></span
-              ><code>{{ row.code }}</code>
+                ><strong>{{ series.label }}</strong
+                ><small>{{ series.categoryLabel }}</small></span
+              ><code>{{ series.code }}</code>
             </button>
-            <div v-if="!visibleDatasets.length" class="empty-results">没有匹配的数据</div>
+            <div v-if="!visibleSeries.length" class="empty-results">
+              {{ config.sidebar.noResultsLabel }}
+            </div>
           </div>
           <div class="metric-area">
-            <div class="subhead">指标 <span>选择一个指标</span></div>
+            <div class="subhead">
+              {{ config.sidebar.metricsLabel }}
+              <span>{{ config.sidebar.metricHint }}</span>
+            </div>
             <div class="metric-chips">
               <button
-                v-for="metric in metrics"
-                :key="metric"
-                :class="{ active: selectedMetric === metric }"
-                @click="selectedMetric = metric"
+                v-for="metric in config.metrics"
+                :key="metric.id"
+                :class="{ active: selectedMetricId === metric.id }"
+                @click="selectedMetricId = metric.id"
               >
-                {{ metric }}
+                {{ metric.label }}
               </button>
             </div>
           </div>
           <button class="add-button" :disabled="!selected" @click="addDataset">
-            <span>＋</span> 添加到图表
+            <span>＋</span> {{ config.sidebar.addToChartLabel }}
           </button>
         </div>
       </div>

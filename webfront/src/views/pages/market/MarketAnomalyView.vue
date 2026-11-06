@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
-import MarketAnomalyKlineItem from '../components/MarketAnomalyKlineItem.vue'
+import MarketAnomalyKlineItem from '@/components/MarketAnomalyKlineItem.vue'
 
 export interface AnomalyNode {
   timeIdx: number
@@ -10,9 +10,27 @@ export interface AnomalyNode {
   type: 'up' | 'down'
 }
 
-const timeAxis = ['09:30', '09:45', '10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '13:00', '14:00', '14:30', '15:00']
-const indexData = [0.38, 0.25, 0.05, -0.89, -0.65, -0.52, -0.48, -0.55, -0.62, -0.70, -0.75, -0.77, -0.77]
-const priceData = [4168, 4162, 4148, 4145.48, 4142, 4140, 4139, 4137, 4135, 4132, 4130, 4150.51, 4150.51]
+const timeAxis = [
+  '09:30',
+  '09:45',
+  '10:00',
+  '10:15',
+  '10:30',
+  '10:45',
+  '11:00',
+  '11:15',
+  '11:30',
+  '13:00',
+  '14:00',
+  '14:30',
+  '15:00',
+]
+const indexData = [
+  0.38, 0.25, 0.05, -0.89, -0.65, -0.52, -0.48, -0.55, -0.62, -0.7, -0.75, -0.77, -0.77,
+]
+const priceData = [
+  4168, 4162, 4148, 4145.48, 4142, 4140, 4139, 4137, 4135, 4132, 4130, 4150.51, 4150.51,
+]
 const volumeData = [2.1, 2.8, 3.2, 3.89, 4.1, 4.5, 4.8, 5.0, 5.2, 6.0, 6.5, 6.8, 7.0]
 const amountData = [35.2, 46.8, 53.5, 64.45, 68.2, 75.1, 80.2, 83.5, 86.8, 100, 108, 113, 118]
 
@@ -30,17 +48,31 @@ let chart: echarts.ECharts | null = null
 const selectedDate = ref(formatDate(new Date()))
 
 function formatDate(d: Date) {
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+  return (
+    d.getFullYear() +
+    '-' +
+    String(d.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(d.getDate()).padStart(2, '0')
+  )
 }
 
 function initChart() {
   if (!chartRef.value) return
-  const scatterDown = anomalyNodes.value.filter((p) => p.type === 'down').map((p) => [timeAxis[p.timeIdx], p.value, p.name] as [string, number, string])
-  const scatterUp = anomalyNodes.value.filter((p) => p.type === 'up').map((p) => [timeAxis[p.timeIdx], p.value, p.name] as [string, number, string])
+  const scatterDown = anomalyNodes.value
+    .filter((p) => p.type === 'down')
+    .map((p) => [timeAxis[p.timeIdx], p.value, p.name] as [string, number, string])
+  const scatterUp = anomalyNodes.value
+    .filter((p) => p.type === 'up')
+    .map((p) => [timeAxis[p.timeIdx], p.value, p.name] as [string, number, string])
 
   chart = echarts.init(chartRef.value)
   chart.setOption({
-    title: { text: `大盘异动 - 上证指数 ${selectedDate.value}`, left: 'center', textStyle: { fontSize: 14 } },
+    title: {
+      text: `大盘异动 - 上证指数 ${selectedDate.value}`,
+      left: 'center',
+      textStyle: { fontSize: 14 },
+    },
     tooltip: {
       trigger: 'axis',
       formatter: (params: unknown) => {
@@ -52,11 +84,50 @@ function initChart() {
     },
     grid: { left: '10%', right: '8%', top: '18%', bottom: '15%' },
     xAxis: { type: 'category', data: timeAxis, boundaryGap: false },
-    yAxis: { type: 'value', axisLabel: { formatter: '{value}%' }, min: -1.2, max: 0.6, splitLine: { show: true, lineStyle: { type: 'dashed', opacity: 0.3 } } },
+    yAxis: {
+      type: 'value',
+      axisLabel: { formatter: '{value}%' },
+      min: -1.2,
+      max: 0.6,
+      splitLine: { show: true, lineStyle: { type: 'dashed', opacity: 0.3 } },
+    },
     series: [
-      { type: 'line', data: indexData, smooth: true, symbol: 'none', lineStyle: { color: '#2196f3', width: 2 }, areaStyle: { color: 'rgba(33, 150, 243, 0.1)' } },
-      { type: 'scatter', data: scatterDown, symbol: 'circle', symbolSize: 10, itemStyle: { color: '#e53935' }, label: { show: true, formatter: (params: { data: [string, number, string] }) => (params.data && params.data[2]) || '', position: 'top', fontSize: 10 } },
-      { type: 'scatter', data: scatterUp, symbol: 'circle', symbolSize: 10, itemStyle: { color: '#43a047' }, label: { show: true, formatter: (params: { data: [string, number, string] }) => (params.data && params.data[2]) || '', position: 'top', fontSize: 10 } },
+      {
+        type: 'line',
+        data: indexData,
+        smooth: true,
+        symbol: 'none',
+        lineStyle: { color: '#2196f3', width: 2 },
+        areaStyle: { color: 'rgba(33, 150, 243, 0.1)' },
+      },
+      {
+        type: 'scatter',
+        data: scatterDown,
+        symbol: 'circle',
+        symbolSize: 10,
+        itemStyle: { color: '#e53935' },
+        label: {
+          show: true,
+          formatter: (params: { data: [string, number, string] }) =>
+            (params.data && params.data[2]) || '',
+          position: 'top',
+          fontSize: 10,
+        },
+      },
+      {
+        type: 'scatter',
+        data: scatterUp,
+        symbol: 'circle',
+        symbolSize: 10,
+        itemStyle: { color: '#43a047' },
+        label: {
+          show: true,
+          formatter: (params: { data: [string, number, string] }) =>
+            (params.data && params.data[2]) || '',
+          position: 'top',
+          fontSize: 10,
+        },
+      },
     ],
   })
 }

@@ -1,31 +1,35 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import type { WorkspaceId, WorkspaceTabConfig } from '../../common/appConfig'
 
-defineProps<{ modelValue: '数据' | 'AI' | '页面' }>()
-const emit = defineEmits<{ 'update:modelValue': [value: '数据' | 'AI' | '页面'] }>()
-const tabs = [
-  '数据',
-  'AI',
-  '页面',
-] as const
+defineProps<{
+  modelValue: WorkspaceId
+  tabs: WorkspaceTabConfig[]
+  homeLabel: string
+  workspacesLabel: string
+}>()
+
+const emit = defineEmits<{
+  'update:modelValue': [value: WorkspaceId]
+}>()
 </script>
 
 <template>
   <header class="sidebar-header">
-    <RouterLink to="/" class="avatar" aria-label="首页"
-      ><img src="/favicon.png" alt="猫咪头像"
+    <RouterLink to="/" class="avatar" :aria-label="homeLabel"
+      ><img src="/favicon.png" alt=""
     /></RouterLink>
-    <div class="mode-switch" role="tablist" aria-label="工作区">
+    <div class="mode-switch" role="tablist" :aria-label="workspacesLabel">
       <button
-        v-for="item in tabs"
-        :key="item"
+        v-for="tab in tabs"
+        :key="tab.id"
         role="tab"
-        :aria-selected="modelValue === item"
+        :aria-selected="modelValue === tab.id"
         class="mode-tab"
-        :class="{ active: modelValue === item }"
-        @click="emit('update:modelValue', item)"
+        :class="{ active: modelValue === tab.id }"
+        @click="emit('update:modelValue', tab.id)"
       >
-        {{ item }}
+        {{ tab.label }}
       </button>
     </div>
   </header>

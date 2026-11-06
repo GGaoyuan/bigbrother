@@ -1,7 +1,16 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useAppConfigStore } from '../../common/appConfigStore'
+
+const appConfigStore = useAppConfigStore()
+const config = computed(() => appConfigStore.config!)
+</script>
+
 <template>
   <section class="ai-empty workspace-pane">
     <div class="ai-mark">✳</div>
-    <strong>AI 工作区</strong><span>在这里开始探索市场数据</span>
+    <strong>{{ config.sidebar.aiPlaceholderTitle }}</strong>
+    <span>{{ config.sidebar.aiPlaceholderDescription }}</span>
   </section>
 </template>
 

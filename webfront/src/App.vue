@@ -1,13 +1,13 @@
 <template>
   <div class="app-container">
     <AppSidebar />
-    <main class="main-content"><RouterView /></main>
+    <main class="main-content"><WorkspaceContainer /></main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
-import AppSidebar from './components/sidebar/AppSidebar.vue'
+import AppSidebar from './views/sidebar/AppSidebar.vue'
+import WorkspaceContainer from './views/workspace/WorkspaceContainer.vue'
 </script>
 
 <style>
