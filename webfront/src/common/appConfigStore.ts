@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { PROJECT_CONFIG, type AppConfig } from './appConfig'
+import { PROJECT_CONFIG, type AppConfig } from './config'
 
 export const useAppConfigStore = defineStore('app-config', () => {
   const config = ref<AppConfig | null>(null)

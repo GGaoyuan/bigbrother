@@ -1,20 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { WORKSPACE_TYPE } from '../../common/appConfig'
-import { useAppConfigStore } from '../../common/appConfigStore'
+import { useAppConfigStore } from '../../../common/appConfigStore'
 
 const appConfigStore = useAppConfigStore()
 const config = computed(() => appConfigStore.config!)
-const aiWorkspace = computed(
-  () => config.value.workspaces.find((workspace) => workspace.type === WORKSPACE_TYPE.AI)!,
-)
 </script>
 
 <template>
   <section class="ai-page">
     <div class="ai-page-card">
       <div class="ai-page-mark">✳</div>
-      <h1>{{ aiWorkspace.containerTitle }}</h1>
+      <h1>{{ config.sidebar.aiPageTitle }}</h1>
       <p>{{ config.sidebar.aiPlaceholderDescription }}</p>
     </div>
   </section>

@@ -5,8 +5,8 @@ import {
   type DataCategoryId,
   type DataSeriesConfig,
   type MetricId,
-} from '../../common/appConfig'
-import { useAppConfigStore } from '../../common/appConfigStore'
+} from '../../../common/config'
+import { useAppConfigStore } from '../../../common/appConfigStore'
 
 const appConfigStore = useAppConfigStore()
 const config = computed(() => appConfigStore.config!)

@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import type { WorkspaceId, WorkspaceTabConfig } from '../../common/appConfig'
+import type { WorkspaceId } from '../../common/config'
+import type { SidebarTabConfig } from '../../common/config/sidebarTabs'
 
 defineProps<{
   modelValue: WorkspaceId
-  tabs: WorkspaceTabConfig[]
+  tabs: SidebarTabConfig[]
   homeLabel: string
   workspacesLabel: string
 }>()
@@ -29,7 +30,7 @@ const emit = defineEmits<{
         :class="{ active: modelValue === tab.id }"
         @click="emit('update:modelValue', tab.id)"
       >
-        {{ tab.label }}
+        {{ tab.name }}
       </button>
     </div>
   </header>

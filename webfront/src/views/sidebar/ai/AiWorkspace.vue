@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useAppConfigStore } from '../../common/appConfigStore'
+import { useAppConfigStore } from '../../../common/appConfigStore'
 
 const appConfigStore = useAppConfigStore()
 const config = computed(() => appConfigStore.config!)

@@ -1,13 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import {
-  CONTAINER_TYPE,
-  WORKSPACE_ID,
-  WORKSPACE_TYPE,
-  type PageConfig,
-  type WorkspaceId,
-  type WorkspaceTabConfig,
-} from './appConfig'
+import { CONTAINER_TYPE, PAGE_ID, WORKSPACE_ID, type PageId, type WorkspaceId } from './config'
+import type { PageTabConfig } from './config/pageTabs'
+import { PAGE_ROUTE_NAMES } from './config/pageRouteNames'
 
 export interface WorkspaceContainerConfig {
   id: string;
@@ -18,7 +13,7 @@ export interface WorkspaceContainerConfig {
 export interface RouteContainerConfig {
   id: string;
   type: typeof CONTAINER_TYPE.ROUTE;
-  pageId: string;
+  pageId: PageId;
   title: string;
   path: string;
   routeNames: string[];
@@ -36,47 +31,35 @@ export const useContainerQueueStore = defineStore('container-queue', () => {
   )
 
   function cacheAndActivate(container: ContainerConfig) {
-    const cached = containers.value.find((item) => item.id === container.id)
-
-    if (!cached) {
-      containers.value.push(container)
-    }
-
+    if (!containers.value.some((item) => item.id === container.id)) containers.value.push(container)
     activeContainerId.value = container.id
   }
 
-  function activateWorkspace(workspace: WorkspaceTabConfig) {
-    activeWorkspaceId.value = workspace.id
+  function activateWorkspace(workspaceId: WorkspaceId, title: string) {
+    activeWorkspaceId.value = workspaceId
+    if (workspaceId === WORKSPACE_ID.PAGES) return
 
-    if (workspace.type === WORKSPACE_TYPE.DATA) {
-      cacheAndActivate({
-        id: workspace.id,
-        type: CONTAINER_TYPE.DATA,
-        title: workspace.containerTitle,
-      })
-    } else if (workspace.type === WORKSPACE_TYPE.AI) {
-      cacheAndActivate({
-        id: workspace.id,
-        type: CONTAINER_TYPE.AI,
-        title: workspace.containerTitle,
-      })
-    }
+    cacheAndActivate({
+      id: `workspace:${workspaceId}`,
+      type: workspaceId === WORKSPACE_ID.DATA ? CONTAINER_TYPE.DATA : CONTAINER_TYPE.AI,
+      title,
+    })
   }
 
-  function openPage(page: PageConfig) {
+  function openPage(page: PageTabConfig) {
     activeWorkspaceId.value = WORKSPACE_ID.PAGES
     cacheAndActivate({
       id: `page:${page.id}`,
       type: CONTAINER_TYPE.ROUTE,
       pageId: page.id,
-      title: page.label,
+      title: page.name,
       path: page.path,
-      routeNames: page.routeNames,
+      routeNames: PAGE_ROUTE_NAMES[page.id],
     })
   }
 
-  function syncRoute(routeName: string, pages: PageConfig[]) {
-    const matchedPage = pages.find((page) => page.routeNames.includes(routeName))
+  function syncRoute(routeName: string, pages: PageTabConfig[]) {
+    const matchedPage = pages.find((page) => PAGE_ROUTE_NAMES[page.id].includes(routeName))
     if (matchedPage) openPage(matchedPage)
   }
 

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import AiWorkspace from '../ai/AiWorkspace.vue'
-import DataWorkspace from '../data/DataWorkspace.vue'
-import PageNavigation from '../pages/PageNavigation.vue'
+import AiWorkspace from './ai/AiWorkspace.vue'
+import DataWorkspace from './data/DataWorkspace.vue'
+import PageNavigation from './pages/PageNavigation.vue'
 import { useAppConfigStore } from '../../common/appConfigStore'
-import { WORKSPACE_TYPE, type WorkspaceId } from '../../common/appConfig'
+import { WORKSPACE_ID, type WorkspaceId } from '../../common/config'
 import { useContainerQueueStore } from '../../common/containerQueue'
 import SidebarHeader from './SidebarHeader.vue'
 
@@ -18,7 +18,7 @@ const activeWorkspace = computed(
 
 function selectWorkspace(workspaceId: WorkspaceId) {
   const workspace = config.value.workspaces.find((item) => item.id === workspaceId)
-  if (workspace) containerQueue.activateWorkspace(workspace)
+  if (workspace) containerQueue.activateWorkspace(workspace.id, workspace.name)
 }
 </script>
 
@@ -31,9 +31,9 @@ function selectWorkspace(workspaceId: WorkspaceId) {
       :workspaces-label="config.sidebar.workspacesLabel"
       @update:model-value="selectWorkspace"
     />
-    <DataWorkspace v-if="activeWorkspace?.type === WORKSPACE_TYPE.DATA" />
-    <AiWorkspace v-else-if="activeWorkspace?.type === WORKSPACE_TYPE.AI" />
-    <PageNavigation v-else-if="activeWorkspace?.type === WORKSPACE_TYPE.PAGES" />
+    <DataWorkspace v-if="activeWorkspace?.id === WORKSPACE_ID.DATA" />
+    <AiWorkspace v-else-if="activeWorkspace?.id === WORKSPACE_ID.AI" />
+    <PageNavigation v-else-if="activeWorkspace?.id === WORKSPACE_ID.PAGES" />
     <footer class="sidebar-footer">
       <span class="status-dot"></span>
       {{ config.sidebar.footerLabel }}

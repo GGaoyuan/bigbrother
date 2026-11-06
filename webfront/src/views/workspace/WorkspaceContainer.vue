@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
-import { CONTAINER_TYPE } from '../../common/appConfig'
+import { CONTAINER_TYPE } from '../../common/config'
 import { useAppConfigStore } from '../../common/appConfigStore'
 import { useContainerQueueStore } from '../../common/containerQueue'
-import AiPage from '../ai/AiPage.vue'
-import DataPage from '../data/DataPage.vue'
+import AiPage from './ai/AiPage.vue'
+import DataPage from './data/DataPage.vue'
 
 const route = useRoute()
 const appConfigStore = useAppConfigStore()

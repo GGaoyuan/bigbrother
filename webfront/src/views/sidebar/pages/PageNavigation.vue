@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import { computed } from 'vue'
-import { useAppConfigStore } from '../../common/appConfigStore'
-import { useContainerQueueStore } from '../../common/containerQueue'
+import { useAppConfigStore } from '../../../common/appConfigStore'
+import { useContainerQueueStore } from '../../../common/containerQueue'
 
 const appConfigStore = useAppConfigStore()
 const containerQueue = useContainerQueueStore()
@@ -26,7 +26,7 @@ const config = computed(() => appConfigStore.config!)
         exact-active-class="nav-item--exact-active"
         @click="containerQueue.openPage(page)"
       >
-        {{ page.label }}
+        {{ page.name }}
       </RouterLink>
     </nav>
   </section>

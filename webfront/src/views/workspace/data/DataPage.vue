@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { WORKSPACE_TYPE } from '../../common/appConfig'
-import { useAppConfigStore } from '../../common/appConfigStore'
+import { useAppConfigStore } from '../../../common/appConfigStore'
 
 const appConfigStore = useAppConfigStore()
 const config = computed(() => appConfigStore.config!)
-const dataWorkspace = computed(
-  () => config.value.workspaces.find((workspace) => workspace.type === WORKSPACE_TYPE.DATA)!,
-)
 </script>
 
 <template>
@@ -15,7 +11,7 @@ const dataWorkspace = computed(
     <header class="data-page-header">
       <div>
         <p class="eyebrow">{{ config.sidebar.marketDataHint }}</p>
-        <h1>{{ dataWorkspace.containerTitle }}</h1>
+        <h1>{{ config.sidebar.dataPageTitle }}</h1>
         <p class="description">{{ config.sidebar.dataPageDescription }}</p>
       </div>
     </header>
