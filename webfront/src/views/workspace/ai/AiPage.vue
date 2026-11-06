@@ -1,17 +1,9 @@
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useAppConfigStore } from '../../../common/appConfigStore'
-
-const appConfigStore = useAppConfigStore()
-const config = computed(() => appConfigStore.config!)
-</script>
-
 <template>
   <section class="ai-page">
     <div class="ai-page-card">
       <div class="ai-page-mark">✳</div>
-      <h1>{{ config.sidebar.aiPageTitle }}</h1>
-      <p>{{ config.sidebar.aiPlaceholderDescription }}</p>
+      <h1>AI 工作区</h1>
+      <p>在这里开始探索市场数据</p>
     </div>
   </section>
 </template>

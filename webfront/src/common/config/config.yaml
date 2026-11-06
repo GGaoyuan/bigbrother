@@ -1,0 +1,65 @@
+workspace:
+  - id: 1
+    name: 数据
+  - id: 2
+    name: AI
+  - id: 3
+    name: 页面
+pages:
+  - id: 1
+    name: 行情
+    path: /
+  - id: 2
+    name: 市场情绪
+    path: /market_sentiment
+  - id: 3
+    name: 今日大盘
+    path: /today
+  - id: 4
+    name: 大盘异动
+    path: /market_anomaly
+  - id: 5
+    name: 市场面
+    path: /recap
+  - id: 6
+    name: 指标面
+    path: /recap/indicators
+  - id: 7
+    name: 宏观经济
+    path: /recap/macro
+  - id: 8
+    name: 股息率测算
+    path: /recap/dividend_yield
+  - id: 9
+    name: 热力图（复盘）
+    path: /recap/heatmap
+  - id: 10
+    name: 板块分析
+    path: /recap/sector
+  - id: 11
+    name: 题材热力图
+    path: /heatmap/theme
+  - id: 12
+    name: 行业热力图
+    path: /heatmap/industry
+  - id: 13
+    name: 涨跌热力图
+    path: /heatmap/change
+  - id: 14
+    name: 时间轴
+    path: /timeline
+  - id: 15
+    name: 题材库
+    path: /theme_lib
+  - id: 16
+    name: 订单流
+    path: /order_flow
+  - id: 17
+    name: 分时资金流
+    path: /intraday_flow
+  - id: 18
+    name: 龙虎榜统计
+    path: /popularity/top-list
+  - id: 19
+    name: 热榜
+    path: /popularity/hot-rank

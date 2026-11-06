@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import type { WorkspaceId } from '../../common/config'
-import type { SidebarTabConfig } from '../../common/config/sidebarTabs'
-
 defineProps<{
-  modelValue: WorkspaceId
-  tabs: SidebarTabConfig[]
+  modelValue: number
+  tabs: {
+    id: number
+    name: string
+  }[]
   homeLabel: string
   workspacesLabel: string
 }>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: WorkspaceId]
+  'update:modelValue': [value: number]
 }>()
 </script>
 

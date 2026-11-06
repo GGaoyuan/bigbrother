@@ -3,41 +3,39 @@ import { computed } from 'vue'
 import AiWorkspace from './ai/AiWorkspace.vue'
 import DataWorkspace from './data/DataWorkspace.vue'
 import PageNavigation from './pages/PageNavigation.vue'
-import { useAppConfigStore } from '../../common/appConfigStore'
-import { WORKSPACE_ID, type WorkspaceId } from '../../common/config'
-import { useContainerQueueStore } from '../../common/containerQueue'
+import { config } from '../../common/config/config'
 import SidebarHeader from './SidebarHeader.vue'
 
-const appConfigStore = useAppConfigStore()
-const containerQueue = useContainerQueueStore()
-const config = computed(() => appConfigStore.config!)
-const activeWorkspace = computed(
-  () =>
-    config.value.workspaces.find((item) => item.id === containerQueue.activeWorkspaceId) ?? null,
-)
+const props = defineProps<{
+  activeWorkspaceId: number
+}>()
 
-function selectWorkspace(workspaceId: WorkspaceId) {
-  const workspace = config.value.workspaces.find((item) => item.id === workspaceId)
-  if (workspace) containerQueue.activateWorkspace(workspace.id, workspace.name)
-}
+const emit = defineEmits<{
+  'select-workspace': [workspaceId: number]
+  'open-page': []
+}>()
+
+const activeWorkspaceIndex = computed(() =>
+  config.tabsConfig.findIndex((item) => item.id === props.activeWorkspaceId),
+)
 </script>
 
 <template>
   <aside class="sidebar">
     <SidebarHeader
-      :model-value="containerQueue.activeWorkspaceId"
-      :tabs="config.workspaces"
-      :home-label="config.sidebar.homeLabel"
-      :workspaces-label="config.sidebar.workspacesLabel"
-      @update:model-value="selectWorkspace"
+      :model-value="props.activeWorkspaceId"
+      :tabs="config.tabsConfig"
+      home-label="首页"
+      workspaces-label="工作区"
+      @update:model-value="emit('select-workspace', $event)"
     />
-    <DataWorkspace v-if="activeWorkspace?.id === WORKSPACE_ID.DATA" />
-    <AiWorkspace v-else-if="activeWorkspace?.id === WORKSPACE_ID.AI" />
-    <PageNavigation v-else-if="activeWorkspace?.id === WORKSPACE_ID.PAGES" />
+    <DataWorkspace v-if="activeWorkspaceIndex === 0" />
+    <AiWorkspace v-else-if="activeWorkspaceIndex === 1" />
+    <PageNavigation v-else-if="activeWorkspaceIndex === 2" @open-page="emit('open-page')" />
     <footer class="sidebar-footer">
       <span class="status-dot"></span>
-      {{ config.sidebar.footerLabel }}
-      <span class="version">{{ config.sidebar.footerVersion }}</span>
+      数据工作台
+      <span class="version">v1.0</span>
     </footer>
   </aside>
 </template>

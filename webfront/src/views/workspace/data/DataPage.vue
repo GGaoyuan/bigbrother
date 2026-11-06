@@ -1,23 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useAppConfigStore } from '../../../common/appConfigStore'
-
-const appConfigStore = useAppConfigStore()
-const config = computed(() => appConfigStore.config!)
+import dataConfig from '../../sidebar/data/data.json'
 </script>
 
 <template>
   <section class="data-page">
     <header class="data-page-header">
       <div>
-        <p class="eyebrow">{{ config.sidebar.marketDataHint }}</p>
-        <h1>{{ config.sidebar.dataPageTitle }}</h1>
-        <p class="description">{{ config.sidebar.dataPageDescription }}</p>
+        <p class="eyebrow">{{ dataConfig.sidebar.marketDataHint }}</p>
+        <h1>{{ dataConfig.sidebar.dataPageTitle }}</h1>
+        <p class="description">{{ dataConfig.sidebar.dataPageDescription }}</p>
       </div>
     </header>
     <div class="chart-placeholder">
       <span class="chart-mark">⌁</span>
-      <strong>{{ config.sidebar.dataPagePlaceholder }}</strong>
+      <strong>{{ dataConfig.sidebar.dataPagePlaceholder }}</strong>
     </div>
   </section>
 </template>

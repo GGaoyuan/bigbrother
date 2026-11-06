@@ -1,25 +1,13 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
-import { CONTAINER_TYPE } from '../../common/config'
-import { useAppConfigStore } from '../../common/appConfigStore'
-import { useContainerQueueStore } from '../../common/containerQueue'
 import AiPage from './ai/AiPage.vue'
 import DataPage from './data/DataPage.vue'
 
-const route = useRoute()
-const appConfigStore = useAppConfigStore()
-const containerQueue = useContainerQueueStore()
-const config = computed(() => appConfigStore.config!)
+defineProps<{
+  content: 'data' | 'ai' | 'route'
+}>()
 
-watch(
-  () => route.name,
-  (routeName) => {
-    if (typeof routeName === 'string') {
-      containerQueue.syncRoute(routeName, config.value.pages)
-    }
-  },
-)
+const route = useRoute()
 </script>
 
 <template>
@@ -28,18 +16,18 @@ watch(
       <KeepAlive :max="32">
         <component
           :is="DataPage"
-          v-if="containerQueue.activeContainer?.type === CONTAINER_TYPE.DATA"
-          :key="containerQueue.activeContainer.id"
+          v-if="content === 'data'"
+          key="data-workspace"
         />
         <component
           :is="AiPage"
-          v-else-if="containerQueue.activeContainer?.type === CONTAINER_TYPE.AI"
-          :key="containerQueue.activeContainer.id"
+          v-else-if="content === 'ai'"
+          key="ai-workspace"
         />
         <component
           :is="Component"
-          v-else-if="containerQueue.activeContainer?.type === CONTAINER_TYPE.ROUTE && Component"
-          :key="containerQueue.activeContainer.id"
+          v-else-if="content === 'route' && Component"
+          :key="route.path"
         />
       </KeepAlive>
     </RouterView>

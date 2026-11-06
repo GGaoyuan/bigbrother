@@ -1,30 +1,28 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { computed } from 'vue'
-import { useAppConfigStore } from '../../../common/appConfigStore'
-import { useContainerQueueStore } from '../../../common/containerQueue'
+import { config } from '../../../common/config/config'
 
-const appConfigStore = useAppConfigStore()
-const containerQueue = useContainerQueueStore()
-const config = computed(() => appConfigStore.config!)
+const emit = defineEmits<{
+  'open-page': []
+}>()
 </script>
 
 <template>
   <section class="pages-section workspace-pane">
     <div class="section-title pages-title">
-      <span>{{ config.sidebar.pageNavigationLabel }}</span>
+      <span>页面导航</span>
       <span class="section-hint">
-        {{ config.pages.length }} {{ config.sidebar.pageCountSuffix }}
+        {{ config.pagesConfig.length }} PAGES
       </span>
     </div>
-    <nav class="sidebar-nav" :aria-label="config.sidebar.pageNavigationLabel">
+    <nav class="sidebar-nav" aria-label="页面导航">
       <RouterLink
-        v-for="page in config.pages"
+        v-for="page in config.pagesConfig"
         :key="page.id"
         :to="page.path"
         class="nav-item"
         exact-active-class="nav-item--exact-active"
-        @click="containerQueue.openPage(page)"
+        @click="emit('open-page')"
       >
         {{ page.name }}
       </RouterLink>

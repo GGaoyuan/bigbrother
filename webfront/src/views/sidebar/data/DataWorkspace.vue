@@ -1,20 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import {
-  METRIC_ID,
-  type DataCategoryId,
-  type DataSeriesConfig,
-  type MetricId,
-} from '../../../common/config'
-import { useAppConfigStore } from '../../../common/appConfigStore'
+import dataConfig from './data.json'
 
-const appConfigStore = useAppConfigStore()
-const config = computed(() => appConfigStore.config!)
-const categories = computed(() => config.value.dataCategories)
-const activeCategoryId = ref<DataCategoryId | null>(null)
+const categories = computed(() => dataConfig.dataCategories)
+const activeCategoryId = ref<string | null>(null)
 const search = ref('')
-const selectedMetricId = ref<MetricId>(METRIC_ID.CLOSE)
-const selected = ref<DataSeriesConfig | null>(null)
+const selectedMetricId = ref<string>(dataConfig.metrics[0]?.id ?? '')
+const selected = ref<(typeof dataConfig.dataCategories)[number]['series'][number] | null>(null)
 const addedSeriesKeys = ref<string[]>([])
 const activeCategory = computed(
   () => categories.value.find((category) => category.id === activeCategoryId.value) ?? null,
@@ -27,7 +19,7 @@ const visibleSeries = computed(() =>
   ),
 )
 
-function toggleCategory(categoryId: DataCategoryId) {
+function toggleCategory(categoryId: string) {
   activeCategoryId.value = activeCategoryId.value === categoryId ? null : categoryId
   selected.value = null
   search.value = ''
@@ -46,10 +38,10 @@ function addDataset() {
 <template>
   <section class="data-browser workspace-pane">
     <div class="section-title">
-      <span>{{ config.sidebar.marketDataLabel }}</span>
-      <span class="section-hint">{{ config.sidebar.marketDataHint }}</span>
+      <span>{{ dataConfig.sidebar.marketDataLabel }}</span>
+      <span class="section-hint">{{ dataConfig.sidebar.marketDataHint }}</span>
     </div>
-    <nav class="group-list" :aria-label="config.sidebar.dataCategoriesLabel">
+    <nav class="group-list" :aria-label="dataConfig.sidebar.dataCategoriesLabel">
       <div v-for="category in categories" :key="category.id" class="group-entry">
         <button
           class="group-item"
@@ -65,16 +57,16 @@ function addDataset() {
           <div class="panel-heading">
             <div>
               <strong>{{ category.label }}</strong>
-              <small>{{ config.sidebar.selectSeriesHint }}</small>
+              <small>{{ dataConfig.sidebar.selectSeriesHint }}</small>
             </div>
             <span class="count">{{ visibleSeries.length }}</span>
           </div>
           <label class="search-box"
-            ><span>⌕</span><input v-model="search" :placeholder="config.sidebar.searchPlaceholder"
+            ><span>⌕</span><input v-model="search" :placeholder="dataConfig.sidebar.searchPlaceholder"
           /></label>
           <div class="rows-label">
-            {{ config.sidebar.seriesNameLabel }}
-            <span>{{ config.sidebar.seriesCodeLabel }}</span>
+            {{ dataConfig.sidebar.seriesNameLabel }}
+            <span>{{ dataConfig.sidebar.seriesCodeLabel }}</span>
           </div>
           <div class="dataset-list">
             <button
@@ -91,17 +83,17 @@ function addDataset() {
               ><code>{{ series.code }}</code>
             </button>
             <div v-if="!visibleSeries.length" class="empty-results">
-              {{ config.sidebar.noResultsLabel }}
+              {{ dataConfig.sidebar.noResultsLabel }}
             </div>
           </div>
           <div class="metric-area">
             <div class="subhead">
-              {{ config.sidebar.metricsLabel }}
-              <span>{{ config.sidebar.metricHint }}</span>
+              {{ dataConfig.sidebar.metricsLabel }}
+              <span>{{ dataConfig.sidebar.metricHint }}</span>
             </div>
             <div class="metric-chips">
               <button
-                v-for="metric in config.metrics"
+                v-for="metric in dataConfig.metrics"
                 :key="metric.id"
                 :class="{ active: selectedMetricId === metric.id }"
                 @click="selectedMetricId = metric.id"
@@ -111,7 +103,7 @@ function addDataset() {
             </div>
           </div>
           <button class="add-button" :disabled="!selected" @click="addDataset">
-            <span>＋</span> {{ config.sidebar.addToChartLabel }}
+            <span>＋</span> {{ dataConfig.sidebar.addToChartLabel }}
           </button>
         </div>
       </div>
