@@ -7,8 +7,8 @@ description: 处理 backend/ 目录下的后端工作。Python FastAPI,业务代
 
 工作约束:
 - 改动只在 `backend/` 目录内进行。
-- Provider 默认指 akshare 实现;baostock / tushare 不需要实现;数据源优先 efinance,其次 akshare。
-- Provider 返回 model 不复用通用 `Universe`,每个方法新建独立 model 放在 `app/providers/model/`。
-- 路由方法 Exception 直接 `return ApiResponse.error(500, str(e))`,不做降级。
+- backend 数据源只能使用通达信相关库，优先使用 `mootdx`;不得加入 akshare、efinance、baostock、tushare 等其他数据源。
+- backend 只保留两层：`app/data/` 负责访问通达信并返回原始数据；`app/api/` 调用数据层、处理业务逻辑并返回 webfront 所需响应；不要增加 service/provider/cache 等中间层。
+- 通达信调用异常返回 HTTP 502 和 `{code, message, data}` 响应，不切换到其他数据源。
 - 方法注释只写功能描述 + 参数说明,不写 Returns / Notes / Examples。
-- 改完跑 `python -m pytest` 或 `python main_test.py` 验证。
+- 改完至少运行 `python -m compileall -q app main.py` 检查语法；有测试时再运行相关测试。
