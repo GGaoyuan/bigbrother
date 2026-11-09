@@ -5,7 +5,7 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
-import { loadConfig } from './common/config/config'
+import { loadConfig } from './api/config'
 
 const app = createApp(App)
 

@@ -16,7 +16,7 @@ import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppSidebar from './views/sidebar/AppSidebar.vue'
 import WorkspaceContainer from './views/workspace/WorkspaceContainer.vue'
-import { config } from './common/config/config'
+import { config } from './api/config'
 
 type WorkspaceContent = 'data' | 'ai' | 'route'
 

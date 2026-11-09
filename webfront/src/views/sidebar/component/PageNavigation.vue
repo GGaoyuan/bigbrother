@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { config } from '../../../common/config/config'
+import { config } from '../../../api/config'
 
 const emit = defineEmits<{
   'open-page': []

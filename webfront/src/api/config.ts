@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { fetchAppConfig, fetchWorkspacePages } from '../../api/api'
+import { fetchAppConfig, fetchWorkspacePages } from './api'
 
 export interface TabsConfig {
   id: number

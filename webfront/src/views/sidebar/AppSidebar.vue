@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import AiWorkspace from './component/AiWorkspace.vue'
 import DataWorkspace from './component/DataWorkspace.vue'
 import PageNavigation from './component/PageNavigation.vue'
-import { config } from '../../common/config/config'
+import { config } from '../../api/config'
 import SidebarHeader from './component/SidebarHeader.vue'
 
 const props = defineProps<{
