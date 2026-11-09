@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import AiWorkspace from './ai/AiWorkspace.vue'
-import DataWorkspace from './data/DataWorkspace.vue'
-import PageNavigation from './pages/PageNavigation.vue'
+import AiWorkspace from './component/AiWorkspace.vue'
+import DataWorkspace from './component/DataWorkspace.vue'
+import PageNavigation from './component/PageNavigation.vue'
 import { config } from '../../common/config/config'
-import SidebarHeader from './SidebarHeader.vue'
+import SidebarHeader from './component/SidebarHeader.vue'
 
 const props = defineProps<{
   activeWorkspaceId: number
