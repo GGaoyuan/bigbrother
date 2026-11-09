@@ -23,8 +23,7 @@
     "echarts": "^6.0.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.29",
-    "vue-router": "^5.0.3",
-    "yaml": "^2.9.1"
+    "vue-router": "^5.0.3"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",

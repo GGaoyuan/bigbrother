@@ -33,7 +33,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
-import { fetchMarketSentiment, type GridItem } from '@/api/marketSentiment'
+import { fetchMarketSentiment } from '@/api/api'
+import type { GridItem } from '@/api/types'
+
+interface MarketSentimentData {
+  score: number
+  grid: GridItem[]
+}
 
 const WEEK_DAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
 
@@ -68,7 +74,7 @@ async function loadData(date: string) {
   loading.value = true
   error.value = null
   try {
-    const data = await fetchMarketSentiment(date)
+    const data = await fetchMarketSentiment<MarketSentimentData>(date)
     sentimentScore.value = data.score
     gridItems.value = data.grid
     updateGauge(data.score)

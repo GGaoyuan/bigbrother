@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { DataCategory, DataChartSelection, DataChartType } from '../../../api/workspace'
+import type { DataCategory, DataChartSelection, DataChartType } from '../../../api/types'
 
 const props = defineProps<{
   category: DataCategory

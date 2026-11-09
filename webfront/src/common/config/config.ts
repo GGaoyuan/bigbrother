@@ -1,5 +1,5 @@
-import { parse } from 'yaml'
-import configYaml from './config.yaml?raw'
+import { reactive } from 'vue'
+import { fetchAppConfig, fetchWorkspacePages } from '../../api/api'
 
 export interface TabsConfig {
   id: number
@@ -19,12 +19,23 @@ export interface Config {
 
 interface ConfigSource {
   workspace: TabsConfig[]
+}
+
+interface WorkspacePagesSource {
   pages: PagesConfig[]
 }
 
-const configSource = parse(configYaml) as ConfigSource
+export const config = reactive<Config>({
+  tabsConfig: [],
+  pagesConfig: [],
+})
 
-export const config: Config = {
-  tabsConfig: configSource.workspace,
-  pagesConfig: configSource.pages,
+export async function loadConfig(): Promise<void> {
+  const [appConfig, workspacePages] = await Promise.all([
+    fetchAppConfig<ConfigSource>(),
+    fetchWorkspacePages<WorkspacePagesSource>(),
+  ])
+
+  config.tabsConfig = appConfig.workspace
+  config.pagesConfig = workspacePages.pages
 }

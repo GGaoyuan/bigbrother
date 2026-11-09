@@ -14,7 +14,6 @@ export const DEFAULT_HEADERS = {
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  method: 'POST',
   headers: DEFAULT_HEADERS,
 })
 

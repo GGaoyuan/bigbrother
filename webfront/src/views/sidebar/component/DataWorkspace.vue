@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { fetchWorkspaceData } from '../../../api/workspace'
-import type { DataCategory, DataChartSelection } from '../../../api/workspace'
+import { fetchWorkspaceData } from '../../../api/api'
+import type { DataCategory, DataChartSelection } from '../../../api/types'
 import MetricDataCategory from './MetricDataCategory.vue'
 import SeriesDataCategory from './SeriesDataCategory.vue'
+
+interface WorkspaceDataResponse {
+  dataCategories: DataCategory[]
+}
 
 const emit = defineEmits<{
   addToChart: [selection: DataChartSelection]
@@ -14,6 +18,7 @@ const activeCategoryId = ref<string | null>(null)
 const loading = ref(false)
 const loadError = ref('')
 const lastSelection = ref<DataChartSelection | null>(null)
+
 const lastSelectionSummary = computed(() => {
   if (!lastSelection.value) {
     return ''
@@ -35,7 +40,7 @@ async function loadCategories() {
   loadError.value = ''
 
   try {
-    const response = await fetchWorkspaceData()
+    const response = await fetchWorkspaceData<WorkspaceDataResponse>()
     categories.value = response.dataCategories
   } catch (error) {
     loadError.value = error instanceof Error ? error.message : '数据加载失败，请稍后重试。'

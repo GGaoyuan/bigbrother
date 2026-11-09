@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import dataConfig from '../../../sidebar/component/data.json'
-</script>
-
 <template>
   <section class="chart-card" aria-label="当前面板图表">
     <header class="chart-card-header">
@@ -9,7 +5,7 @@ import dataConfig from '../../../sidebar/component/data.json'
     </header>
     <div class="chart-placeholder">
       <span class="chart-mark" aria-hidden="true">⌁</span>
-      <strong>{{ dataConfig.sidebar.dataPagePlaceholder }}</strong>
+      <strong>数据图表容器</strong>
     </div>
   </section>
 </template>

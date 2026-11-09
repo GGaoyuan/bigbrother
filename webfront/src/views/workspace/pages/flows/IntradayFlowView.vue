@@ -133,7 +133,6 @@ const loading = ref(false)
 async function fetchBillData(codes: string[]): Promise<Record<string, TodayBillItem[]>> {
   return request<Record<string, TodayBillItem[]>>('/stock/today-bill', {
     baseURL: BASE_URL,
-    method: 'POST',
     headers: HEADERS,
     body: {
       codes,
