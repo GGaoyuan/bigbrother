@@ -10,6 +10,7 @@ from app.api.login import router as login_router
 from app.api.market_index import router as market_index_router
 from app.api.response import ResponseCode, error_response
 from app.api.security import require_user_token
+from app.middleware.request_logging import RequestLoggingMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,8 @@ ALLOWED_ORIGINS = [
 ]
 
 app = FastAPI(title="BigBrother API", version="1.0.0")
+
+app.add_middleware(RequestLoggingMiddleware)
 
 
 @app.exception_handler(RequestValidationError)

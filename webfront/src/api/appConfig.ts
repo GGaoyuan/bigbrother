@@ -11,6 +11,6 @@ export interface WorkspaceConfig {
 
 export async function fetchAppConfig(): Promise<AppConfig> {
   return request<AppConfig>('/app/config', {
-    method: 'GET',
+    method: 'POST',
   })
 }

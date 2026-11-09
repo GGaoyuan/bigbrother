@@ -85,6 +85,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { request } from '../../../../api/request'
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 const chartCanvas = ref<HTMLCanvasElement | null>(null)
@@ -130,14 +131,14 @@ const timeLabels = ref<string[]>([])
 const loading = ref(false)
 
 async function fetchBillData(codes: string[]): Promise<Record<string, TodayBillItem[]>> {
-  const res = await fetch(`${BASE_URL}/stock/today-bill`, {
+  return request<Record<string, TodayBillItem[]>>('/stock/today-bill', {
+    baseURL: BASE_URL,
     method: 'POST',
     headers: HEADERS,
-    body: JSON.stringify({ codes }),
+    body: {
+      codes,
+    },
   })
-  if (!res.ok) throw new Error(`请求失败: ${res.status}`)
-  const json = await res.json()
-  return json.data
 }
 
 const themeData = ref<DataItem[]>([

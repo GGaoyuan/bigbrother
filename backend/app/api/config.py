@@ -7,7 +7,7 @@ from app.api.response import ApiResponse, success_response
 router = APIRouter(tags=["app-config"])
 
 
-@router.get("/app/config")
+@router.post("/app/config")
 def get_app_config() -> ApiResponse:
     return success_response(
         {
@@ -29,182 +29,124 @@ def get_app_config() -> ApiResponse:
     )
 
 
-@router.get("/workspace/data")
+@router.post("/workspace/data")
 def get_workspace_data() -> ApiResponse:
     return success_response(
         {
             "workspaceId": 1,
-            "data": {
-                "sidebar": {
-                    "dataCategoriesLabel": "数据类别",
-                    "marketDataLabel": "数据源",
-                    "marketDataHint": "MARKET DATA",
-                    "selectSeriesHint": "选择数据系列并添加到图表",
-                    "searchPlaceholder": "搜索数据名称或代码",
-                    "noResultsLabel": "没有匹配的数据",
-                    "seriesNameLabel": "名称",
-                    "seriesCodeLabel": "代码",
-                    "metricsLabel": "指标",
-                    "metricHint": "选择一个指标",
-                    "addToChartLabel": "添加到图表",
-                    "dataPageDescription": "从左侧数据分类选择数据系列，添加后在这里进行展示。",
-                    "dataPageTitle": "数据工作台",
-                    "dataPagePlaceholder": "数据图表容器",
+            "dataCategories": [
+                {
+                    "id": "china-index",
+                    "name": "中国指数",
+                    "series": [
+                        {
+                            "id": "000001.SH",
+                            "name": "上证指数",
+                            "code": "000001.SH",
+                        },
+                        {
+                            "id": "000300.SH",
+                            "name": "沪深300",
+                            "code": "000300.SH",
+                        },
+                        {
+                            "id": "399001.SZ",
+                            "name": "深证成指",
+                            "code": "399001.SZ",
+                        },
+                        {
+                            "id": "000852.SH",
+                            "name": "中证1000",
+                            "code": "000852.SH",
+                        },
+                        {
+                            "id": "932000.CSI",
+                            "name": "中证2000",
+                            "code": "932000.CSI",
+                        },
+                        {
+                            "id": "000905.SH",
+                            "name": "中证500",
+                            "code": "000905.SH",
+                        },
+                        {
+                            "id": "399006.SZ",
+                            "name": "创业板指",
+                            "code": "399006.SZ",
+                        },
+                    ],
+                    "metrics": [
+                        {
+                            "id": "close",
+                            "name": "收盘价",
+                        },
+                        {
+                            "id": "previous-close",
+                            "name": "前收盘价",
+                        },
+                        {
+                            "id": "change-amount",
+                            "name": "涨跌额",
+                        },
+                        {
+                            "id": "change-percent",
+                            "name": "涨跌幅",
+                        },
+                        {
+                            "id": "volume",
+                            "name": "成交量",
+                        },
+                        {
+                            "id": "amount",
+                            "name": "成交额",
+                        },
+                    ],
+                    "chartTypes": [
+                        "line",
+                        "bar",
+                        "candlestick",
+                    ],
                 },
-                "dataCategories": [
-                    {
-                        "id": "a-share-equities",
-                        "type": "equity",
-                        "label": "A股个股",
-                        "icon": "◉",
-                        "series": [
-                            {
-                                "id": "600519.SH",
-                                "label": "贵州茅台",
-                                "code": "600519.SH",
-                                "categoryLabel": "白酒",
-                            },
-                            {
-                                "id": "300750.SZ",
-                                "label": "宁德时代",
-                                "code": "300750.SZ",
-                                "categoryLabel": "电池",
-                            },
-                            {
-                                "id": "601318.SH",
-                                "label": "中国平安",
-                                "code": "601318.SH",
-                                "categoryLabel": "保险",
-                            },
-                            {
-                                "id": "002594.SZ",
-                                "label": "比亚迪",
-                                "code": "002594.SZ",
-                                "categoryLabel": "汽车",
-                            },
-                        ],
-                    },
-                    {
-                        "id": "a-share-indices",
-                        "type": "index",
-                        "label": "A股指数",
-                        "icon": "▥",
-                        "series": [
-                            {
-                                "id": "000001.SH",
-                                "label": "上证指数",
-                                "code": "000001.SH",
-                                "categoryLabel": "上交所",
-                            },
-                            {
-                                "id": "399001.SZ",
-                                "label": "深证成指",
-                                "code": "399001.SZ",
-                                "categoryLabel": "深交所",
-                            },
-                            {
-                                "id": "000300.SH",
-                                "label": "沪深300",
-                                "code": "000300.SH",
-                                "categoryLabel": "宽基指数",
-                            },
-                            {
-                                "id": "399006.SZ",
-                                "label": "创业板指",
-                                "code": "399006.SZ",
-                                "categoryLabel": "深交所",
-                            },
-                        ],
-                    },
-                    {
-                        "id": "a-share-index-valuations",
-                        "type": "valuation",
-                        "label": "A股指数估值",
-                        "icon": "◷",
-                        "series": [
-                            {
-                                "id": "300-pe-ttm",
-                                "label": "沪深300 PE-TTM",
-                                "code": "000300.SH",
-                                "categoryLabel": "市盈率",
-                            },
-                            {
-                                "id": "000001-pe-ttm",
-                                "label": "上证指数 PE-TTM",
-                                "code": "000001.SH",
-                                "categoryLabel": "市盈率",
-                            },
-                            {
-                                "id": "000905-pb",
-                                "label": "中证500 PB",
-                                "code": "000905.SH",
-                                "categoryLabel": "市净率",
-                            },
-                        ],
-                    },
-                    {
-                        "id": "margin-trading",
-                        "type": "margin",
-                        "label": "融资融券",
-                        "icon": "↗",
-                        "series": [
-                            {
-                                "id": "FIN.MARGIN",
-                                "label": "两市融资余额",
-                                "code": "FIN.MARGIN",
-                                "categoryLabel": "融资余额",
-                            },
-                            {
-                                "id": "SH.MARGIN",
-                                "label": "沪市融资余额",
-                                "code": "SH.MARGIN",
-                                "categoryLabel": "上交所",
-                            },
-                            {
-                                "id": "SZ.MARGIN",
-                                "label": "深市融资余额",
-                                "code": "SZ.MARGIN",
-                                "categoryLabel": "深交所",
-                            },
-                        ],
-                    },
-                ],
-                "metrics": [
-                    {
-                        "id": "close",
-                        "label": "收盘价",
-                    },
-                    {
-                        "id": "open",
-                        "label": "开盘价",
-                    },
-                    {
-                        "id": "high",
-                        "label": "最高价",
-                    },
-                    {
-                        "id": "low",
-                        "label": "最低价",
-                    },
-                    {
-                        "id": "volume",
-                        "label": "成交量",
-                    },
-                    {
-                        "id": "amount",
-                        "label": "成交额",
-                    },
-                    {
-                        "id": "change-percent",
-                        "label": "涨跌幅",
-                    },
-                ],
-            },
+                {
+                    "id": "margin-financing",
+                    "name": "融资融券",
+                    "metrics": [
+                        {
+                            "id": "margin-financing-balance",
+                            "name": "融资融券余额",
+                        },
+                        {
+                            "id": "financing-balance",
+                            "name": "融资余额",
+                        },
+                        {
+                            "id": "financing-buy-amount",
+                            "name": "融资买入额",
+                        },
+                        {
+                            "id": "financing-repayment-amount",
+                            "name": "融资偿还额",
+                        },
+                        {
+                            "id": "securities-lending-balance",
+                            "name": "融券余额",
+                        },
+                        {
+                            "id": "securities-sold-volume",
+                            "name": "融券卖出量",
+                        },
+                        {
+                            "id": "securities-lending-volume",
+                            "name": "融券余量",
+                        },
+                    ],
+                },
+            ],
         }
     )
 
 
-@router.get("/workspace/pages")
+@router.post("/workspace/pages")
 def get_workspace_pages() -> ApiResponse:
     return success_response(
         {

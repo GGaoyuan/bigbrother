@@ -136,8 +136,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { request } from '../../../../api/request'
 
-const BASE_URL = 'http://127.0.0.1:8000/api/v1'
 const WEEK_DAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
 
 interface TopListRecord {
@@ -164,6 +164,12 @@ interface TopListGroup {
   name: string
   count: number
   records: TopListRecord[]
+}
+
+interface TopListData {
+  mode: 'single' | 'range'
+  records?: TopListRecord[]
+  groups?: TopListGroup[]
 }
 
 function toLocalDateString(d: Date) {
@@ -282,11 +288,12 @@ async function fetchData() {
   sortKey.value = ''
   expandedGroups.value = new Set()
   try {
-    const url = `${BASE_URL}/popularity/top-list?start_date=${toApiDate(startDate.value)}&end_date=${toApiDate(endDate.value)}`
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`请求失败: ${res.status}`)
-    const json = await res.json()
-    const data = json.data
+    const data = await request<TopListData>('/popularity/top-list', {
+      body: {
+        start_date: toApiDate(startDate.value),
+        end_date: toApiDate(endDate.value),
+      },
+    })
     mode.value = data.mode
     if (data.mode === 'single') {
       singleRecords.value = data.records ?? []

@@ -37,8 +37,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-
-const BASE_URL = 'http://127.0.0.1:8000/api/v1'
+import { request } from '../../../../api/request'
 
 interface HotRankItem {
   rank: number
@@ -57,10 +56,7 @@ async function fetchData() {
   loading.value = true
   error.value = ''
   try {
-    const res = await fetch(`${BASE_URL}/popularity/hot-rank`)
-    if (!res.ok) throw new Error(`请求失败: ${res.status}`)
-    const json = await res.json()
-    items.value = json.data ?? []
+    items.value = await request<HotRankItem[]>('/popularity/hot-rank')
   } catch (e: any) {
     error.value = e.message ?? '请求失败'
   } finally {

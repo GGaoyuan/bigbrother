@@ -1,0 +1,241 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import type { DataCategory, DataChartSelection, DataChartType } from '../../../api/workspace'
+
+const props = defineProps<{
+  category: DataCategory
+}>()
+
+const emit = defineEmits<{
+  addToChart: [selection: DataChartSelection]
+}>()
+
+const selectedMetricId = ref(props.category.metrics[0]?.id ?? '')
+const selectedChartName = ref('图表1')
+const selectedChartType = ref<DataChartType>(props.category.chartTypes?.[0] ?? 'line')
+const chartTypes = computed<DataChartType[]>(() => props.category.chartTypes ?? ['line'])
+const color = ref('#c31649')
+
+function addToChart() {
+  if (!selectedMetricId.value) {
+    return
+  }
+
+  emit('addToChart', {
+    categoryId: props.category.id,
+    metricId: selectedMetricId.value,
+    chartName: selectedChartName.value,
+    chartType: selectedChartType.value,
+    color: color.value,
+  })
+}
+</script>
+
+<template>
+  <div class="metric-category-content">
+    <section class="metrics-section" aria-labelledby="metric-category-title">
+      <h3 id="metric-category-title">指标</h3>
+      <div class="metric-options">
+        <button
+          v-for="metric in category.metrics"
+          :key="metric.id"
+          type="button"
+          :class="{ 'is-active': selectedMetricId === metric.id }"
+          :aria-pressed="selectedMetricId === metric.id"
+          @click="selectedMetricId = metric.id"
+        >
+          {{ metric.name }}
+        </button>
+      </div>
+    </section>
+
+    <section class="chart-options" aria-labelledby="chart-options-title">
+      <h3 id="chart-options-title">添加到图表</h3>
+      <label class="chart-target">
+        <span class="visually-hidden">目标图表</span>
+        <select v-model="selectedChartName">
+          <option>图表1</option>
+        </select>
+      </label>
+      <div class="chart-controls">
+        <label class="color-picker" :style="{ '--series-color': color }">
+          <span class="visually-hidden">曲线颜色</span>
+          <input v-model="color" type="color" />
+        </label>
+        <div class="chart-type-options" aria-label="图表类型">
+          <button
+            v-for="chartType in chartTypes"
+            :key="chartType"
+            type="button"
+            :class="{ 'is-active': selectedChartType === chartType }"
+            :aria-pressed="selectedChartType === chartType"
+            @click="selectedChartType = chartType"
+          >
+            {{ chartType === 'line' ? '曲线' : chartType === 'bar' ? '柱状' : 'K线' }}
+          </button>
+        </div>
+        <button
+          class="add-button"
+          type="button"
+          :disabled="!selectedMetricId"
+          @click="addToChart"
+        >
+          添加
+        </button>
+      </div>
+    </section>
+  </div>
+</template>
+
+<style scoped>
+.metric-category-content {
+  padding: 12px 14px 14px;
+}
+
+.metrics-section {
+  padding: 15px 0 14px;
+}
+
+.metrics-section h3 {
+  margin: 0 0 11px;
+  color: #738098;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.metric-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metric-options button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d7e0ec;
+  border-radius: 8px;
+  background: #fff;
+  color: #354154;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.metric-options button.is-active {
+  border-color: #2455e6;
+  background: #2455e6;
+  color: #fff;
+}
+
+.chart-options {
+  margin: 0 -14px -14px;
+  padding: 14px;
+  border-top: 1px solid #dce4ef;
+  background: #fbfcfe;
+}
+
+.chart-options h3 {
+  margin: 0 0 11px;
+  color: #738098;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.chart-target {
+  display: block;
+}
+
+.chart-target select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d7e0ec;
+  border-radius: 8px;
+  appearance: none;
+  background: #fff;
+  color: #354154;
+  font: inherit;
+  font-size: 13px;
+}
+
+.chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.color-picker {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #e2e7ef;
+  border-radius: 50%;
+  background: var(--series-color);
+}
+
+.color-picker input {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.chart-type-options {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+}
+
+.chart-type-options button {
+  min-height: 34px;
+  flex: 1;
+  padding: 0 7px;
+  border: 1px solid #d7e0ec;
+  border-radius: 8px;
+  background: #fff;
+  color: #354154;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.chart-type-options button.is-active {
+  border-color: #2455e6;
+  background: #2455e6;
+  color: #fff;
+}
+
+.add-button {
+  min-width: 66px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #2455e6;
+  border-radius: 8px;
+  background: #2455e6;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.add-button:disabled {
+  border-color: #b9c7dc;
+  background: #b9c7dc;
+  cursor: not-allowed;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+</style>

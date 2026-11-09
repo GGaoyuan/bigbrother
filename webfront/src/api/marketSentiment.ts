@@ -1,4 +1,4 @@
-const BASE_URL = 'http://127.0.0.1:8000/api/v1'
+import { request } from './request'
 
 export interface GridItem {
   label: string
@@ -13,13 +13,9 @@ export interface MarketSentimentData {
 }
 
 export async function fetchMarketSentiment(date: string): Promise<MarketSentimentData> {
-  const res = await fetch(`${BASE_URL}/market-sentiment`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  return request<MarketSentimentData>('/market-sentiment', {
+    body: {
+      date,
     },
-    body: JSON.stringify({ date }),
   })
-  if (!res.ok) throw new Error(`请求失败: ${res.status}`)
-  return res.json()
 }

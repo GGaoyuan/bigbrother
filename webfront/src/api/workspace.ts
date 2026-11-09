@@ -2,31 +2,37 @@ import { request } from './request'
 
 export interface DataSeries {
   id: string
-  label: string
+  name: string
   code: string
-  categoryLabel: string
-}
-
-export interface DataCategory {
-  id: string
-  type: string
-  label: string
-  icon: string
-  series: DataSeries[]
 }
 
 export interface DataMetric {
   id: string
-  label: string
+  name: string
+}
+
+export interface DataCategory {
+  id: string
+  name: string
+  series?: DataSeries[]
+  metrics: DataMetric[]
+  chartTypes?: Array<'line' | 'bar' | 'candlestick'>
+}
+
+export type DataChartType = NonNullable<DataCategory['chartTypes']>[number]
+
+export interface DataChartSelection {
+  categoryId: string
+  seriesId?: string
+  metricId: string
+  chartName: string
+  chartType: DataChartType
+  color: string
 }
 
 export interface WorkspaceDataResponse {
   workspaceId: number
-  data: {
-    sidebar: Record<string, string>
-    dataCategories: DataCategory[]
-    metrics: DataMetric[]
-  }
+  dataCategories: DataCategory[]
 }
 
 export interface WorkspacePage {
@@ -42,12 +48,12 @@ export interface WorkspacePagesResponse {
 
 export async function fetchWorkspaceData(): Promise<WorkspaceDataResponse> {
   return request<WorkspaceDataResponse>('/workspace/data', {
-    method: 'GET',
+    method: 'POST',
   })
 }
 
 export async function fetchWorkspacePages(): Promise<WorkspacePagesResponse> {
   return request<WorkspacePagesResponse>('/workspace/pages', {
-    method: 'GET',
+    method: 'POST',
   })
 }
