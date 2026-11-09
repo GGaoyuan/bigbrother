@@ -4,9 +4,9 @@ import math
 from typing import Any
 
 from fastapi import APIRouter, Body
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from app.api.response import ResponseCode, error_response, success_response
 from app.data.tdx import get_shanghai_index_daily_kline
 
 router = APIRouter(tags=["market-index"])
@@ -31,22 +31,15 @@ def get_index_daily_kline(
     try:
         frame = get_shanghai_index_daily_kline(request.limit)
     except Exception as exc:
-        return JSONResponse(
-            status_code=502,
-            content={"code": 502, "message": str(exc), "data": None},
-        )
+        return error_response(ResponseCode.BAD_GATEWAY, str(exc))
 
     if frame is None or frame.empty:
-        return {"code": 200, "message": "success", "data": []}
+        return success_response([])
 
     if "datetime" not in frame.columns:
-        return JSONResponse(
-            status_code=502,
-            content={
-                "code": 502,
-                "message": "TDX response is missing datetime",
-                "data": None,
-            },
+        return error_response(
+            ResponseCode.BAD_GATEWAY,
+            "TDX response is missing datetime",
         )
 
     rows = frame.sort_values("datetime", kind="stable").to_dict(orient="records")
@@ -75,4 +68,4 @@ def get_index_daily_kline(
         )
         previous_close = close
 
-    return {"code": 200, "message": "success", "data": bars}
+    return success_response(bars)
