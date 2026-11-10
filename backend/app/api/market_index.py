@@ -1,19 +1,22 @@
-"""Shanghai Composite K-line API."""
+"""上证指数及沪深300指数日 K 线接口。"""
 
 import math
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Body
 from pydantic import BaseModel, Field
 
 from app.api.response import ResponseCode, error_response, success_response
-from app.data.tdx import get_shanghai_index_daily_kline
+from app.data.tdx import get_index_daily_kline as fetch_index_daily_kline
 
 router = APIRouter(tags=["market-index"])
 
 
 class IndexKlineRequest(BaseModel):
-    limit: int = Field(default=500, ge=1, le=800)
+    code: Literal["000001.SH", "000300.SH"] = Field(
+        default="000001.SH",
+        description="指数代码：000001.SH 上证指数，000300.SH 沪深300",
+    )
 
 
 def _number(value: Any) -> float:
@@ -25,11 +28,9 @@ def _number(value: Any) -> float:
 
 
 @router.post("/market/index/hist")
-def get_index_daily_kline(
-    request: IndexKlineRequest = Body(default=IndexKlineRequest()),
-) -> Any:
+def get_index_daily_kline(request: IndexKlineRequest = Body(default=IndexKlineRequest())) -> Any:
     try:
-        frame = get_shanghai_index_daily_kline(request.limit)
+        frame = fetch_index_daily_kline(request.code.split(".")[0])
     except Exception as exc:
         return error_response(ResponseCode.BAD_GATEWAY, str(exc))
 
@@ -42,7 +43,12 @@ def get_index_daily_kline(
             "TDX response is missing datetime",
         )
 
-    rows = frame.sort_values("datetime", kind="stable").to_dict(orient="records")
+    # mootdx 同时将 datetime 用作索引名和列名，先移除索引避免排序歧义。
+    rows = (
+        frame.reset_index(drop=True)
+        .sort_values("datetime", kind="stable")
+        .to_dict(orient="records")
+    )
     bars: list[dict[str, Any]] = []
     previous_close: float | None = None
 

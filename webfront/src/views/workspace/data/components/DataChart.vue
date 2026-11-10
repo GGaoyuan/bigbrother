@@ -10,10 +10,13 @@ interface AxisScale {
 }
 
 const AXIS_PITCH = 58
+const INACTIVE_AXIS_OPACITY = 0.1
 
 const chartRef = ref<HTMLDivElement | null>(null)
 let chart: echarts.ECharts | null = null
 let resizeObserver: ResizeObserver | null = null
+let selectedSeries: Record<string, boolean> = {}
+let focusedSeries: string | null = null
 
 function monthTickDates(dates: string[]): string[] {
   const ticks: string[] = []
@@ -400,6 +403,54 @@ function syncAxes(selected: Record<string, boolean>) {
   })
 }
 
+function syncAxisFocus(seriesId: string | null) {
+  if (!chart) {
+    return
+  }
+
+  const nextFocus = seriesId
+    && selectedSeries[seriesId] !== false
+    && seriesById.has(seriesId)
+    ? seriesId
+    : null
+  if (focusedSeries === nextFocus) {
+    return
+  }
+
+  focusedSeries = nextFocus
+  chart.setOption(
+    {
+      yAxis: mockChartSeries.map((spec) => {
+        const opacity = nextFocus && spec.id !== nextFocus ? INACTIVE_AXIS_OPACITY : 1
+        return {
+          axisLine: {
+            lineStyle: {
+              opacity,
+            },
+          },
+          axisLabel: {
+            opacity,
+          },
+        }
+      }),
+    },
+    {
+      silent: true,
+    },
+  )
+
+  // 更新坐标轴后恢复 ECharts 的折线高亮状态，静默派发避免再次触发同步。
+  chart.dispatchAction(
+    {
+      type: nextFocus ? 'highlight' : 'downplay',
+      seriesName: nextFocus ?? undefined,
+    },
+    {
+      silent: true,
+    },
+  )
+}
+
 function renderChart() {
   const element = chartRef.value
   if (!element) {
@@ -409,13 +460,34 @@ function renderChart() {
   chart ??= echarts.init(element)
   const dates = seriesDates()
   const selected = Object.fromEntries(mockChartSeries.map((item) => [item.id, true]))
+  selectedSeries = selected
+  focusedSeries = null
   chart.setOption(createChartOption(dates, selected), true)
   chart.off('legendselectchanged')
   chart.on('legendselectchanged', (event) => {
     const nextSelected = (event as { selected?: Record<string, boolean> }).selected
     if (nextSelected) {
+      selectedSeries = nextSelected
       syncAxes(nextSelected)
+      syncAxisFocus(focusedSeries)
     }
+  })
+  chart.off('highlight')
+  chart.on('highlight', (event) => {
+    const seriesName = (event as {
+      seriesName?: string
+    }).seriesName
+    if (typeof seriesName === 'string') {
+      syncAxisFocus(seriesName)
+    }
+  })
+  chart.off('downplay')
+  chart.on('downplay', () => {
+    syncAxisFocus(null)
+  })
+  chart.off('globalout')
+  chart.on('globalout', () => {
+    syncAxisFocus(null)
   })
   chart.resize()
 }

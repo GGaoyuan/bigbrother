@@ -8,5 +8,6 @@ test_strategy/__pycache__/__init__.cpython-310.pyc
 test_strategy/__pycache__/factors.cpython-310.pyc
 backend/app/cache/data/
 data/
+!backend/app/data/
 !webfront/src/views/sidebar/data/
 !webfront/src/views/workspace/data/

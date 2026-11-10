@@ -8,6 +8,7 @@ from starlette.responses import JSONResponse
 from app.api.config import router as config_router
 from app.api.login import router as login_router
 from app.api.market_index import router as market_index_router
+from app.api.margin import router as margin_router
 from app.api.response import ResponseCode, error_response
 from app.api.security import require_user_token
 from app.middleware.request_logging import RequestLoggingMiddleware
@@ -71,6 +72,11 @@ app.include_router(
     dependencies=[Depends(require_user_token)],
 )
 app.include_router(login_router, prefix="/api/v1")
+app.include_router(
+    margin_router,
+    prefix="/api/v1",
+    dependencies=[Depends(require_user_token)],
+)
 
 app.include_router(
     config_router,

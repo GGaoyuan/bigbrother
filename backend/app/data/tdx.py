@@ -14,16 +14,16 @@ def _client() -> Quotes:
     return Quotes.factory(market="std")
 
 
-def get_shanghai_index_daily_kline(limit: int = 500) -> DataFrame | None:
-    """Fetch raw daily bars for the Shanghai Composite.
+def get_index_daily_kline(symbol: str) -> DataFrame | None:
+    """通过通达信获取指数最近最多 800 根原始日 K 线。
 
     Args:
-        limit: Number of latest bars to request, up to 800.
+        symbol: 六位指数代码；000001 为上证指数，000300 为沪深300。
     """
     with _CLIENT_LOCK:
         return _client().index(
-            symbol="000001",
+            symbol=symbol,
             frequency=9,
             start=0,
-            offset=limit,
+            offset=800,
         )
