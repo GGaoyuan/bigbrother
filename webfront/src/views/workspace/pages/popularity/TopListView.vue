@@ -21,6 +21,7 @@
 
     <div v-if="loading" class="status-text">加载中...</div>
     <div v-if="error" class="status-text error">{{ error }}</div>
+    <div v-if="simulated && mode" class="status-text">模拟数据</div>
 
     <!-- 单日模式：完整列表 -->
     <div v-if="mode === 'single' && singleRecords.length > 0" class="table-wrapper">
@@ -136,7 +137,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { request } from '../../../../api/request'
+import { loadWithDemo } from '@/api/api'
 
 const WEEK_DAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
 
@@ -217,10 +218,12 @@ const endDate = ref(today)
 
 const loading = ref(false)
 const error = ref('')
+const simulated = ref(false)
 const mode = ref<'single' | 'range' | null>(null)
 const singleRecords = ref<TopListRecord[]>([])
 const groups = ref<TopListGroup[]>([])
 const expandedGroups = ref<Set<string>>(new Set())
+let latestRequest = 0
 
 const sortKey = ref('')
 const sortAsc = ref(true)
@@ -282,31 +285,101 @@ function toggleGroup(code: string) {
   expandedGroups.value = new Set(expandedGroups.value)
 }
 
+function demoRecord(date: string, secondStock: boolean): TopListRecord {
+  const buy = secondStock ? 38_000_000 : 82_000_000
+  const sell = secondStock ? 61_000_000 : 53_000_000
+  const marketTurnover = secondStock ? 460_000_000 : 920_000_000
+  return {
+    code: secondStock ? '300750' : '002230',
+    name: secondStock ? '宁德时代' : '科大讯飞',
+    date,
+    interpretation: secondStock ? '卖出居前' : '买入居前',
+    close: secondStock ? 268.95 : 49.80,
+    change_pct: secondStock ? -8.12 : 9.89,
+    turnover_rate: secondStock ? 7.2 : 16.8,
+    net_buy: buy - sell,
+    buy_amount: buy,
+    sell_amount: sell,
+    lhb_turnover: buy + sell,
+    market_turnover: marketTurnover,
+    net_buy_ratio: (buy - sell) / marketTurnover * 100,
+    turnover_ratio: (buy + sell) / marketTurnover * 100,
+    float_market_cap: secondStock ? 600_000_000_000 : 90_000_000_000,
+    reason: '日价格涨跌幅偏离值达到 7%',
+  }
+}
+
+function demoTopList(start: string, end: string): TopListData {
+  const first = demoRecord(start, false)
+  const second = demoRecord(end, true)
+  if (start === end) {
+    return {
+      mode: 'single',
+      records: [
+        first,
+        second,
+      ],
+    }
+  }
+
+  return {
+    mode: 'range',
+    groups: [first, second].map((record) => ({
+      code: record.code,
+      name: record.name,
+      count: 1,
+      records: [
+        record,
+      ],
+    })),
+  }
+}
+
+function hasRecords(records?: TopListRecord[]) {
+  return Array.isArray(records) && records.length > 0 && records.every((record) =>
+    record && Number.isFinite(record.close) && Number.isFinite(record.change_pct)
+    && Number.isFinite(record.turnover_rate) && Number.isFinite(record.net_buy_ratio)
+    && Number.isFinite(record.turnover_ratio),
+  )
+}
+
+function hasTopListData(data: TopListData) {
+  if (data.mode === 'single') return hasRecords(data.records)
+  return data.mode === 'range' && Array.isArray(data.groups) && data.groups.length > 0
+    && data.groups.every((group) => group && hasRecords(group.records))
+}
+
 async function fetchData() {
+  const requestId = ++latestRequest
+  const start = startDate.value
+  const end = endDate.value
+  if (!start || !end || start > end) {
+    loading.value = false
+    mode.value = null
+    error.value = '请选择有效的日期范围'
+    return
+  }
+
   loading.value = true
   error.value = ''
   sortKey.value = ''
   expandedGroups.value = new Set()
-  try {
-    const data = await request<TopListData>('/popularity/top-list', {
-      body: {
-        start_date: toApiDate(startDate.value),
-        end_date: toApiDate(endDate.value),
-      },
-    })
-    mode.value = data.mode
-    if (data.mode === 'single') {
-      singleRecords.value = data.records ?? []
-      groups.value = []
-    } else {
-      groups.value = data.groups ?? []
-      singleRecords.value = []
-    }
-  } catch (e: any) {
-    error.value = e.message ?? '请求失败'
-  } finally {
-    loading.value = false
-  }
+  const { data, simulated: isSimulated } = await loadWithDemo(
+    '/popularity/top-list',
+    () => demoTopList(start, end),
+    {
+      start_date: toApiDate(start),
+      end_date: toApiDate(end),
+    },
+    hasTopListData,
+  )
+  if (requestId !== latestRequest) return
+
+  mode.value = data.mode
+  singleRecords.value = data.records ?? []
+  groups.value = data.groups ?? []
+  simulated.value = isSimulated
+  loading.value = false
 }
 
 function onDateChange() {

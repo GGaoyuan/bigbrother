@@ -1,8 +1,3 @@
-export interface LoginCredentials {
-  phone: string
-  password: string
-}
-
 export interface DataSeries {
   id: string
   name: string

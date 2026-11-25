@@ -6,5 +6,5 @@
 - Vue 单文件组件保留清晰的多行 `script`、`template`、`style` 结构。
 - CSS 选择器、花括号和每条声明分别占行，不压缩成单行规则。
 - 修改已有文件时，遵循以上格式整理所触及的代码；不要顺手重排无关实现。
-- 工作区与页面配置从 Backend API 加载；`src/api/config.ts` 在应用挂载前读取工作区和页面接口，并导出全局共享的 `config` 对象。
-- 数据 Tab 的目录通过 workspace data API 获取，不再从本地 JSON 文件读取。
+- 侧栏页面配置内置于 Webfront。每项只包含 `name` 和 `id`，`id` 对应 Vue Router 的路由名。
+- 新增模拟行情数据需在对应页面标注来源。

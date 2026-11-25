@@ -1,28 +1,26 @@
 import logging
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
-from app.api.config import router as config_router
-from app.api.login import router as login_router
 from app.api.market_index import router as market_index_router
 from app.api.margin import router as margin_router
+from app.api.profile_market import router as profile_market_router
 from app.api.response import ResponseCode, error_response
-from app.api.security import require_user_token
+from app.api.stocks import router as stocks_router
+from app.console_logging import log_event
 from app.middleware.request_logging import RequestLoggingMiddleware
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
+class LoggedFastAPI(FastAPI):
+    def build_middleware_stack(self):
+        return RequestLoggingMiddleware(super().build_middleware_stack())
 
-app = FastAPI(title="BigBrother API", version="1.0.0")
 
-app.add_middleware(RequestLoggingMiddleware)
+app = LoggedFastAPI(title="BigBrother API", version="1.0.0")
 
 
 @app.exception_handler(RequestValidationError)
@@ -49,6 +47,7 @@ async def handle_http_error(request: Request, exc: HTTPException) -> JSONRespons
 
 @app.exception_handler(Exception)
 async def handle_unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+    log_event("http.exception", errorType=type(exc).__name__, reason=str(exc))
     logger.error(
         "Unhandled API exception",
         exc_info=(type(exc), exc, exc.__traceback__),
@@ -61,31 +60,18 @@ async def handle_unexpected_error(request: Request, exc: Exception) -> JSONRespo
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"http://(?:localhost|127\.0\.0\.1)(?::\d+)?",
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(
-    market_index_router,
-    prefix="/api/v1",
-    dependencies=[Depends(require_user_token)],
-)
-app.include_router(login_router, prefix="/api/v1")
-app.include_router(
-    margin_router,
-    prefix="/api/v1",
-    dependencies=[Depends(require_user_token)],
-)
-
-app.include_router(
-    config_router,
-    prefix="/api/v1",
-    dependencies=[Depends(require_user_token)],
-)
+app.include_router(market_index_router, prefix="/api/v1")
+app.include_router(margin_router, prefix="/api/v1")
+app.include_router(profile_market_router, prefix="/api/v1")
+app.include_router(stocks_router, prefix="/api/v1")
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

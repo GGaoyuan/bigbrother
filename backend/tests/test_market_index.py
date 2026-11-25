@@ -45,10 +45,9 @@ class IndexDailyKlineTests(unittest.TestCase):
         self.client = TestClient(app)
         self.addCleanup(self.client.close)
 
-    def request(self, body=None, authenticated=True):
-        headers = {"Authorization": "Bearer mock-token-10001"} if authenticated else {}
+    def request(self, body=None):
         with redirect_stdout(io.StringIO()):
-            return self.client.post("/api/v1/market/index/hist", json=body, headers=headers)
+            return self.client.post("/api/v1/market/index/hist", json=body)
 
     def test_csi300_daily_bars_use_shanghai_index_and_chronological_prices(self):
         response = self.request({"code": "000300.SH"})
@@ -91,7 +90,3 @@ class IndexDailyKlineTests(unittest.TestCase):
     def test_empty_data_returns_empty_list(self):
         self.transport.rows = []
         self.assertEqual(self.request({"code": "000300.SH"}).json()["data"], [])
-
-    def test_index_endpoint_requires_authentication(self):
-        self.assertEqual(self.request({"code": "000300.SH"}, authenticated=False).status_code, 401)
-        self.assertEqual(self.transport.calls, [])

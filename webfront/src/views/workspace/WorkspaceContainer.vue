@@ -1,11 +1,5 @@
 <script setup lang="ts">
 import { RouterView, useRoute } from 'vue-router'
-import AiPage from './ai/AiPage.vue'
-import DataPage from './data/DataPage.vue'
-
-defineProps<{
-  content: 'data' | 'ai' | 'route'
-}>()
 
 const route = useRoute()
 </script>
@@ -15,18 +9,8 @@ const route = useRoute()
     <RouterView v-slot="{ Component }">
       <KeepAlive :max="32">
         <component
-          :is="DataPage"
-          v-if="content === 'data'"
-          key="data-workspace"
-        />
-        <component
-          :is="AiPage"
-          v-else-if="content === 'ai'"
-          key="ai-workspace"
-        />
-        <component
           :is="Component"
-          v-else-if="content === 'route' && Component"
+          v-if="Component"
           :key="route.path"
         />
       </KeepAlive>

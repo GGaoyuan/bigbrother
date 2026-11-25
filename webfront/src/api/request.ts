@@ -2,11 +2,7 @@ import axios, {
   AxiosHeaders,
   type AxiosRequestConfig,
 } from 'axios'
-import { getActivePinia } from 'pinia'
-import { useUserInfoStore } from '../stores/userinfo'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1'
-const MOCK_API_TOKEN = 'mock-token-10001'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim()
 export const DEFAULT_HEADERS = {
   Accept: 'application/json',
   'Content-Type': 'application/json',
@@ -15,11 +11,11 @@ export const DEFAULT_HEADERS = {
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: DEFAULT_HEADERS,
+  timeout: 3000,
 })
 
 export interface RequestOptions extends Omit<AxiosRequestConfig, 'data' | 'url'> {
   body?: unknown
-  withAuth?: boolean
 }
 
 export interface ApiEnvelope<T> {
@@ -45,7 +41,6 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     body,
     headers: initialHeaders,
     method = 'POST',
-    withAuth = true,
     ...requestOptions
   } = options
   const headers = AxiosHeaders.from(DEFAULT_HEADERS)
@@ -63,13 +58,6 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     headers.set('Content-Type', 'application/json')
   } else if (method === 'GET' || method === 'HEAD') {
     headers.delete('Content-Type')
-  }
-
-  if (withAuth) {
-    const pinia = getActivePinia()
-    const token = pinia ? useUserInfoStore(pinia).token : ''
-
-    headers.set('Authorization', `Bearer ${token || MOCK_API_TOKEN}`)
   }
 
   let response

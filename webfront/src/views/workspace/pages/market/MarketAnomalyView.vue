@@ -79,7 +79,9 @@ function initChart() {
         const p = Array.isArray(params) ? params[0] : null
         if (!p || p.dataIndex == null) return ''
         const i = p.dataIndex as number
-        return `时间: ${timeAxis[i]}<br/>涨幅: ${indexData[i].toFixed(2)}%<br/>价格: ${priceData[i]}<br/>成交量: ${volumeData[i]}亿<br/>成交额: ${amountData[i]}亿`
+        const change = indexData[i]
+        if (change === undefined) return ''
+        return `时间: ${timeAxis[i]}<br/>涨幅: ${change.toFixed(2)}%<br/>价格: ${priceData[i]}<br/>成交量: ${volumeData[i]}亿<br/>成交额: ${amountData[i]}亿`
       },
     },
     grid: { left: '10%', right: '8%', top: '18%', bottom: '15%' },

@@ -4,7 +4,7 @@
     <div class="top-bar">
       <input type="date" class="date-picker" v-model="selectedDate" @change="onDateChange" />
       <span v-if="loading" class="status-text">加载中...</span>
-      <span v-if="error" class="status-text error">{{ error }}</span>
+      <span v-if="simulated" class="status-text">模拟数据</span>
     </div>
 
     <!-- 仪表盘区域 -->
@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
-import { fetchMarketSentiment } from '@/api/api'
+import { loadWithDemo } from '@/api/api'
 import type { GridItem } from '@/api/types'
 
 interface MarketSentimentData {
@@ -51,9 +51,10 @@ function toLocalDateString(d: Date) {
 }
 
 const selectedDate = ref(toLocalDateString(new Date()))
+const displayedDate = ref(selectedDate.value)
 
 const formattedDate = computed(() => {
-  const d = new Date(selectedDate.value + 'T00:00:00')
+  const d = new Date(displayedDate.value + 'T00:00:00')
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
@@ -66,23 +67,57 @@ let gaugeChart: echarts.ECharts | null = null
 let lineChart: echarts.ECharts | null = null
 
 const loading = ref(false)
-const error = ref<string | null>(null)
-const sentimentScore = ref(0)
+const simulated = ref(false)
 const gridItems = ref<GridItem[]>([])
+let latestRequest = 0
+
+function demoSentiment(date: string): MarketSentimentData {
+  const day = Number(date.slice(-2))
+  return {
+    score: 48 + day % 24,
+    grid: [
+      {
+        label: '上涨家数',
+        value: String(2600 + day * 23),
+        color: '#e53935',
+      },
+      {
+        label: '下跌家数',
+        value: String(2400 - day * 23),
+        color: '#2e7d32',
+      },
+      {
+        label: '涨停家数',
+        value: String(39 + day),
+        color: '#e53935',
+      },
+      {
+        label: '跌停家数',
+        value: String(3 + day % 9),
+        color: '#2e7d32',
+      },
+    ],
+  }
+}
 
 async function loadData(date: string) {
   loading.value = true
-  error.value = null
-  try {
-    const data = await fetchMarketSentiment<MarketSentimentData>(date)
-    sentimentScore.value = data.score
-    gridItems.value = data.grid
-    updateGauge(data.score)
-  } catch (e) {
-    error.value = '数据加载失败，请确认后端服务已启动'
-  } finally {
-    loading.value = false
-  }
+  const requestId = ++latestRequest
+  const result = await loadWithDemo(
+    '/market-sentiment',
+    () => demoSentiment(date),
+    {
+      date,
+    },
+    (data) => Number.isFinite(data.score) && Array.isArray(data.grid) && data.grid.length > 0,
+  )
+  if (requestId !== latestRequest) return
+
+  displayedDate.value = date
+  simulated.value = result.simulated
+  gridItems.value = result.data.grid
+  updateGauge(result.data.score)
+  loading.value = false
 }
 
 function getGaugeLabel(val: number) {
@@ -169,7 +204,7 @@ function initLine() {
   const dates = ['04-14', '04-15', '04-16', '04-17', '04-18', '04-21', '04-22', '04-23']
   const values = [45, 52, 48, 55, 60, 58, 65, 62]
   lineChart.setOption({
-    title: { text: '情绪走势', left: 'center', textStyle: { fontSize: 15 } },
+    title: { text: '情绪走势（模拟数据）', left: 'center', textStyle: { fontSize: 15 } },
     tooltip: { trigger: 'axis' },
     grid: { left: '5%', right: '5%', bottom: '18%', top: '15%', containLabel: true },
     dataZoom: [
@@ -207,7 +242,7 @@ function initLine() {
 }
 
 function onDateChange() {
-  loadData(selectedDate.value)
+  if (selectedDate.value) void loadData(selectedDate.value)
 }
 
 function onResize() {
@@ -247,11 +282,6 @@ onUnmounted(() => {
   font-size: 0.85rem;
   color: var(--color-text);
   opacity: 0.6;
-}
-
-.status-text.error {
-  color: #e53935;
-  opacity: 1;
 }
 
 .date-picker {

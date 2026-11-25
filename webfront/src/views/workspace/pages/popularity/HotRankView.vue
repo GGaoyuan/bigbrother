@@ -3,7 +3,7 @@
     <div class="top-bar">
       <button class="refresh-btn" @click="fetchData" :disabled="loading">刷新</button>
       <span v-if="loading" class="status-text">加载中...</span>
-      <span v-if="error" class="status-text error">{{ error }}</span>
+      <span v-if="simulated" class="status-text">模拟数据</span>
     </div>
 
     <table class="data-table" v-if="items.length > 0">
@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { request } from '../../../../api/request'
+import { loadWithDemo } from '@/api/api'
 
 interface HotRankItem {
   rank: number
@@ -48,20 +48,47 @@ interface HotRankItem {
   hot_value: number
 }
 
+const demoItems: HotRankItem[] = [
+  {
+    rank: 1,
+    code: '600519',
+    name: '贵州茅台',
+    price: 1426.38,
+    change_pct: 2.19,
+    hot_value: 91248,
+  },
+  {
+    rank: 2,
+    code: '300750',
+    name: '宁德时代',
+    price: 268.95,
+    change_pct: -1.23,
+    hot_value: 85316,
+  },
+  {
+    rank: 3,
+    code: '000001',
+    name: '平安银行',
+    price: 11.42,
+    change_pct: 0.62,
+    hot_value: 74852,
+  },
+]
+
 const items = ref<HotRankItem[]>([])
 const loading = ref(false)
-const error = ref('')
+const simulated = ref(false)
 
 async function fetchData() {
   loading.value = true
-  error.value = ''
-  try {
-    items.value = await request<HotRankItem[]>('/popularity/hot-rank')
-  } catch (e: any) {
-    error.value = e.message ?? '请求失败'
-  } finally {
-    loading.value = false
-  }
+  const result = await loadWithDemo('/popularity/hot-rank', () => demoItems, undefined, (data) =>
+    Array.isArray(data) && data.length > 0 && data.every((item) =>
+      item && typeof item.code === 'string' && Number.isFinite(item.price) && Number.isFinite(item.change_pct),
+    ),
+  )
+  items.value = result.data
+  simulated.value = result.simulated
+  loading.value = false
 }
 
 onMounted(fetchData)
@@ -97,10 +124,6 @@ onMounted(fetchData)
 .status-text {
   font-size: 0.875rem;
   color: var(--color-text);
-}
-
-.status-text.error {
-  color: #e53935;
 }
 
 .data-table {

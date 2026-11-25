@@ -4,6 +4,7 @@
     <div class="date-picker-section">
       <label for="date-picker">选择日期：</label>
       <input id="date-picker" type="date" v-model="selectedDate" class="date-picker" />
+      <span class="demo-label">模拟数据</span>
     </div>
 
     <!-- 折线图 -->
@@ -14,7 +15,6 @@
           {{ item.name }}
         </span>
         <span v-if="selectedItems.length === 0" class="legend-empty">请从下方选择题材或行业</span>
-        <span v-if="loading" class="legend-loading">加载中...</span>
       </div>
       <div class="chart-container">
         <canvas ref="chartCanvas"></canvas>
@@ -85,17 +85,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { request } from '../../../../api/request'
 
-const selectedDate = ref(new Date().toISOString().split('T')[0])
+const selectedDate = ref(new Intl.DateTimeFormat('sv-SE', {
+  timeZone: 'Asia/Shanghai',
+}).format(new Date()))
 const chartCanvas = ref<HTMLCanvasElement | null>(null)
-
-const BASE_URL = 'http://0.0.0.0:80/api/v1'
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'token': 'gaoyuanzuishuai',
-  'uid': '1993',
-}
 
 const LINE_COLORS = [
   '#1565c0', '#e53935', '#2e7d32', '#f57c00', '#6a1b9a',
@@ -109,88 +103,160 @@ function nextColor() {
   return c
 }
 
-interface TodayBillItem {
-  time: string
-  main_net_inflow: number
-  small_net_inflow: number
-  medium_net_inflow: number
-  large_net_inflow: number
-  super_large_net_inflow: number
-}
-
 interface DataItem {
   id: string
   code: string
   name: string
   selected: boolean
   color: string
-  series: number[]
 }
 
-const timeLabels = ref<string[]>([])
-const loading = ref(false)
-
-async function fetchBillData(codes: string[]): Promise<Record<string, TodayBillItem[]>> {
-  return request<Record<string, TodayBillItem[]>>('/stock/today-bill', {
-    baseURL: BASE_URL,
-    headers: HEADERS,
-    body: {
-      codes,
-    },
-  })
-}
+const timeLabels = [
+  '09:30',
+  '10:00',
+  '10:30',
+  '11:00',
+  '11:30',
+  '13:00',
+  '13:30',
+  '14:00',
+  '14:30',
+  '15:00',
+]
 
 const themeData = ref<DataItem[]>([
-  { id: 'theme-1', code: 'BK0457', name: '人工智能', selected: false, color: '', series: [] },
-  { id: 'theme-2', code: 'BK0021', name: '新能源车', selected: false, color: '', series: [] },
-  { id: 'theme-3', code: 'BK0447', name: '半导体', selected: false, color: '', series: [] },
-  { id: 'theme-4', code: 'BK0438', name: '医疗器械', selected: false, color: '', series: [] },
-  { id: 'theme-5', code: 'BK0428', name: '军工', selected: false, color: '', series: [] },
-  { id: 'theme-6', code: 'BK0975', name: '数字经济', selected: false, color: '', series: [] },
-  { id: 'theme-7', code: 'BK1012', name: '储能', selected: false, color: '', series: [] },
-  { id: 'theme-8', code: 'BK0952', name: '机器人', selected: false, color: '', series: [] },
+  {
+    id: 'theme-1',
+    code: 'BK0457',
+    name: '人工智能',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'theme-2',
+    code: 'BK0021',
+    name: '新能源车',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'theme-3',
+    code: 'BK0447',
+    name: '半导体',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'theme-4',
+    code: 'BK0438',
+    name: '医疗器械',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'theme-5',
+    code: 'BK0428',
+    name: '军工',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'theme-6',
+    code: 'BK0975',
+    name: '数字经济',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'theme-7',
+    code: 'BK1012',
+    name: '储能',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'theme-8',
+    code: 'BK0952',
+    name: '机器人',
+    selected: false,
+    color: '',
+  },
 ])
 
 const industryData = ref<DataItem[]>([
-  { id: 'ind-1', code: 'BK0448', name: '电子', selected: false, color: '', series: [] },
-  { id: 'ind-2', code: 'BK0481', name: '汽车', selected: false, color: '', series: [] },
-  { id: 'ind-3', code: 'BK0465', name: '医药生物', selected: false, color: '', series: [] },
-  { id: 'ind-4', code: 'BK0447', name: '计算机', selected: false, color: '', series: [] },
-  { id: 'ind-5', code: 'BK0428', name: '国防军工', selected: false, color: '', series: [] },
-  { id: 'ind-6', code: 'BK0478', name: '有色金属', selected: false, color: '', series: [] },
-  { id: 'ind-7', code: 'BK0456', name: '食品饮料', selected: false, color: '', series: [] },
-  { id: 'ind-8', code: 'BK0475', name: '银行', selected: false, color: '', series: [] },
+  {
+    id: 'ind-1',
+    code: 'BK0448',
+    name: '电子',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'ind-2',
+    code: 'BK0481',
+    name: '汽车',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'ind-3',
+    code: 'BK0465',
+    name: '医药生物',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'ind-4',
+    code: 'BK0447',
+    name: '计算机',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'ind-5',
+    code: 'BK0428',
+    name: '国防军工',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'ind-6',
+    code: 'BK0478',
+    name: '有色金属',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'ind-7',
+    code: 'BK0456',
+    name: '食品饮料',
+    selected: false,
+    color: '',
+  },
+  {
+    id: 'ind-8',
+    code: 'BK0475',
+    name: '银行',
+    selected: false,
+    color: '',
+  },
 ])
 
 const selectedItems = computed(() =>
   [...themeData.value, ...industryData.value].filter(i => i.selected)
 )
 
-async function toggleItem(item: DataItem) {
+function toggleItem(item: DataItem) {
   item.selected = !item.selected
-  if (item.selected) {
-    item.color = nextColor()
-    loading.value = true
-    try {
-      const data = await fetchBillData([item.code])
-      const bills: TodayBillItem[] = data[item.code] || []
-      item.series = bills.map(b => b.main_net_inflow)
-      if (timeLabels.value.length === 0 && bills.length > 0) {
-        timeLabels.value = bills.map(b => b.time)
-      }
-    } catch (e) {
-      console.error(e)
-      item.series = []
-    } finally {
-      loading.value = false
-    }
-    await nextTick()
-    drawChart()
-  } else {
-    item.color = ''
-    item.series = []
-    drawChart()
-  }
+  item.color = item.selected ? nextColor() ?? '#1565c0' : ''
+  drawChart()
+}
+
+function demoSeries(code: string, date: string) {
+  const seed = Number(code.slice(2)) + Number(date.replace(/-/g, ''))
+  return timeLabels.map((_, index) =>
+    Math.round(Math.sin(seed + index * 0.55) * index * 1600),
+  )
 }
 
 // ─── 绘图 ─────────────────────────────────────────────────────────────────────
@@ -217,7 +283,10 @@ function drawChart() {
 
   ctx.clearRect(0, 0, W, H)
 
-  const active = selectedItems.value.filter(i => i.series.length > 0)
+  const active = selectedDate.value ? selectedItems.value.map((item) => ({
+    color: item.color,
+    series: demoSeries(item.code, selectedDate.value),
+  })) : []
   if (active.length === 0) {
     ctx.fillStyle = '#aaa'
     ctx.font = '14px sans-serif'
@@ -271,15 +340,11 @@ function drawChart() {
   // X 轴标签（从 timeLabels 中均匀取 6 个）
   ctx.textAlign = 'center'
   ctx.fillStyle = '#888'
-  const labels = timeLabels.value
-  if (labels.length > 0) {
-    const n = labels.length
-    const step = Math.max(1, Math.floor(n / 5))
-    const idxs = [...new Set([0, step, step * 2, step * 3, step * 4, n - 1])]
-    idxs.forEach(idx => {
-      ctx.fillText(labels[idx], toX(idx), H - b + 16)
-    })
-  }
+  timeLabels.forEach((label, index) => {
+    if (index % 2 === 0 || index === timeLabels.length - 1) {
+      ctx.fillText(label, toX(index), H - b + 16)
+    }
+  })
 }
 
 watch(selectedDate, () => nextTick(drawChart))
@@ -359,7 +424,7 @@ onUnmounted(() => {
   color: #aaa;
 }
 
-.legend-loading {
+.demo-label {
   font-size: 0.8rem;
   color: #888;
 }

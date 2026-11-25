@@ -1,38 +1,12 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-defineProps<{
-  modelValue: number
-  tabs: {
-    id: number
-    name: string
-  }[]
-  homeLabel: string
-  workspacesLabel: string
-}>()
-
-const emit = defineEmits<{
-  'update:modelValue': [value: number]
-}>()
 </script>
 
 <template>
   <header class="sidebar-header">
-    <RouterLink to="/" class="avatar" :aria-label="homeLabel"
-      ><img src="/favicon.png" alt=""
-    /></RouterLink>
-    <div class="mode-switch" role="tablist" :aria-label="workspacesLabel">
-      <button
-        v-for="tab in tabs"
-        :key="tab.id"
-        role="tab"
-        :aria-selected="modelValue === tab.id"
-        class="mode-tab"
-        :class="{ active: modelValue === tab.id }"
-        @click="emit('update:modelValue', tab.id)"
-      >
-        {{ tab.name }}
-      </button>
-    </div>
+    <RouterLink to="/" class="avatar" aria-label="首页">
+      <img src="/favicon.png" alt="" />
+    </RouterLink>
   </header>
 </template>
 
@@ -41,35 +15,9 @@ const emit = defineEmits<{
   flex: none;
   display: flex;
   align-items: center;
-  gap: 11px;
   height: 66px;
   padding: 0 16px;
   border-bottom: 1px solid var(--line);
-}
-.mode-switch {
-  display: flex;
-  flex: 1;
-  padding: 3px;
-  border: 1px solid #edf0f4;
-  background: #f7f8fa;
-  border-radius: 9px;
-}
-.mode-tab {
-  flex: 1;
-  padding: 6px 0;
-  color: #718096;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.mode-tab.active {
-  color: #2266dc;
-  background: #fff;
-  box-shadow: 0 1px 3px #162b4d18;
 }
 .avatar {
   display: grid;

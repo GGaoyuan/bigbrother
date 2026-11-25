@@ -1,42 +1,71 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import AiWorkspace from './component/AiWorkspace.vue'
-import DataWorkspace from './component/DataWorkspace.vue'
+import { shallowRef } from 'vue'
 import PageNavigation from './component/PageNavigation.vue'
-import { config } from '../../api/config'
 import SidebarHeader from './component/SidebarHeader.vue'
 
-const props = defineProps<{
-  activeWorkspaceId: number
-}>()
+const MIN_WIDTH = 160
+const MAX_WIDTH = 440
+const KEYBOARD_STEP = 16
+const width = defineModel<number>('width', {
+  required: true,
+})
 
-const emit = defineEmits<{
-  'select-workspace': [workspaceId: number]
-  'open-page': []
-}>()
+const drag = shallowRef<{
+  pointerId: number
+  startX: number
+  startWidth: number
+} | null>(null)
 
-const activeWorkspaceIndex = computed(() =>
-  config.tabsConfig.findIndex((item) => item.id === props.activeWorkspaceId),
-)
+function setWidth(value: number) {
+  width.value = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, value))
+}
+
+function startResize(event: PointerEvent) {
+  if (!event.isPrimary || event.button !== 0) return
+
+  const handle = event.currentTarget as HTMLElement
+  handle.setPointerCapture(event.pointerId)
+  drag.value = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startWidth: width.value,
+  }
+}
+
+function resize(event: PointerEvent) {
+  if (drag.value?.pointerId !== event.pointerId) return
+
+  setWidth(drag.value.startWidth + event.clientX - drag.value.startX)
+}
+
+function stopResize(event: PointerEvent) {
+  if (drag.value?.pointerId === event.pointerId) drag.value = null
+}
 </script>
 
 <template>
-  <aside class="sidebar">
-    <SidebarHeader
-      :model-value="props.activeWorkspaceId"
-      :tabs="config.tabsConfig"
-      home-label="首页"
-      workspaces-label="工作区"
-      @update:model-value="emit('select-workspace', $event)"
-    />
-    <DataWorkspace v-if="activeWorkspaceIndex === 0" />
-    <AiWorkspace v-else-if="activeWorkspaceIndex === 1" />
-    <PageNavigation v-else-if="activeWorkspaceIndex === 2" @open-page="emit('open-page')" />
-    <footer class="sidebar-footer">
-      <span class="status-dot"></span>
-      数据工作台
-      <span class="version">v1.0</span>
-    </footer>
+  <aside id="app-sidebar" class="sidebar">
+    <SidebarHeader />
+    <PageNavigation />
+    <div
+      class="sidebar-resize"
+      :class="{ 'is-dragging': drag }"
+      role="separator"
+      aria-label="调整侧栏宽度"
+      aria-orientation="vertical"
+      aria-controls="app-sidebar"
+      :aria-valuemin="MIN_WIDTH"
+      :aria-valuemax="MAX_WIDTH"
+      :aria-valuenow="width"
+      tabindex="0"
+      @pointerdown="startResize"
+      @pointermove="resize"
+      @pointerup="stopResize"
+      @pointercancel="stopResize"
+      @lostpointercapture="stopResize"
+      @keydown.left.prevent="setWidth(width - KEYBOARD_STEP)"
+      @keydown.right.prevent="setWidth(width + KEYBOARD_STEP)"
+    ></div>
   </aside>
 </template>
 
@@ -55,43 +84,37 @@ const activeWorkspaceIndex = computed(() =>
   background: #fff;
   border-right: 1px solid var(--line);
 }
-.sidebar-footer {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: 7px;
-  height: 36px;
-  margin-top: auto;
-  padding: 0 17px;
-  border-top: 1px solid var(--line);
-  color: #8490a0;
-  font-size: 10px;
-}
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #63bf8b;
-}
-.version {
-  margin-left: auto;
-  color: #b0b8c3;
-}
-.sidebar button:focus-visible,
-.sidebar a:focus-visible,
-.sidebar input:focus-visible {
+.sidebar a:focus-visible {
   outline: 2px solid #3478f6;
   outline-offset: 2px;
 }
+.sidebar-resize {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+}
+.sidebar-resize:hover,
+.sidebar-resize:focus-visible,
+.sidebar-resize.is-dragging {
+  outline: none;
+  background: #eaf1ff;
+  box-shadow: inset -2px 0 var(--blue);
+}
 @media (max-width: 760px) {
   .sidebar {
-    width: var(--rail-width);
+    width: 260px;
     transform: translateX(-100%);
     transition: transform 0.2s ease;
   }
   .sidebar:focus-within,
   .sidebar:hover {
     transform: translateX(0);
+  }
+  .sidebar-resize {
+    display: none;
   }
   .sidebar::after {
     content: '';

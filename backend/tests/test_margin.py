@@ -65,10 +65,9 @@ class MarginTests(unittest.TestCase):
             raise AssertionError("Unexpected data source")
         return SimpleNamespace(json=lambda: data)
 
-    def request(self, body=None, authenticated=True):
-        headers = {"Authorization": "Bearer mock-token-10001"} if authenticated else {}
+    def request(self, body=None):
         with redirect_stdout(io.StringIO()):
-            return self.client.post("/api/v1/capital/margin", json=body, headers=headers)
+            return self.client.post("/api/v1/capital/margin", json=body)
 
     def test_combines_same_day_and_converts_szse_units(self):
         response = self.request({"date": "2026-11-09"})
@@ -115,10 +114,6 @@ class MarginTests(unittest.TestCase):
 
     def test_invalid_date_is_rejected_without_fetch(self):
         self.assertEqual(self.request({"date": "2026-02-30"}).status_code, 422)
-        self.assertEqual(self.calls, [])
-
-    def test_authentication_required(self):
-        self.assertEqual(self.request(authenticated=False).status_code, 401)
         self.assertEqual(self.calls, [])
 
     def test_upstream_error_returns_bad_gateway(self):

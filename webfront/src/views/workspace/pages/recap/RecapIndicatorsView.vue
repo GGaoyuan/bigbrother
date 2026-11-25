@@ -73,10 +73,19 @@ const chartConfigs = [
   { id: 'gold', title: '伦敦金', hasOverlay: false },
   { id: 'oil', title: '原油', hasOverlay: false },
   { id: 'copper', title: '国际铜价', hasOverlay: false },
-]
+] as const
 
-const group1Indices = [0, 1, 2, 3]
-const group2Indices = [4, 5, 6]
+const group1Indices = [
+  0,
+  1,
+  2,
+  3,
+] as const
+const group2Indices = [
+  4,
+  5,
+  6,
+] as const
 
 const selectedTimeframes = ref<TimeframeKey[]>(Array.from({ length: chartConfigs.length }, () => 'day'))
 

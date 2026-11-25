@@ -7,6 +7,7 @@ from fastapi import APIRouter, Body
 from pydantic import BaseModel, Field
 
 from app.api.response import ResponseCode, error_response, success_response
+from app.console_logging import observe_provider
 from app.data.tdx import get_index_daily_kline as fetch_index_daily_kline
 
 router = APIRouter(tags=["market-index"])
@@ -30,18 +31,15 @@ def _number(value: Any) -> float:
 @router.post("/market/index/hist")
 def get_index_daily_kline(request: IndexKlineRequest = Body(default=IndexKlineRequest())) -> Any:
     try:
-        frame = fetch_index_daily_kline(request.code.split(".")[0])
+        with observe_provider("mootdx", "index_klines", symbol=request.code, interval="day", limit=800):
+            frame = fetch_index_daily_kline(request.code.split(".")[0])
+            if frame is not None and not frame.empty and "datetime" not in frame.columns:
+                raise ValueError("TDX response is missing datetime")
     except Exception as exc:
         return error_response(ResponseCode.BAD_GATEWAY, str(exc))
 
     if frame is None or frame.empty:
         return success_response([])
-
-    if "datetime" not in frame.columns:
-        return error_response(
-            ResponseCode.BAD_GATEWAY,
-            "TDX response is missing datetime",
-        )
 
     # mootdx 同时将 datetime 用作索引名和列名，先移除索引避免排序歧义。
     rows = (

@@ -10,6 +10,7 @@ from fastapi import APIRouter, Body
 from pydantic import BaseModel, Field
 
 from app.api.response import ResponseCode, error_response, success_response
+from app.console_logging import observe_provider
 from app.data.margin import get_sse_margin, get_szse_margin
 
 router = APIRouter(tags=["capital"])
@@ -56,7 +57,8 @@ def _szse_values(frame: Any) -> dict[str, Any]:
 def get_margin_summary(request: MarginRequest = Body(default=MarginRequest())) -> Any:
     end_date = request.date or datetime.now(ZoneInfo("Asia/Shanghai")).date()
     try:
-        frame = get_sse_margin(end_date)
+        with observe_provider("akshare", "stock_margin_sse", endDate=end_date):
+            frame = get_sse_margin(end_date)
         rows = {
             Date.fromisoformat(str(row["信用交易日期"])): row
             for row in frame.to_dict(orient="records")
@@ -66,7 +68,8 @@ def get_margin_summary(request: MarginRequest = Body(default=MarginRequest())) -
         if request.date:
             candidates = [request.date] if request.date in rows else []
         for day in candidates:
-            report = get_szse_margin(day)
+            with observe_provider("akshare", "stock_margin_szse", date=day):
+                report = get_szse_margin(day)
             if report.empty:
                 continue
             sse = {name: _value(rows[day][fields[0]]) for name, fields in METRICS.items()}
@@ -82,7 +85,8 @@ def get_margin_summary(request: MarginRequest = Body(default=MarginRequest())) -
                     _value(previous_sse["融资余额"]) + sse["financing_buy_amount"]
                     - sse["financing_balance"]
                 )
-                previous_report = get_szse_margin(earlier[0])
+                with observe_provider("akshare", "stock_margin_szse", date=earlier[0]):
+                    previous_report = get_szse_margin(earlier[0])
                 if not previous_report.empty:
                     previous = _szse_values(previous_report)
                     # 库的两市汇总均无偿还额字段，按余额关系由前一交易日推算。
