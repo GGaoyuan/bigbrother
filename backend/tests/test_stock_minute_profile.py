@@ -2,8 +2,11 @@ from dataclasses import replace
 from datetime import date, datetime
 from unittest import TestCase
 
-from app.data.stock_market_types import CHINA, Candle, MinuteCoverageError, midnight
-from app.data.stock_minute_profile import minute_window, validate_minutes
+from app.core.market_time import CHINA, midnight
+from app.models.kline import Candle
+from app.services.minute_quality import MinuteCoverageError
+from app.core.market_time import minute_window
+from app.services.minute_quality import validate_minutes
 
 
 FRIDAY = date(2026, 11, 20)

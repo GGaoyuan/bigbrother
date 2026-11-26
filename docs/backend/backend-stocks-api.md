@@ -1,38 +1,36 @@
 # 个股前复权 K 线与固定区间 Volume Profile API
 
-## 实现结构
+## 后端依赖与职责
 
-改动前，Vue 3 页面使用 Lightweight Charts 5.2.0 绘制五种周期的不复权 K 线。主图选区以北京时间的 K 线边界为基准，确认后调用 FastAPI 的逐笔计算接口。两个公开成交源都只有聚合分笔，因此历史区间无法核验到真实逐笔精度。
+`main.py` 负责注入 Data 实现。请求沿 API → Service → Data → 第三方库处理，Model 为 Service 和 Data 提供同一份契约。数据源优先顺序在组装入口声明，分钟快照始终来自单一行情源。
 
-改动后，`VolumeProfileChart.vue` 和主图选区组件继续负责平移、缩放、区间和右侧绘图。页面只提供日线、60 分钟和 5 分钟三个前复权周期。固定区间接口以原生 1 分钟 OHLCV 估算成交量分布，前端传入开始、结束时间并校验复权版本。右侧图表按同一价格坐标绘制可变宽度的价位档，悬停显示该档价格范围及估算股数。
-
-主要代码位置如下。
-
-| 位置 | 作用 |
+| 目录 | 职责 |
 | --- | --- |
-| `backend/app/api/stocks.py` | 固定前复权 K 线和分钟估算 API，返回结构化覆盖信息 |
-| `backend/app/data/stock_market.py` | 行情来源顺序、复权版本、缓存与计算编排 |
-| `backend/app/data/{tdx_stock_provider,astock_data_provider,sina_minute_provider,easy_tdx_minute_provider}.py` | 不复权日线与分钟 OHLCV、原始成交量单位、通达信除权资料 |
-| `backend/app/data/stock_adjustment.py` | 统一的通达信前复权因子计算 |
-| `backend/app/data/stock_minute_profile.py` | 交易日历、分钟对齐、质量校验和整日对账 |
-| `backend/app/data/stock_volume_profile.py` | 整数价格档位、加权分配、成交量守恒、POC 和价值区 |
-| `webfront/src/views/workspace/pages/flows/` | `VolumeProfileView.vue`、`profileMarketData.ts` 和 `useHistoricalProfile.ts` 更新周期和 API，`VolumeProfilePrimitive.ts` 和 `VolumeProfileChart.vue` 支持显示价位档区间 |
-| `backend/tests/`、`webfront/cypress/e2e/example.cy.ts` 与对应前端单测 | 复权、数据覆盖、统计、周期一致性和交互回归 |
+| `backend/app/api/stocks/` | `info.py`、`klines.py`、`volume_profile.py` 分别定义路由、请求和响应模型 |
+| `backend/app/services/` | 股票查询、K 线、统一前复权、分钟完整性核验和加权计算 |
+| `backend/app/models/` | 内部数据结构、共用 K 线校验及 `contracts.py` 中的取数协议 |
+| `backend/app/data/` | `tdx.py`、`tencent.py`、`easy_tdx_minutes.py` 和 `xshg_calendar.py` 实现取数协议 |
+| `backend/app/core/` | 公共异常、日志、内存缓存、时间与响应封装 |
 
-## 数据源和真实覆盖
+Data 负责识别价格口径与单位并返回标准 K 线。成交额单位为元，无法可靠取得时为 `None`。Service 取得统一的不复权行情后，用同一份除权事件完成图表和成交量分布的前复权。契约测试对通达信公共主站、通达信 MAC 和腾讯验证相同的分钟时间、单位和价格口径。
 
-| 数据 | 数据来源与校验 | 本次实测 |
-| --- | --- | --- |
-| 原始日线、60 分钟、5 分钟 | 先走 mootdx 0.11.7 所用的 tdxpy 0.2.7，再尝试 a-stock-data v3.10.4 的腾讯行情 | 两台通达信公共主站 `110.41.147.114:7709`、`119.97.185.59:7709` 的证券及除权数据可用，K 线返回解包异常。四只样本三个周期均从腾讯取得 |
-| 新浪近期 1 分钟 OHLCV | AKShare `stock_zh_a_minute` | 四只样本各取得 1,970 根，时间从 2026-11-12 下午至 11-24 收盘。旧通达信标准协议在两台主站仍报解包错误，历史分时接口只有价格和成交量 |
-| 通达信 MAC 历史 1 分钟 OHLCV | easy_tdx `MacClient.get_stock_kline(..., Period.MIN_1, adjust=Adjust.NONE)`，每页最多 700 根 | 三台主站均实测可返回 10 月分钟线。四只样本的 10-14 至 10-30 共 13 日，均取得 3,120 行原生数据 |
-| 腾讯 1 分钟备用行情 | a-stock-data `tencent_kline(..., period="m1")` 最近 320 根滚动数据 | 四只股票均取得 11-24 全天原始记录和前一交易日午后的部分记录。主板及创业板最近交易日可能只给整数手，且腾讯有单列集合竞价记录的时标差异。只有匹配规范及对账的区间才可使用 |
-| 通达信复权事件与交易日历 | tdxpy `get_xdxr_info`，AKShare 的新浪交易日历 | 两台公共主站复权事件接口可用。独立对账证实 2026-11-24 四只股票的分钟 OHLC 与日 K 一致，成交量差在日 K 原单位允许的舍入范围内 |
-| 东方财富 1 分钟备选调研 | AKShare `stock_zh_a_hist_min_em` | 本环境实测被限流。安装库内的实现只请求最近五个交易日，无法解决 2026-09-22 的缺口 |
+## 当前数据源
 
-依赖文件锁定 AKShare 1.20.37。全套测试和四只股票的真实估算均使用此版本验证。真实 HTTP 两端联调另在本机已运行的 Conda 环境完成，该环境使用 AKShare 1.18.64。a-stock-data 固定提交为 `f21534946c42be3ad048ac938eecb1bad84cb8ab`。 [AKShare 新浪分钟接口文档](https://akshare-hh.readthedocs.io/en/latest/data/stock/stock.html) · [a-stock-data K 线源码](https://github.com/simonlin1212/a-stock-data/blob/f21534946c42be3ad048ac938eecb1bad84cb8ab/SKILL.md)
+| 数据 | 使用顺序和接口 |
+| --- | --- |
+| 个股资料 | 通达信公共主站的证券目录，腾讯股票资料作为备选 |
+| 不复权日线、60 分钟、5 分钟 | mootdx / tdxpy 通达信公共主站，腾讯 `tencent_kline` 作为备选 |
+| 1 分钟 OHLCV | 通达信公共主站，easy_tdx MAC `get_stock_kline(..., Period.MIN_1, adjust=Adjust.NONE)`，腾讯最近 320 根 `m1` |
+| 除权事件 | tdxpy `get_xdxr_info`，按股票代码查询，由 Service 统一计算前复权 |
+| 交易日历 | `exchange-calendars==4.13.2` 自带的 XSHG 日历，覆盖 1990-12-03 至 2026-12-31，超出日历覆盖的选区会返回错误 |
 
-历史分钟请求依次检查通达信标准协议、近期使用的 AKShare 新浪、通达信 MAC 和腾讯。MAC SDK 用当前 Conda 已安装的 1.14.5 和上游固定提交构建的 1.1.0 分别实测。MAC 数据的 `vol` 已以股返回，其分钟发布粒度为 100 股，服务保留原值，在 `data_quality.volume_precision_shares` 与 `warnings` 中标明。MAC 成交额字段和分钟成交量不总能逐行互验，因此适配器仅规范化通过验证的 OHLCV，完整交易日仍核对日线价格和合计股数。 [easy_tdx MAC 接口](https://github.com/clong365/easy_tdx/tree/4820b4a0496899ece0b8ca4d7f4d66a5159da7f8)
+AKShare 只在用户明确授权的任务中可用，当前应用依赖和数据链路均已移除。腾讯行情 adapter 复用 a-stock-data 固定提交 `f21534946c42be3ad048ac938eecb1bad84cb8ab` 的实现。 [XSHG 日历源码](https://github.com/gerrymanoim/exchange_calendars/blob/4.13.2/exchange_calendars/exchange_calendar_xshg.py) · [上交所 2026 年休市公告](https://www.sse.com.cn/disclosure/announcement/general/c/c_20251222_10802507.shtml) · [a-stock-data K 线源码](https://github.com/simonlin1212/a-stock-data/blob/f21534946c42be3ad048ac938eecb1bad84cb8ab/SKILL.md)
+
+MAC 行情的 `vol` 已以股返回，公布粒度为 100 股，服务在 `data_quality.volume_precision_shares` 与 `warnings` 中标明。MAC 分钟成交额和股数无法逐行互验，因此分钟成交额记为缺省，完整交易日仍核对日线价格和合计股数。 [easy_tdx MAC 接口](https://github.com/clong365/easy_tdx/tree/4820b4a0496899ece0b8ca4d7f4d66a5159da7f8)
+
+### 2026-11-26 联调
+
+`300604` 的 2026-10-14 至 10-30 区间计算成功，覆盖 13 个交易日、3,120 根分钟线。`688981` 跨国庆休市的 09-30 至 10-09 区间计算成功，覆盖 3 个交易日、720 根分钟线。两组分钟数据均来自 easy_tdx MAC，分档加总等于原始标准化股数，并与各自 K 线图使用相同前复权版本。
 
 ### 2026-10-14 至 10-30 历史选区
 
@@ -45,7 +43,7 @@
 
 四只股票均通过 13 个交易日的分钟覆盖检查，缺失分钟为 0。茅台在浏览器按这一日期范围拖选并确认成功，另实测 2026-09-22 全天通过。更早日期的最长覆盖仍需按标的、主站及请求区间验证。
 
-### 2026-11-24 真实 API 结果
+### 2026-11-24 历史联调记录（移除新浪行情之前）
 
 | 股票 | 1 分钟有效 K 线 | 股数 | 每档步长（元） | POC | VAH | VAL |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -58,11 +56,11 @@
 
 ### 前复权与股数
 
-日线、60 分钟、5 分钟和参与计算的 1 分钟 OHLC 都先取得不复权数据，再应用同一个通达信除权事件版本。除权记录按交易所和股票代码直接查询，与证券目录分页独立。 复用通达信连接遇到传输中断时重连同一主站一次，再尝试其他主站，日志记录 `provider.server_reconnect`。个股空结果不影响下一只股票的查询。按每 10 股现金红利、送转股及配股参数应用 `(10 × 价格 − 现金红利 + 配股数 × 配股价) ÷ (10 + 送转股数 + 配股数)`，只调整事件前的交易日，多次事件按时间顺序复合，最终舍入到人民币分。成交量及成交额保留原值。前复权坐标始终使用这套事件口径。复权因子缺失，或历史前复权价格舍入后为非正数时，返回明确错误。
+日线、60 分钟、5 分钟和参与计算的 1 分钟 OHLC 都先取得不复权数据，再应用同一个通达信除权事件版本。除权记录按交易所和股票代码直接查询，与证券目录分页独立。复用通达信连接遇到传输中断时重连同一主站一次，再尝试其他主站，日志记录 `provider.server_reconnect`。个股空结果不影响下一只股票的查询。按每 10 股现金红利、送转股及配股参数应用 `(10 × 价格 − 现金红利 + 配股数 × 配股价) ÷ (10 + 送转股数 + 配股数)`，只调整事件前的交易日，多次事件按时间顺序复合，最终舍入到人民币分。成交量及成交额保留原值。前复权坐标始终使用这套事件口径。复权因子缺失，或历史前复权价格舍入后为非正数时，返回明确错误。
 
 中国中免 601888 在 2026-11-20 除息。真实接口使用 11-19 和 11-20 的 476 根分钟 K 线生成估算分布，与两日图表使用同一复权版本。11-19 日线收盘从 51.30 调整到 50.90，11-20 收盘为 50.00，估算 POC 为 50.01。其他复核实例包括贵州茅台 2026-06-25 收盘 1212.10 元调整至 1184.08 元，以及宁德时代 2023 年送转前后日期。跨配股和分红以及因子版本变更由固定数据测试覆盖。除权事件日的原生 1 分钟行情还受实际分钟窗口限制。
 
-新浪 1 分钟原单位为股。腾讯沪深主板及创业板原单位为手，科创板原单位为股。用标准化股数和原数据交叉核验，整手舍入的分钟数据会标记为 `rounded_lots` 并拒绝用于估算。原始单位和原始数值在适配器内保留。整日分钟结果核对不复权日线开高低收及股数，日线按手发布或分钟源原生粒度为 100 股时，只允许一手以内的差异。通达信与腾讯不复权价在分位统一检查。分钟快照从单一供应商获取，多个供应商的部分记录不会拼接。
+腾讯沪深主板及创业板原单位为手，科创板原单位为股。用标准化股数和原数据交叉核验，整手舍入的分钟数据会标记为 `rounded_lots` 并拒绝用于估算。原始单位和原始数值在适配器内保留。整日分钟结果核对不复权日线开高低收及股数，日线按手发布或分钟源原生粒度为 100 股时，只允许一手以内的差异。通达信与腾讯不复权价在分位统一检查。分钟快照从单一供应商获取，多个供应商的部分记录不会拼接。
 
 ### 时间和统计
 
@@ -74,14 +72,13 @@
 
 ## API
 
-路径均在 `/api/v1/stocks/{symbol}` 下。使用 `{code,message,data}` 响应封装。
+Backend 对外提供下面三个业务接口。使用 `{code,message,data}` 响应封装。
 
 | 方法与路径 | 参数和结果 |
 | --- | --- |
-| `GET /` | 股票名称、交易所、板块、币种、最小价格单位和来源 |
-| `POST /klines` | JSON 请求体选择 `interval=1d\|60m\|5m`，可选 `start/end/limit/cursor`，复权固定为 `qfq`。返回 OHLCV、原始成交量及单位、来源、`adjustment_version`。`cursor` 以上一页最早时间作为新页排他终点。腾讯分钟接口只能访问最近 320 根滚动窗口 |
-| `POST /volume-profile` | 请求体仅需 `{start,end}`。返回 `symbol/start/end/actual_start/actual_end/calculation_method/data_source/price_step/total_volume/price_levels/poc/vah/val/data_quality/warnings`，并保留图表所需的 `profile` 数据和复权版本。方法固定为 `estimated_1m_weighted_range` |
-| `GET /ticks/coverage`、`GET /ticks` | 原有真实源分笔覆盖和分页查询。与页面分钟估算链路独立 |
+| `GET /api/v1/stocks/{symbol}` | 股票名称、交易所、板块、币种、最小价格单位和来源 |
+| `POST /api/v1/stocks/{symbol}/klines` | JSON 请求体选择 `interval=1d\|60m\|5m`，可选 `start/end/limit/cursor`，复权固定为 `qfq`。返回 OHLCV、原始成交量及单位、来源、`adjustment_version`。`cursor` 以上一页最早时间作为新页排他终点。腾讯分钟接口只能访问最近 320 根滚动窗口 |
+| `POST /api/v1/stocks/{symbol}/volume-profile` | 请求体仅需 `{start,end}`。返回 `symbol/start/end/actual_start/actual_end/calculation_method/data_source/price_step/total_volume/price_levels/poc/vah/val/data_quality/warnings`，并保留图表所需的 `profile` 数据和复权版本。方法固定为 `estimated_1m_weighted_range` |
 
 `data_quality` 包含原始及对齐后的请求时间、取得的时间窗口、首末有效分钟、覆盖交易日数、分钟数、重复数、异常数、缺失分钟和日期、日线对账及因子完整性。缺失或校验失败时返回 409 和质量报告。422 表示参数错误或所请求的周期、复权方式不受支持。
 

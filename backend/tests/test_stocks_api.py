@@ -4,6 +4,7 @@ from dataclasses import replace
 from unittest import TestCase
 from unittest.mock import patch
 
+from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 
 from main import app
@@ -19,7 +20,7 @@ class StocksApiTests(TestCase):
         self.addCleanup(self.client.close)
         self.providers = (fake_provider("mootdx"), fake_provider("a-stock-data"))
         self.market, self.minute = stock_service(*self.providers)
-        patcher = patch("app.api.stocks.market", self.market)
+        patcher = patch.object(app, "state", self.market)
         patcher.start()
         self.addCleanup(patcher.stop)
 
@@ -50,15 +51,19 @@ class StocksApiTests(TestCase):
             "/klines", "POST", json={"start": START, "end": END, "cursor": START},
         ).status_code, 422)
 
-    def test_legacy_tick_pagination(self):
-        query = {"start": START, "end": END, "limit": 1}
-        response = self.request("/ticks", params=query).json()["data"]
-        self.assertFalse(response["complete"])
-        self.assertEqual(response["ticks"][0]["side"], "SELL")
-        query.update(limit=10, cursor=response["next_cursor"])
-        final = self.request("/ticks", params=query).json()["data"]
-        self.assertTrue(final["complete"])
-        self.assertEqual(len(final["ticks"]), 2)
+    def test_only_volume_profile_page_endpoints_are_registered(self):
+        operations = [
+            (method, route.path)
+            for route in app.routes
+            if isinstance(route, APIRoute)
+            for method in route.methods
+        ]
+        self.assertCountEqual(operations, [
+            ("GET", "/api/v1/stocks/{symbol}"),
+            ("POST", "/api/v1/stocks/{symbol}/klines"),
+            ("POST", "/api/v1/stocks/{symbol}/volume-profile"),
+        ])
+
     def test_profile_is_independent_of_the_chart_period(self):
         results = []
         for period in ("1d", "60m", "5m"):
@@ -109,7 +114,6 @@ class StocksApiTests(TestCase):
         self.assertEqual(self.request("/klines", "POST", json={"adjust": "none"}).status_code, 422)
         for period in ("day", "1m", "15m", "30m"):
             self.assertEqual(self.request("/klines", "POST", json={"interval": period}).status_code, 422)
-        self.assertEqual(self.request("/ticks", params={"start": START, "end": START}).status_code, 422)
         self.assertEqual(self.request(
             "/volume-profile", "POST", json={"start": START, "end": END, "data_mode": "approximate"},
         ).status_code, 422)

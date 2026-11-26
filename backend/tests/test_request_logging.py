@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from app.data.stock_market_types import ProviderUnavailable
+from app.core.exceptions import ProviderUnavailable
 from main import app
 from test_stock_market import MINUTE_END, MINUTE_START, SYMBOL, fake_provider, stock_service
 
@@ -31,7 +31,7 @@ class RequestLoggingTests(TestCase):
         second = fake_provider("a-stock-data")
         market, _ = stock_service(first, second)
 
-        with patch("app.api.stocks.market", market):
+        with patch.object(app, "state", market):
             response, events = self.request("GET", BASE, params={"lookup": "yes"})
             _, cached = self.request("GET", BASE)
 
@@ -52,7 +52,7 @@ class RequestLoggingTests(TestCase):
     def test_profile_logs_post_body_and_minute_source_before_the_full_result(self):
         market, _ = stock_service(fake_provider("mootdx"), fake_provider("a-stock-data"))
         payload = {"start": MINUTE_START, "end": MINUTE_END}
-        with patch("app.api.stocks.market", market):
+        with patch.object(app, "state", market):
             response, events = self.request("POST", BASE + "/volume-profile", json=payload)
 
         self.assertEqual(response.status_code, 200)
@@ -62,7 +62,7 @@ class RequestLoggingTests(TestCase):
             event for event in events
             if event["event"] == "provider.selected" and event["operation"] == "profile_minutes"
         )
-        self.assertEqual((minute["provider"], minute["rowCount"]), ("akshare-sina", 2))
+        self.assertEqual((minute["provider"], minute["rowCount"]), ("minute-test", 2))
         self.assertEqual(events[-1]["data"], response.json())
         self.assertGreaterEqual(events[-1]["durationMs"], 0)
 
@@ -89,7 +89,7 @@ class RequestLoggingTests(TestCase):
         self.assertEqual(events[-1]["statusCode"], 404)
         self.assertEqual(events[-1]["data"], missing.json())
 
-        with patch("app.api.stocks.market.stock", side_effect=RuntimeError("test failure")):
+        with patch.object(app.state.stocks, "get_stock", side_effect=RuntimeError("test failure")):
             failed, events = self.request("GET", BASE)
         self.assertEqual(events[-1]["statusCode"], 500)
         self.assertEqual(events[-1]["data"], failed.json())

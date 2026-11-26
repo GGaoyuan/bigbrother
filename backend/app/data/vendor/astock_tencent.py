@@ -11,10 +11,11 @@ from datetime import date as _date_cls, datetime, timezone
 import pandas as pd
 import requests
 
+TENCENT_QT_URL = "https://qt.gtimg.cn/q="
 V39_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
           "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
 
-# 一次要翻几十页（§1.4 腾讯逐笔）或偶尔握手卡住（§13.7 新浪期货日 K）的请求走这个会话：复用连接，
+# 需要重试的请求复用这个会话。
 # 连接失败、握手或等响应头超时、429 / 5xx 指数退避重试（写法同 EM_SESSION）；读响应体中途超时不重试，
 # 也不按服务端给的 Retry-After 等待。
 V39_RETRY_SESSION = requests.Session()
@@ -451,15 +452,6 @@ def tencent_kline(code, period="day", adjust=None, start=None, end=None, count=3
     frame.insert(1, "adjust", adjust or "none")
     return frame
 
-import re
-import time
-
-TENCENT_TICK_URL = "https://stock.gtimg.cn/data/index.php"
-TENCENT_QT_URL = "https://qt.gtimg.cn/q="
-_TICK_MAX_PAGES = 300            # 一页 70 笔；2026-09-22 实测最活跃的票全天约 4800 笔 / 69 页
-_TICK_SESSION_END = "15:00:59"   # 连续竞价 + 收盘集合竞价到此为止（科创板收盘那笔在 15:00:02），之后是盘后定价
-
-
 def _tencent_qt_snapshot(symbol):
     """腾讯行情快照 → (交易日 'YYYY-MM-DD', 时刻 'HHMMSS', 当日成交额 元, 盘后定价成交额 元)。代码不存在抛 ValueError。
     盘后定价成交额是下标 58 的字段（万元、4 位小数）；字段没有或认不出时为 None，只是不做盘后核对。"""
@@ -479,99 +471,3 @@ def _tencent_qt_snapshot(symbol):
     after_hours = fields[58] if len(fields) > 58 else ""
     after_hours = round(float(after_hours) * 1e4, 2) if re.fullmatch(r"\d+(\.\d+)?", after_hours) else None
     return _v39_src_date(fields[30][:8]), fields[30][8:], _v39_req_num(parts[2], "成交额"), after_hours
-
-
-def _tencent_tick_page(symbol, page):
-    """第 page 页逐笔（0 起）→ 记录列表；翻过最后一页时腾讯返回空内容，返回 None。"""
-    response = _v39_http(TENCENT_TICK_URL, params={"appn": "detail", "action": "data", "c": symbol, "p": page},
-                         timeout=(5, 15), session=V39_RETRY_SESSION)
-    text = response.content.decode("gbk", "replace").strip()
-    if not text:
-        return None
-    match = re.fullmatch(rf'v_detail_data_{symbol}=\[(\d+),"([^"]*)"\];?', text)
-    if not match or int(match.group(1)) != page:
-        raise RuntimeError(f"腾讯逐笔 {symbol} 第 {page} 页不是预期格式: {text[:80]!r}")
-    if not match.group(2):
-        return None
-    records = []
-    try:
-        for item in match.group(2).split("|"):
-            seq, clock, price, change, volume, amount, side = item.split("/")
-            if not re.fullmatch(r"\d\d:\d\d:\d\d", clock) or side not in ("B", "S", "M"):
-                raise ValueError(item)
-            records.append({"seq": int(seq), "time": clock, "price": _v39_req_num(price, "price"),
-                            "change": _v39_req_num(change, "change"), "volume": _v39_req_num(volume, "volume"),
-                            "amount": _v39_req_num(amount, "amount"), "side": side})
-    except ValueError as exc:      # 字段数不对 / 序号不是整数 / 方向认不出：源格式变了，不是参数错
-        raise RuntimeError(f"腾讯逐笔 {symbol} 第 {page} 页记录格式改变: {exc}") from exc
-    return records
-
-
-@_v39_contract
-def tencent_ticks(code):
-    """腾讯逐笔成交（分笔）— 最近一个交易日的全部成交明细，沪深个股与 ETF。
-
-    一行一笔：date / code / time / seq（腾讯序号）/ price / change（较上一笔）/ volume（手）/ amount（元）/
-    side（B 主动买 · S 主动卖 · M 中性）。约 3 秒一笔的分笔，不是 Level-2 逐笔。
-    北交所、指数、代码不存在、当日没有成交抛 ValueError。收盘后调用会用行情快照的当日成交额核对连续竞价段，
-    对不上抛 RuntimeError；盘后定价段腾讯偶尔缺几笔：中间缺的序号在 frame.attrs["missing_seq"]，
-    15:31 以后再用快照的盘后成交额核对，结果在 frame.attrs["complete"]（True 对上 / False 有缺 / None 没法核对；
-    低价 ETF 一两手的小额缺笔可能看不出）。
-    """
-    prefix, ticker = get_prefix(code), norm_ticker(code)
-    if prefix == "bj":
-        raise ValueError("腾讯逐笔不支持北交所（返回空）；北交所日线见 §1.3 tdx_daily_package")
-    if (prefix, ticker[:3]) in (("sh", "000"), ("sz", "399")):
-        raise ValueError(f"{prefix}{ticker} 是指数，没有逐笔成交")
-    symbol = prefix + ticker
-    day, clock, amount_before, after_hours_before = _tencent_qt_snapshot(symbol)
-    if amount_before == 0:
-        raise ValueError(f"{symbol} 在 {day} 没有成交（停牌、尚未开盘或集合竞价未撮合）")
-    rows, missing = [], []
-    for page in range(_TICK_MAX_PAGES):
-        records = _tencent_tick_page(symbol, page)
-        if records is None:
-            break
-        for r in records:
-            expected = rows[-1]["seq"] + 1 if rows else 0
-            if r["seq"] < expected or (rows and r["time"] < rows[-1]["time"]):
-                raise RuntimeError(f"腾讯逐笔 {symbol} 序号或时间倒退（第 {page} 页 {r['seq']} {r['time']}），结果不可信")
-            if r["seq"] > expected:
-                if r["time"] <= _TICK_SESSION_END:
-                    raise RuntimeError(f"腾讯逐笔 {symbol} 缺序号 {expected}–{r['seq'] - 1}（{r['time']} 之前，第 {page} 页），"
-                                       "腾讯该页缓存不完整，稍后重试")
-                missing.extend(range(expected, r["seq"]))
-            rows.append(r)
-        time.sleep(0.1)
-    else:
-        raise RuntimeError(f"腾讯逐笔 {symbol} 翻到第 {_TICK_MAX_PAGES} 页仍未结束，格式可能已变")
-    if not rows:
-        if clock < "092500":
-            raise ValueError(f"{symbol} 集合竞价尚未撮合（{clock}），还没有逐笔")
-        raise RuntimeError(f"{symbol} 在 {day} 成交 {amount_before:.0f} 元，腾讯逐笔却为空："
-                           "开盘前腾讯可能已清空上一交易日的明细，否则是接口变了")
-    day_after, clock_after, amount_after, after_hours_after = _tencent_qt_snapshot(symbol)
-    if day_after != day:
-        raise RuntimeError(f"取数期间交易日从 {day} 变成 {day_after}，请重试")
-    session = sum(r["amount"] for r in rows if r["time"] <= _TICK_SESSION_END)
-    # 两次快照成交额相同说明取数期间没有新成交（收盘后 / 午休 / 停牌），此时连续竞价段逐笔合计应与当日成交额相符
-    if amount_after == amount_before and abs(session - amount_before) > amount_before * 0.001 + 1000:
-        raise RuntimeError(f"腾讯逐笔 {symbol} 连续竞价段成交额 {session:.0f} 元，与行情快照 {amount_before:.0f} 元对不上，"
-                           "逐笔可能不全")
-    # 盘后定价 15:30 结束（深市最后一笔可能正好在 15:30:00）。取数前的快照已在 15:31 以后、两次快照一致时，
-    # 15:00:59 以后各笔成交额合计应等于快照的盘后成交额（每笔取整到元，差不超过笔数 + 1 元）；
-    # 中间缺号、末尾缺笔都会对不上，但末尾缺的金额小于容差（低价 ETF 一两手）时看不出。盘中 / 15:31 前没法核对，记 None。
-    after_hours = [r["amount"] for r in rows if r["time"] > _TICK_SESSION_END]
-    complete = None
-    if missing:
-        complete = False
-    elif (amount_after == amount_before and after_hours_before is not None
-          and after_hours_after == after_hours_before and clock >= "153100"):
-        complete = abs(sum(after_hours) - after_hours_before) <= len(after_hours) + 1
-    frame = _v39_frame(rows, "tencent", f"{TENCENT_TICK_URL}?appn=detail&action=data&c={symbol}",
-                       ["time", "seq", "price", "change", "volume", "amount", "side"])
-    frame.insert(0, "date", day)
-    frame.insert(1, "code", symbol)
-    frame.attrs["missing_seq"] = missing
-    frame.attrs["complete"] = complete
-    return frame

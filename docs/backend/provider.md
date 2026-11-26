@@ -1,5 +1,7 @@
 # Provider 接口目录
 
+> 历史调研记录。当前后端接口见 [个股行情 API](backend-stocks-api.md)，数据源规则见 [AGENTS.md](../../AGENTS.md)。
+
 `app/providers/` 下所有 provider 文件的接口索引。
 
 ---

@@ -1,49 +1,14 @@
 # BigBrother 项目记忆文档
 
-> 本文档记录项目的架构规则、开发规范、注意事项等重要信息
-> 当前持久规则以根目录 `AGENTS.md` 为准；当前两层后端架构和功能状态见 `prd/v1.md`。本文中的 Provider/Service 结构为历史记录。
+> 当前持久规则见根目录 `AGENTS.md`，功能状态见 `prd/v1.md`。
 
 ## 一、架构规范
 
-### Backend 架构
-
-#### 分层架构
-- **Provider 层**：数据获取与持久化
-  - 职责：
-    1. 对接外部数据源（akshare、efinance、mootdx、easy_tdx）
-    2. **负责缓存/持久化数据**（使用 `@cached_json` 等装饰器）
-    3. 返回结构化数据给 Service 层
-  - 缓存策略：根据数据特点决定是否缓存（实时数据不缓存，日线等可缓存）
-  - **当前临时要求**：新增的指数 K 线和成交量分布接口暂不加缓存
-  
-- **Service 层**：业务逻辑编排
-  - 职责：调用 Provider，组装业务数据
-  - 继承 `BaseService[T]`，实现 `_execute()` 方法
-  - 不处理缓存（缓存在 Provider 层）
-  
-- **API 层**：路由和请求处理
-  - 调用 Service，处理异常
-  - 异常直接返回 `ApiResponse.error(500, str(e))`
-
-#### 数据源优先级
-1. **mootdx**（最优先）
-2. **其他通达信 Python 库**（如 easy_tdx、pytdx）
-3. **akshare**
-4. **其他提供数据接口的 Python 库**
-5. 以上均无法满足时，说明排查结果，**先取得用户明确同意，再自行编写爬虫**。
-
-自行请求官网 JSON 接口也属于爬虫；仅使用 requests/httpx/urllib 等通用 HTTP 库不算现成数据接口。本顺序用于选型，不代表运行时自动降级。该规则在项目新会话中继续适用。
-
-### 代码规范
-
-#### 注释规范
-- 方法注释只写：功能描述 + 参数说明
-- 不写：Returns / Notes / Examples
-
-#### Provider Model
-- 每个 Provider 方法新建独立 model
-- 放在 `backend/app/providers/model/`
-- 不使用通用 `Universe` 模型
+- `api/` 接收 HTTP 参数、调用 Service、生成独立响应模型和统一错误响应。
+- `services/` 负责股票查询、K 线、统一前复权和成交量分布，以及各自的缓存策略。
+- `data/` 按能力提供 K 线、股票信息、除权事件和交易日历，向上返回标准模型。
+- `models/` 定义内部数据结构和取数协议，`core/` 提供基础设施。Data 具体实现在 `main.py` 注入 Service。
+- 数据源选型先查 mootdx，再查其他通达信库和其他现成库。AKShare 只在用户明确授权的任务范围内使用。自行请求公开网站或交易所 JSON 接口须先获得用户同意。
 
 ## 二、文档规范
 
@@ -66,24 +31,12 @@
 - `docs/`: 文档目录
 - `prd/`: 产品需求文档
 
-## 四、开发注意事项
+## 四、历史决策记录
 
-### Provider 开发
-- **负责缓存/持久化**：根据数据特点使用 `@cached_json` 等装饰器
-- 数据源选型遵循 `mootdx > 其他通达信 Python 库 > akshare > 其他现成数据 Python 库`；都无法满足时先取得用户同意再写爬虫。
-- 为每个返回类型创建独立的 Pydantic Model
-- **当前临时要求**：新增的指数 K 线和成交量分布接口暂不加缓存（实时性优先）
+### 2026-11-26
 
-### Service 开发
-- 继承 `BaseService[T]`
-- 实现 `async def _execute(self) -> T`
-- 不处理缓存逻辑
-
-### API 开发
-- 路由方法遇到 Exception 直接返回 `ApiResponse.error(500, str(e))`
-- 不做降级处理（除非特别说明）
-
-## 五、历史决策记录
+- 后端迁移到 API、Service、Model、Data、Core 五层。Model 持有数据契约，Data 接入外部数据。方案与缓存策略见 `docs/backend/backend-stocks-api.md`。
+- 移除 AKShare，交易日核验改用 XSHG 离线日历。
 
 ### 2026-11-10
 - 将数据源优先级统一为 `mootdx > 其他通达信 Python 库 > akshare > 其他现成数据 Python 库`。
