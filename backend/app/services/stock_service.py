@@ -4,12 +4,12 @@ from app.core.cache import ExpiringCache
 from app.core.exceptions import ProviderUnavailable
 from app.core.logger import log_provider, observe_provider
 from app.core.symbols import stock_exchange
-from app.models.model import StockLookup
-from app.models.provider import MarketDataProvider
+from app.models.stock.model import StockLookup
+from app.models.stock.provider import StockProvider
 
 
-class StockInfoService:
-    def __init__(self, source: MarketDataProvider):
+class StockService:
+    def __init__(self, source: StockProvider):
         self.source = source
         self.lookup_cache = ExpiringCache(256)
 

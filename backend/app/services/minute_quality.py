@@ -7,8 +7,8 @@ from math import isfinite
 
 from app.core.exceptions import MarketDataError
 from app.core.market_time import CHINA, market_at, required_minutes
-from app.models.model import Candle
-from app.models.model import MinuteQuality
+from app.models.kline.model import Candle
+from app.models.volume_profile.model import MinuteQuality
 
 
 from .kline_service import has_valid_ohlcv
@@ -22,7 +22,7 @@ class MinuteCoverageError(MarketDataError):
 
 def _valid(bar: Candle, day: Candle | None) -> bool:
     if (
-        day is None or bar.adjustment != "none" or day.adjustment != "none"
+        day is None or bar.adjustment != "qfq" or day.adjustment != "qfq"
         or bar.timestamp % 60 or bar.end_timestamp != bar.timestamp + 60
         or not has_valid_ohlcv(bar)
         or bar.volume_precision_shares not in (1, 100) or bar.volume % bar.volume_precision_shares
@@ -34,13 +34,8 @@ def _valid(bar: Candle, day: Candle | None) -> bool:
     multiplier = 100 if bar.original_volume_unit == "lots" else 1
     if Decimal(str(bar.original_volume)) * multiplier != bar.volume:
         return False
-    if bar.amount is None:
-        return True
-    if bar.volume == 0:
-        return bar.amount == 0
-    if bar.amount == 0:
-        return False
-    return bar.low - 0.0101 <= bar.amount / bar.volume <= bar.high + 0.0101
+    # 成交额按原价统计，不能与前复权价格直接比较。
+    return bar.amount is None or (bar.amount == 0) == (bar.volume == 0)
 
 
 def quality_report(start: int, end: int, source: str | None) -> MinuteQuality:
@@ -56,10 +51,10 @@ def quality_report(start: int, end: int, source: str | None) -> MinuteQuality:
 
 def validate_minutes(
     bars: tuple[Candle, ...], start: int, end: int, sessions: tuple[date, ...],
-    raw_daily: tuple[Candle, ...], source: str, *, closed_until: int | None = None,
+    daily_bars: tuple[Candle, ...], source: str,
 ) -> tuple[tuple[Candle, ...], MinuteQuality]:
     quality = quality_report(start, end, source)
-    reference = {datetime.fromtimestamp(bar.timestamp, CHINA).date(): bar for bar in raw_daily}
+    reference = {datetime.fromtimestamp(bar.timestamp, CHINA).date(): bar for bar in daily_bars}
     expected, optional = {}, set()
     for day in sessions:
         for regular in required_minutes(day):
@@ -85,11 +80,7 @@ def validate_minutes(
             continue
         seen.add(stamp)
         day = datetime.fromtimestamp(stamp, CHINA).date()
-        if (
-            (stamp not in expected and stamp not in optional)
-            or not _valid(bar, reference.get(day))
-            or (closed_until is not None and bar.end_timestamp > closed_until)
-        ):
+        if (stamp not in expected and stamp not in optional) or not _valid(bar, reference.get(day)):
             quality["invalid_count"] += 1
             continue
         selected[stamp] = bar
@@ -137,6 +128,6 @@ def validate_minutes(
         ):
             quality["daily_mismatches"].append(day.isoformat())
     if quality["daily_mismatches"]:
-        raise MinuteCoverageError("整日分钟 K 线的股数或价格与不复权日线不符", quality)
+        raise MinuteCoverageError("整日分钟 K 线的股数或价格与同源前复权日线不符", quality)
     quality["complete"] = True
     return rows, quality

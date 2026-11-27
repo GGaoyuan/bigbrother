@@ -3,7 +3,7 @@ from datetime import date, datetime
 from unittest import TestCase
 
 from app.core.market_time import CHINA, midnight
-from app.models.model import Candle
+from app.models.kline.model import Candle
 from app.services.minute_quality import MinuteCoverageError
 from app.core.market_time import minute_window
 from app.services.minute_quality import validate_minutes
@@ -19,7 +19,7 @@ def time_at(day, hour, minute=0, second=0):
 
 
 def bar(stamp, volume=100):
-    return Candle(stamp, stamp + 60, 10, 11, 9, 10, volume, None, "shares", volume)
+    return Candle(stamp, stamp + 60, 10, 11, 9, 10, volume, None, "shares", volume, adjustment="qfq")
 
 
 def daily(day):
@@ -65,7 +65,7 @@ class MinuteQualityTests(TestCase):
             ((replace(valid, volume=-1),), "invalid_count"),
             ((replace(valid, original_volume_unit="unknown"),), "invalid_count"),
             ((replace(valid, original_volume_unit="rounded_lots", original_volume=1),), "invalid_count"),
-            ((replace(valid, amount=10),), "invalid_count"),
+            ((replace(valid, amount=-10),), "invalid_count"),
             ((replace(valid, original_volume=1),), "invalid_count"),
             ((replace(valid, timestamp=start + 5),), "invalid_count"),
             ((replace(valid, high=11.5),), "invalid_count"),
@@ -74,6 +74,12 @@ class MinuteQualityTests(TestCase):
                 with self.assertRaises(MinuteCoverageError) as caught:
                     validate_minutes(bad, start, start + 60, (MONDAY,), (daily(MONDAY),), "demo")
                 self.assertEqual(caught.exception.quality[counter], 1)
+
+    def test_raw_turnover_is_not_compared_to_adjusted_prices(self):
+        start = time_at(MONDAY, 9, 30)
+        adjusted = replace(bar(start), amount=2000)
+        selected, _ = validate_minutes((adjusted,), start, start + 60, (MONDAY,), (daily(MONDAY),), "demo")
+        self.assertEqual(selected, (adjusted,))
 
     def test_no_trading_minutes_and_empty_snapshot_report_coverage(self):
         start, end = time_at(MONDAY, 12), time_at(MONDAY, 12, 30)

@@ -1,14 +1,15 @@
 """查询股票的前复权 K 线。"""
 
-from typing import Literal
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Depends, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.response import ApiResponse, success_response
-from app.models.model import ChartInterval
+from app.models.kline.model import ChartInterval
+from app.services.kline_service import KlineService
 
-from ._shared import KlineServiceDependency, MAX_TIMESTAMP, Symbol
+from ._shared import MAX_TIMESTAMP, Symbol
 
 
 router = APIRouter()
@@ -53,9 +54,15 @@ class KlineResponse(BaseModel):
     next_cursor: int | None
 
 
+def get_service(request: Request) -> KlineService:
+    return request.app.state.klines
+
+
 @router.post("/{symbol}/klines", response_model=ApiResponse[KlineResponse], summary="历史 K 线")
 def klines(
-    symbol: Symbol, service: KlineServiceDependency, body: KlineRequest = Body(default=KlineRequest()),
+    symbol: Symbol,
+    service: Annotated[KlineService, Depends(get_service)],
+    body: KlineRequest = Body(default=KlineRequest()),
 ) -> ApiResponse[KlineResponse]:
     result = service.get_chart(symbol, body.interval, body.start, body.end, body.limit, body.cursor)
     return success_response(KlineResponse(
@@ -63,8 +70,8 @@ def klines(
         interval=body.interval,
         source=result.history.source,
         source_version=result.history.source_version,
-        adjustment_version=result.adjustment_version,
-        adjustment_source=result.adjustment_source,
+        adjustment_version=result.history.adjustment_version,
+        adjustment_source=result.history.source,
         bars=tuple(CandleResponse.model_validate(bar) for bar in result.history.bars),
         next_cursor=result.next_cursor,
     ))

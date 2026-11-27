@@ -1,14 +1,15 @@
 """根据 1 分钟 K 线估算固定区间的成交量分布。"""
 
-from typing import Literal
+from typing import Annotated, Literal
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.response import ApiResponse, success_response
-from app.models.model import PriceLevel, VolumeProfileResult
+from app.models.volume_profile.model import PriceLevel, VolumeProfileResult
+from app.services.volume_profile_service import VolumeProfileService
 
-from ._shared import MAX_TIMESTAMP, ProfileServiceDependency, Symbol
+from ._shared import MAX_TIMESTAMP, Symbol
 
 
 router = APIRouter()
@@ -125,12 +126,16 @@ def _profile_response(symbol: str, result: VolumeProfileResult) -> ProfileRespon
     )
 
 
+def get_service(request: Request) -> VolumeProfileService:
+    return request.app.state.profile
+
+
 @router.post(
     "/{symbol}/volume-profile",
     response_model=ApiResponse[ProfileResponse],
     summary="基于 1 分钟 K 线估算价位分布",
 )
 def volume_profile(
-    symbol: Symbol, body: ProfileRequest, service: ProfileServiceDependency,
+    symbol: Symbol, body: ProfileRequest, service: Annotated[VolumeProfileService, Depends(get_service)],
 ) -> ApiResponse[ProfileResponse]:
     return success_response(_profile_response(symbol, service.calculate(symbol, body.start, body.end)))

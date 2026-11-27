@@ -1,7 +1,7 @@
 from dataclasses import replace
 from unittest import TestCase
 
-from app.models.model import Candle
+from app.models.kline.model import Candle
 from app.services.kline_service import has_valid_ohlcv
 
 

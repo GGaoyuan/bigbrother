@@ -46,7 +46,7 @@ class StocksApiTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["data"]["next_cursor"], START)
-        self.market.klines.source.get_klines.assert_called_with(SYMBOL, "day", "none", START - 60, END - 60, 1)
+        self.market.klines.source.get_klines.assert_called_with(SYMBOL, "day", "qfq", START - 60, END - 60, 1)
         self.assertEqual(self.request(
             "/klines", "POST", json={"start": START, "end": END, "cursor": START},
         ).status_code, 422)

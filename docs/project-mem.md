@@ -4,11 +4,12 @@
 
 ## 一、架构规范
 
-- `api/` 和 `services/` 各自平铺接口和业务服务文件。
-- `models/` 是单一包，`model.py` 定义数据结构，`provider.py` 中的单一 Provider 读取并解析第三方数据。
-- `core/` 提供公共基础设施。`main.py` 创建一个 Provider 实例供各 Service 使用。
+- `api/` 和 `services/` 分别平铺，业务路由与 Service 一一对应，例如 `api/kline.py` 对应 `services/kline_service.py`。依赖在各 API 文件声明，Service 层复用共享计算。
+- `models/` 按数据类型分包。各分类的 `model.py` 定义字段，`provider.py` 是该分类唯一的取数实现。成交量分布是 Service 计算的结果，只定义模型。
+- `core/` 提供公共基础设施。`main.py` 将各分类的 Provider 注入对应 Service。
 - 数据源选型先查 mootdx，再查其他通达信库和其他现成库。AKShare 只在用户明确授权的任务范围内使用。自行请求公开网站或交易所 JSON 接口须先获得用户同意。
-- 同一种 Model 能用一个库覆盖需求时只保留该实现。股票资料、K 线和除权事件统一使用 easy_tdx，交易日历读取 XSHG 离线日历。
+- 同一种 Model 能用一个库覆盖需求时只保留该实现。股票资料和 K 线使用 easy_tdx，交易日历读取 XSHG 离线日历。各周期前复权由 Provider 传 `Adjust.QFQ` 直接取得，Service 只校验并使用这些价格。
+- 优先保留当前业务需要的最简单实现，利用行情库已有参数和返回值，避免重复算法与多余模块。
 
 ## 二、文档规范
 
@@ -35,7 +36,9 @@
 
 ### 2026-11-27
 
-- 将后端收为 API、Service、Models、Core 四层，模型字段与取数实现分别集中在 `models/model.py` 和 `models/provider.py`。
+- K 线图和成交量分布直接使用通达信返回的前复权行情，移除应用内复权公式及专用除权取数。
+- 业务路由及 Service 一一对应，复权因子获取归入 K 线 Service，图表和成交量分布共用。
+- 将后端收为 API、Service、Models、Core 四层，按 K 线、股票资料、除权事件、交易日历和成交量分布组织模型。每类取数实现放在同一分类的 `provider.py`。
 - K 线合并为 easy_tdx 单一取数实现，通达信公共主站和腾讯的 K 线适配器移除。
 
 ### 2026-11-26

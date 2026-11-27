@@ -2,8 +2,8 @@
 
 from decimal import Decimal
 from app.core.exceptions import UnsupportedMarketData
-from app.models.model import Candle
-from app.models.model import PriceLevel, ValueArea, VolumeDistribution
+from app.models.kline.model import Candle
+from app.models.volume_profile.model import PriceLevel, ValueArea, VolumeDistribution
 
 
 ALGORITHM_VERSION = "weighted-range-v1"

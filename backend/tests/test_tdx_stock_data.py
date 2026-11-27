@@ -7,17 +7,17 @@ from easy_tdx import Market
 from pandas import DataFrame
 
 from app.core.exceptions import ProviderUnavailable, StockNotFound
-from app.models.model import StockInfo
-from app.models.provider import MarketDataProvider
+from app.models.stock.model import StockInfo
+from app.models.stock.provider import StockProvider
 
 
 class StockProviderTests(TestCase):
     def setUp(self):
-        patcher = patch("app.models.provider.MacClient")
+        patcher = patch("app.models.stock.provider.MacClient")
         self.factory = patcher.start()
         self.addCleanup(patcher.stop)
         self.client = self.factory.return_value.__enter__.return_value
-        self.provider = MarketDataProvider(mac_servers=("one",))
+        self.provider = StockProvider(mac_servers=("one",))
 
     def test_reads_stock_info_from_its_quote(self):
         self.client.get_stock_quotes.return_value = DataFrame([
