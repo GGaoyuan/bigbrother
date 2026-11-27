@@ -1,9 +1,9 @@
-"""Estimate volume at price from uncut one-minute candles, in integer ticks and shares."""
+"""使用完整的 1 分钟 K 线估算成交量分布，按整数价格单位和股数计算。"""
 
 from decimal import Decimal
 from app.core.exceptions import UnsupportedMarketData
-from app.models.kline import Candle
-from app.models.volume_profile import PriceLevel, ValueArea, VolumeDistribution
+from app.models.model import Candle
+from app.models.model import PriceLevel, ValueArea, VolumeDistribution
 
 
 ALGORITHM_VERSION = "weighted-range-v1"
@@ -33,8 +33,8 @@ def _allocate(
         totals[first] += volume
         return
 
-    # p is the midpoint of the part of a band inside this minute. Use sixths of a tick
-    # to compare p with (H + L + C) / 3, without assigning volume beyond the minute's range.
+    # p 取价格档与该分钟价格区间相交部分的中点。以最小价格单位的六分之一
+    # 比较 p 与 (H + L + C) / 3，成交量仅分配到该分钟的价格区间内。
     span = max(high - low, 1)
     typical = high + low + close
     weights = []
@@ -49,7 +49,7 @@ def _allocate(
     remaining = volume - sum(whole for whole, _ in shares)
     for offset, (whole, _) in enumerate(shares):
         totals[first + offset] += whole
-    # Largest remainders preserve the exact original share total on each minute.
+    # 按余数从大到小补齐，确保每分钟分配后的总股数等于原始值。
     for offset in sorted(range(len(shares)), key=lambda i: (-shares[i][1], -weights[i], i))[:remaining]:
         totals[first + offset] += 1
 

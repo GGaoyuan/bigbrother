@@ -1,4 +1,4 @@
-"""Record HTTP inputs and the full response around the complete ASGI stack."""
+"""在 ASGI 调用栈外层记录 HTTP 请求及完整响应。"""
 
 import json
 from time import perf_counter

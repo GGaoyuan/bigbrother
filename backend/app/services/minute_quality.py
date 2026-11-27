@@ -1,4 +1,4 @@
-"""Validate one minute snapshot against expected sessions and daily bars."""
+"""根据交易时段和日线校验 1 分钟行情快照。"""
 
 from collections import defaultdict
 from datetime import date, datetime
@@ -7,8 +7,11 @@ from math import isfinite
 
 from app.core.exceptions import MarketDataError
 from app.core.market_time import CHINA, market_at, required_minutes
-from app.models.kline import Candle
-from app.models.volume_profile import MinuteQuality
+from app.models.model import Candle
+from app.models.model import MinuteQuality
+
+
+from .kline_service import has_valid_ohlcv
 
 
 class MinuteCoverageError(MarketDataError):
@@ -21,7 +24,7 @@ def _valid(bar: Candle, day: Candle | None) -> bool:
     if (
         day is None or bar.adjustment != "none" or day.adjustment != "none"
         or bar.timestamp % 60 or bar.end_timestamp != bar.timestamp + 60
-        or not bar.has_valid_ohlcv()
+        or not has_valid_ohlcv(bar)
         or bar.volume_precision_shares not in (1, 100) or bar.volume % bar.volume_precision_shares
         or bar.original_volume_unit not in ("lots", "shares")
         or bar.original_volume is None or not isfinite(bar.original_volume) or bar.original_volume < 0

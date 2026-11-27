@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import date, datetime
 from time import monotonic
 from unittest import TestCase
@@ -8,15 +9,12 @@ from types import SimpleNamespace
 
 from app.core.exceptions import ProviderUnavailable, StockNotFound
 from app.core.market_time import CHINA, midnight
-from app.models.calendar import TradingCalendar
-from app.models.corporate_action import CorporateAction
-from app.models.kline import Candle
-from app.models.stock import StockInfo
-from app.services.adjustment import AdjustmentService
-from app.services.klines import KlineService
+from app.models.model import Candle, CorporateAction, StockInfo, TradingCalendar
+from app.services.adjustment_service import AdjustmentService
+from app.services.kline_service import KlineService
 from app.services.minute_quality import MinuteCoverageError
-from app.services.stock_info import StockInfoService
-from app.services.volume_profile import VolumeProfileService
+from app.services.stock_service import StockInfoService
+from app.services.volume_profile_service import VolumeProfileService
 
 
 SYMBOL = "600519"
@@ -31,17 +29,20 @@ MINUTE_BARS = (
     Candle(MINUTE_START + 60, MINUTE_END, 101, 101, 101, 101, 125, 12625, "shares", 125),
 )
 
-def stock_service(primary, fallback):
-    stocks = StockInfoService((primary, fallback))
-    adjustment = AdjustmentService(primary)
-    klines = KlineService((primary, fallback), adjustment)
-    minute = fake_provider("minute-test")
+def stock_service(source):
+    stocks = StockInfoService(source)
+    adjustment = AdjustmentService(source)
+    klines = KlineService(source, adjustment)
+    minute = Mock()
     minute.get_klines.return_value = MINUTE_BARS
-    calendar = Mock(name="calendar")
-    calendar.name = "calendar-test"
-    calendar.version = "test"
-    calendar.get_calendar.return_value = TradingCalendar(DAY, DAY, (DAY,))
-    profile = VolumeProfileService(klines, stocks, adjustment, (minute,), calendar)
+
+    def get_bars(symbol, interval, *args):
+        if interval == "1m":
+            return minute.get_klines(symbol, interval, *args)
+        return source.get_klines.return_value
+
+    source.get_klines.side_effect = get_bars
+    profile = VolumeProfileService(klines, stocks, adjustment)
     return SimpleNamespace(stocks=stocks, klines=klines, profile=profile), minute
 
 
@@ -49,7 +50,9 @@ def fake_provider(name):
     provider = Mock(name=name)
     provider.name = name
     provider.version = "test"
-    provider.minute_history_limit = 3000
+    provider.calendar_name = "calendar-test"
+    provider.calendar_version = "test"
+    provider.get_calendar.return_value = TradingCalendar(DAY, DAY, (DAY,))
     provider.get_stock_info.return_value = StockInfo(SYMBOL, "测试股票", "SSE", "SH")
     provider.get_klines.return_value = BARS
     provider.get_corporate_actions.return_value = ()
@@ -58,46 +61,59 @@ def fake_provider(name):
 
 class StockMarketTests(TestCase):
     def setUp(self):
-        self.first = fake_provider("tdx")
-        self.second = fake_provider("fallback")
-        self.market, self.minute = stock_service(self.first, self.second)
+        self.provider = fake_provider("easy-tdx-test")
+        self.market, self.minute = stock_service(self.provider)
 
-    def test_priority_timeout_empty_and_cached_fallback(self):
-        self.first.get_stock_info.side_effect = ProviderUnavailable("连接超时")
-        self.first.get_klines.return_value = ()
-        self.assertEqual(self.market.stocks.get_stock(SYMBOL).source, "fallback")
-        self.assertEqual(self.market.klines.get_history(SYMBOL, "day", "none", None, None, 10).source, "fallback")
+    def test_stock_info_caches_a_successful_response(self):
+        self.assertEqual(self.market.stocks.get_stock(SYMBOL).source, self.provider.name)
+        self.assertEqual(self.market.stocks.get_stock(SYMBOL).source, self.provider.name)
+        self.provider.get_stock_info.assert_called_once()
+
+    def test_history_uses_one_source_and_caches_a_successful_response(self):
+        source = self.market.klines.source
+        self.assertEqual(self.market.klines.get_history(SYMBOL, "day", "none", None, None, 10).source, source.name)
         self.market.klines.get_history(SYMBOL, "day", "none", None, None, 10)
-        self.second.get_klines.assert_called_once()
+        source.get_klines.assert_called_once()
 
     def test_unknown_prefix_and_confirmed_missing_symbol(self):
         with self.assertRaises(StockNotFound):
             self.market.stocks.get_stock("999999")
-        self.first.get_stock_info.side_effect = StockNotFound("列表无此代码")
-        self.second.get_stock_info.side_effect = StockNotFound("列表无此代码")
+        self.provider.get_stock_info.side_effect = StockNotFound("列表无此代码")
         with self.assertRaises(StockNotFound):
             self.market.stocks.get_stock("600000")
+
+    def test_chart_rejects_conflicting_rows_without_changing_source(self):
+        self.market.klines.source.get_klines.return_value = (*BARS, replace(BARS[0], close=101.5))
+        with self.assertRaisesRegex(ProviderUnavailable, "冲突的重复时间"):
+            self.market.klines.get_history(SYMBOL, "day", "none", None, None, 10)
+        self.provider.get_klines.assert_called_once()
+
+    def test_profile_rejects_invalid_calendar_before_requesting_prices(self):
+        self.provider.get_calendar.return_value = TradingCalendar(DAY, DAY, (DAY, DAY))
+        with self.assertRaisesRegex(ProviderUnavailable, "交易日历返回日期无效"):
+            self.market.profile.calculate(SYMBOL, MINUTE_START, MINUTE_END)
+        self.market.klines.source.get_klines.assert_not_called()
 
     def test_estimated_profile_uses_and_caches_only_native_minutes(self):
         result = self.market.profile.calculate(SYMBOL, MINUTE_START + 12, MINUTE_END - 20)
         self.assertTrue(result.quality["complete"])
-        self.assertEqual(result.source, "minute-test")
+        self.assertEqual(result.source, self.market.klines.source.name)
         self.assertEqual(result.quality["actual_start"], MINUTE_START)
         self.assertEqual(result.quality["actual_end"], MINUTE_END)
         self.assertEqual(result.distribution.total_volume, 200)
         self.assertEqual(result.distribution.poc.price_cents, 10100)
         self.market.profile.calculate(SYMBOL, MINUTE_START, MINUTE_END)
-        self.minute.get_klines.assert_called_once_with(SYMBOL, "1m", "none", None, None, 3000)
+        self.minute.get_klines.assert_called_once_with(SYMBOL, "1m", "none", START, END, 366 * 240)
+        intervals = [call.args[1] for call in self.market.klines.source.get_klines.call_args_list]
+        self.assertListEqual(intervals, ["day", "1m"])
 
-    def test_data_sources_are_never_combined_to_fill_missing_minutes(self):
+    def test_missing_minutes_are_reported_for_the_configured_source(self):
         self.minute.get_klines.return_value = MINUTE_BARS[:1]
-        other_minute = fake_provider("other")
-        other_minute.get_klines.return_value = MINUTE_BARS[1:]
-        self.market.profile.minute_sources = (self.minute, other_minute)
         with self.assertRaises(MinuteCoverageError) as caught:
             self.market.profile.calculate(SYMBOL, MINUTE_START, MINUTE_END)
         self.assertEqual(caught.exception.quality["missing_minute_count"], 1)
-        self.assertEqual(len(caught.exception.quality["source_errors"]), 2)
+        error, = caught.exception.quality["source_errors"]
+        self.assertEqual(error["source"], self.market.klines.source.name)
 
     def test_timeout_empty_and_missing_adjustment_factors_report_failure(self):
         self.minute.get_klines.side_effect = ProviderUnavailable("连接超时")
@@ -109,7 +125,7 @@ class StockMarketTests(TestCase):
         with self.assertRaises(MinuteCoverageError):
             self.market.profile.calculate(SYMBOL, MINUTE_START, MINUTE_END)
         self.minute.get_klines.return_value = MINUTE_BARS
-        self.first.get_corporate_actions.side_effect = ProviderUnavailable("因子不足")
+        self.provider.get_corporate_actions.side_effect = ProviderUnavailable("因子不足")
         with self.assertRaises(MinuteCoverageError) as caught:
             self.market.profile.calculate(SYMBOL, MINUTE_START, MINUTE_END)
         self.assertEqual(caught.exception.quality["minute_count"], 2)
@@ -117,7 +133,7 @@ class StockMarketTests(TestCase):
         self.assertFalse(caught.exception.quality["complete"])
 
     def test_cached_in_progress_minute_cannot_become_complete_by_wall_clock(self):
-        with patch("app.services.volume_profile.datetime", wraps=datetime) as clock:
+        with patch("app.services.volume_profile_service.datetime", wraps=datetime) as clock:
             clock.now.return_value = datetime.fromtimestamp(MINUTE_END - 20, CHINA)
             with self.assertRaises(MinuteCoverageError):
                 self.market.profile.calculate(SYMBOL, MINUTE_START, MINUTE_END)
@@ -130,7 +146,7 @@ class StockMarketTests(TestCase):
         prior = self.market.profile.calculate(SYMBOL, MINUTE_START, MINUTE_END)
         prior_chart = self.market.klines.get_chart(SYMBOL, "1d", None, None, 10)
         action = CorporateAction(date(2026, 11, 24), Fraction(10), Fraction(0), Fraction(0), Fraction(0))
-        self.first.get_corporate_actions.return_value = (action,)
+        self.provider.get_corporate_actions.return_value = (action,)
         with patch("app.core.cache.monotonic", return_value=monotonic() + 301):
             current = self.market.profile.calculate(SYMBOL, MINUTE_START, MINUTE_END)
             current_chart = self.market.klines.get_chart(SYMBOL, "1d", None, None, 10)

@@ -4,11 +4,11 @@
 
 ## 一、架构规范
 
-- `api/` 接收 HTTP 参数、调用 Service、生成独立响应模型和统一错误响应。
-- `services/` 负责股票查询、K 线、统一前复权和成交量分布，以及各自的缓存策略。
-- `data/` 按能力提供 K 线、股票信息、除权事件和交易日历，向上返回标准模型。
-- `models/` 定义内部数据结构和取数协议，`core/` 提供基础设施。Data 具体实现在 `main.py` 注入 Service。
+- `api/` 和 `services/` 各自平铺接口和业务服务文件。
+- `models/` 是单一包，`model.py` 定义数据结构，`provider.py` 中的单一 Provider 读取并解析第三方数据。
+- `core/` 提供公共基础设施。`main.py` 创建一个 Provider 实例供各 Service 使用。
 - 数据源选型先查 mootdx，再查其他通达信库和其他现成库。AKShare 只在用户明确授权的任务范围内使用。自行请求公开网站或交易所 JSON 接口须先获得用户同意。
+- 同一种 Model 能用一个库覆盖需求时只保留该实现。股票资料、K 线和除权事件统一使用 easy_tdx，交易日历读取 XSHG 离线日历。
 
 ## 二、文档规范
 
@@ -33,8 +33,14 @@
 
 ## 四、历史决策记录
 
+### 2026-11-27
+
+- 将后端收为 API、Service、Models、Core 四层，模型字段与取数实现分别集中在 `models/model.py` 和 `models/provider.py`。
+- K 线合并为 easy_tdx 单一取数实现，通达信公共主站和腾讯的 K 线适配器移除。
+
 ### 2026-11-26
 
+- API 与 Service 按文件平铺，Model 和 Data 按数据类型合并组织。
 - 后端迁移到 API、Service、Model、Data、Core 五层。Model 持有数据契约，Data 接入外部数据。方案与缓存策略见 `docs/backend/backend-stocks-api.md`。
 - 移除 AKShare，交易日核验改用 XSHG 离线日历。
 

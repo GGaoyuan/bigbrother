@@ -3,7 +3,7 @@ from datetime import date, datetime
 from unittest import TestCase
 
 from app.core.market_time import CHINA, midnight
-from app.models.kline import Candle
+from app.models.model import Candle
 from app.services.minute_quality import MinuteCoverageError
 from app.core.market_time import minute_window
 from app.services.minute_quality import validate_minutes

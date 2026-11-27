@@ -1,6 +1,6 @@
 # BigBrother 项目持久规则
 
-## 数据获取优先级（2026-11-26）
+## 数据获取优先级（2026-11-27）
 
 本规则适用于整个项目的数据获取需求，也适用于后续新会话。
 
@@ -12,6 +12,7 @@
 4. 以上库均无法满足需求时，说明已检查的库及其限制，先向用户确认；获得明确同意后，才能自行编写爬虫。
 
 - 只有用户明确说明本次任务可以使用 AKShare 时，才可选用 AKShare。该授权仅适用于用户指定的范围。
+- 同一种 Model 能由一个库满足需求时，只保留该库的取数实现。股票资料、各周期 K 线和除权事件统一使用 `easy_tdx`。交易日历读取 XSHG 离线日历。
 - 不得跳过现成库的排查，直接自行抓取网站数据。
 - 自行请求官网/交易所网站的 JSON 接口、解析网页、模拟浏览器获取数据，也属于第 4 项；公开接口或官方来源不免除确认要求。
 - 使用现成数据 Python 库的封装接口（即使该库内部通过 HTTP 获取数据）属于前三项。仅使用 `requests`、`httpx`、`urllib` 等通用 HTTP 库自行抓取，不算使用现成数据接口。
@@ -20,11 +21,15 @@
 
 ## 后端分层
 
-- `backend/app/api/` 按接口组织文件，负责 HTTP 参数校验、调用 Service 和转换响应。错误统一在 API 层处理。
-- `backend/app/services/` 负责编排、业务校验、复权、成交量分布和缓存策略，通过 Model 协议使用数据源。
-- `backend/app/models/` 保存独立于第三方库和 HTTP 的内部数据结构与校验，取数协议定义在 `models/contracts.py`。
-- `backend/app/data/` 按数据源和数据类型实现 Model 协议，负责取数、数据校验和标准化。
+- `backend/app/api/` 按接口平铺文件，负责 HTTP 参数校验、调用 Service 和转换响应。错误统一在 API 层处理。
+- `backend/app/services/` 按业务服务平铺文件，调用 Provider 获取数据，负责业务校验、复权、成交量分布和缓存，再把结果交给 API。
+- `backend/app/models/` 是一个包，只有 `model.py` 和 `provider.py` 两个业务文件。`model.py` 定义内部数据字段和类型。`provider.py` 中的单一 Provider 调用第三方库、解析返回的数据并转换成模型。
 - `backend/app/core/` 提供通用日志、缓存、异常、时间及响应封装。
-- `backend/main.py` 负责创建 Data 实现并注入 Service。业务流程沿 API → Service → Data 调用。
+- `backend/main.py` 创建一个 Provider 实例供各 Service 使用。请求沿 API → Service → Provider 处理。
+
+## 代码注释
+
+- 项目代码的行内注释、块注释和 docstring 统一使用中文。
+- 代码标识符、技术缩写、工具指令及许可证标识沿用原有格式。
 
 项目功能和实现状态见 `prd/v1.md`；补充项目记忆见 `docs/project-mem.md`。

@@ -1,4 +1,4 @@
-"""Reference-price forward adjustment and its cache."""
+"""按除权参考价计算前复权并缓存因子。"""
 
 from bisect import bisect_right
 from collections import defaultdict
@@ -11,9 +11,8 @@ from app.core.cache import ExpiringCache
 from app.core.exceptions import UnsupportedMarketData
 from app.core.logger import log_provider, observe_provider
 from app.core.market_time import CHINA, midnight
-from app.models.corporate_action import CorporateAction
-from app.models.kline import Candle
-from app.models.contracts import CorporateActionDataSource
+from app.models.model import Candle, CorporateAction
+from app.models.provider import MarketDataProvider
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,15 +62,15 @@ def build_qfq(actions: tuple[CorporateAction, ...], *, as_of: date, source: str)
 
     daily_actions = []
     for event_day, values in sorted(by_day.items()):
-        # Notices for one ex-date use the same base of ten pre-action shares.
+        # 同一除权日的各项公告都以除权前每 10 股为计算基数。
         cash, bonus, rights, payment = (sum(column) for column in zip(*values))
         daily_actions.append((event_day, cash, bonus, rights, payment))
 
     scale, offset = Fraction(1), Fraction(0)
     transforms = [(scale, offset)]
     for _, cash, bonus, rights, payment in reversed(daily_actions):
-        # Apply this day's reference-price transform before all later actions.
-        # P' = (10 * P - cash + rights payment) / (10 + bonus + rights).
+        # 先应用当日的除权参考价公式，再叠加后续除权事件。
+        # 除权参考价 P' =（10 × P − 现金红利 + 配股支付额）÷（10 + 送转股数 + 配股数）。
         denominator = 10 + bonus + rights
         offset += scale * (payment - cash) / denominator
         scale = scale * 10 / denominator
@@ -79,7 +78,7 @@ def build_qfq(actions: tuple[CorporateAction, ...], *, as_of: date, source: str)
 
     canonical = "\n".join(",".join(str(value) for value in action) for action in daily_actions)
     digest = sha256(canonical.encode("ascii")).hexdigest()
-    # Retain the API/cache version namespace used by the existing QFQ algorithm.
+    # 沿用现有前复权算法在 API 和缓存中的版本前缀。
     return AdjustmentFactors(
         version=f"tdx-affine-qfq-v1:{digest}",
         source=source,
@@ -89,7 +88,7 @@ def build_qfq(actions: tuple[CorporateAction, ...], *, as_of: date, source: str)
 
 
 class AdjustmentService:
-    def __init__(self, source: CorporateActionDataSource):
+    def __init__(self, source: MarketDataProvider):
         self.source = source
         self.factor_cache = ExpiringCache(256)
 

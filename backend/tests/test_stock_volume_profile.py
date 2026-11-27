@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from app.models.kline import Candle
-from app.models.volume_profile import ValueArea
+from app.models.model import Candle
+from app.models.model import ValueArea
 from app.services.profile_calculation import calculate_profile
 
 

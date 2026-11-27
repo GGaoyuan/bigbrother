@@ -25,23 +25,24 @@ class RequestLoggingTests(TestCase):
             response = self.client.request(method, route, **kwargs)
         return response, [json.loads(line) for line in output.getvalue().splitlines()]
 
-    def test_provider_fallback_cache_and_response_share_the_request_id(self):
-        first = fake_provider("mootdx")
-        first.get_stock_info.side_effect = ProviderUnavailable("连接超时")
-        second = fake_provider("a-stock-data")
-        market, _ = stock_service(first, second)
+    def test_provider_cache_and_response_share_the_request_id(self):
+        provider = fake_provider("easy-tdx")
+        market, _ = stock_service(provider)
 
         with patch.object(app, "state", market):
+            provider.get_stock_info.side_effect = ProviderUnavailable("连接超时")
+            failed, failed_events = self.request("GET", BASE)
+            provider.get_stock_info.side_effect = None
             response, events = self.request("GET", BASE, params={"lookup": "yes"})
             _, cached = self.request("GET", BASE)
 
+        self.assertEqual(failed.status_code, 502)
+        self.assertTrue(any(event["event"] == "provider.failed" for event in failed_events))
         self.assertEqual(events[0]["event"], "http.request")
         self.assertEqual(events[0]["queryParams"], {"lookup": ["yes"]})
         self.assertEqual([(e["event"], e["provider"]) for e in events[1:-1]], [
-            ("provider.attempt", "mootdx"),
-            ("provider.failed", "mootdx"),
-            ("provider.attempt", "a-stock-data"),
-            ("provider.selected", "a-stock-data"),
+            ("provider.attempt", "easy-tdx"),
+            ("provider.selected", "easy-tdx"),
         ])
         self.assertEqual(events[-1]["pathParams"], {"symbol": SYMBOL})
         self.assertEqual(events[-1]["data"], response.json())
@@ -50,7 +51,7 @@ class RequestLoggingTests(TestCase):
         self.assertTrue(any(event["event"] == "provider.cache_hit" for event in cached))
 
     def test_profile_logs_post_body_and_minute_source_before_the_full_result(self):
-        market, _ = stock_service(fake_provider("mootdx"), fake_provider("a-stock-data"))
+        market, _ = stock_service(fake_provider("easy-tdx"))
         payload = {"start": MINUTE_START, "end": MINUTE_END}
         with patch.object(app, "state", market):
             response, events = self.request("POST", BASE + "/volume-profile", json=payload)
@@ -62,7 +63,7 @@ class RequestLoggingTests(TestCase):
             event for event in events
             if event["event"] == "provider.selected" and event["operation"] == "profile_minutes"
         )
-        self.assertEqual((minute["provider"], minute["rowCount"]), ("minute-test", 2))
+        self.assertEqual((minute["provider"], minute["rowCount"]), ("easy-tdx", 2))
         self.assertEqual(events[-1]["data"], response.json())
         self.assertGreaterEqual(events[-1]["durationMs"], 0)
 

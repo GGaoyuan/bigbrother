@@ -1,12 +1,12 @@
-"""Request field constraints and service dependencies for the stock routes."""
+"""定义股票接口的字段约束和服务依赖。"""
 
 from typing import Annotated
 
 from fastapi import Depends, Path, Request
 
-from app.services.klines import KlineService
-from app.services.stock_info import StockInfoService
-from app.services.volume_profile import VolumeProfileService
+from app.services.kline_service import KlineService
+from app.services.stock_service import StockInfoService
+from app.services.volume_profile_service import VolumeProfileService
 
 
 Symbol = Annotated[str, Path(pattern=r"^[0-9]{6}$", description="六位 A 股代码")]

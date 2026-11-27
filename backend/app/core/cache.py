@@ -1,4 +1,4 @@
-"""Thread-safe, bounded TTL cache."""
+"""容量有限且线程安全的过期缓存。"""
 
 from collections import OrderedDict
 from threading import Lock

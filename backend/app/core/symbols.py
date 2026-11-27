@@ -1,4 +1,4 @@
-"""Shared classification of six-digit A-share codes."""
+"""按六位 A 股代码识别所属交易所和板块。"""
 
 from app.core.exceptions import StockNotFound
 

@@ -18,8 +18,8 @@ class StocksApiTests(TestCase):
     def setUp(self):
         self.client = TestClient(app)
         self.addCleanup(self.client.close)
-        self.providers = (fake_provider("mootdx"), fake_provider("a-stock-data"))
-        self.market, self.minute = stock_service(*self.providers)
+        self.provider = fake_provider("easy-tdx")
+        self.market, self.minute = stock_service(self.provider)
         patcher = patch.object(app, "state", self.market)
         patcher.start()
         self.addCleanup(patcher.stop)
@@ -30,7 +30,7 @@ class StocksApiTests(TestCase):
 
     def test_stock_market_and_normalized_history_contract(self):
         info = self.request().json()["data"]
-        self.assertEqual((info["symbol"], info["exchange"], info["source"]), (SYMBOL, "SSE", "mootdx"))
+        self.assertEqual((info["symbol"], info["exchange"], info["source"]), (SYMBOL, "SSE", "easy-tdx"))
         data = self.request("/klines", "POST", json={"interval": "5m"}).json()["data"]
         self.assertEqual((data["volume_unit"], data["adjust"], data["timezone"]), ("shares", "qfq", "Asia/Shanghai"))
         self.assertEqual(data["bars"][0]["timestamp"], START)
@@ -46,7 +46,7 @@ class StocksApiTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["data"]["next_cursor"], START)
-        self.providers[0].get_klines.assert_called_with(SYMBOL, "day", "none", START - 60, END - 60, 1)
+        self.market.klines.source.get_klines.assert_called_with(SYMBOL, "day", "none", START - 60, END - 60, 1)
         self.assertEqual(self.request(
             "/klines", "POST", json={"start": START, "end": END, "cursor": START},
         ).status_code, 422)
@@ -75,6 +75,7 @@ class StocksApiTests(TestCase):
             profile = response.json()["data"]
             self.assertEqual(profile["profile"]["poc"]["priceCents"], 10100)
             self.assertEqual(profile["calculation_method"], "estimated_1m_weighted_range")
+            self.assertEqual(profile["source"], chart["source"])
             self.assertEqual(profile["adjustment_version"], chart["adjustment_version"])
             self.assertEqual(profile["total_volume"], 200)
             self.assertEqual(profile["data_quality"]["minute_count"], 2)
@@ -83,7 +84,6 @@ class StocksApiTests(TestCase):
         self.assertEqual(results[1], results[2])
 
     def test_profile_preserves_reported_share_precision(self):
-        self.minute.name = "easy-tdx-mac"
         self.minute.get_klines.return_value = tuple(
             replace(bar, volume=100, original_volume=100, volume_precision_shares=100, amount=None)
             for bar in MINUTE_BARS

@@ -1,4 +1,4 @@
-"""Translate domain and framework exceptions to the common HTTP envelope."""
+"""将业务和框架异常转换为统一的 HTTP 响应格式。"""
 
 import logging
 

@@ -1,4 +1,4 @@
-"""Shared API response envelope helpers."""
+"""封装统一的 API 响应格式。"""
 
 from enum import IntEnum
 from typing import Any, Generic, TypeVar

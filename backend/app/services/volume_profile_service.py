@@ -1,21 +1,19 @@
-"""Coordinate profile data coverage, shared forward adjustment and Mode B estimation."""
+"""检查成交量分布所需的数据覆盖，统一前复权并执行模式 B 估算。"""
 
 import hashlib
 from datetime import date, datetime
 
 from app.core.cache import ExpiringCache
-from app.core.exceptions import MarketDataError, UnsupportedMarketData
+from app.core.exceptions import MarketDataError, ProviderUnavailable, UnsupportedMarketData
 from app.core.logger import log_provider, observe_provider
 from app.core.market_time import CHINA, has_trading_minutes, midnight, minute_window
-from app.models.kline import Candle
-from app.models.volume_profile import MinuteQuality, SourceFailure, VolumeProfileResult
-from app.models.contracts import CalendarDataSource, KlineDataSource
+from app.models.model import Candle, MinuteQuality, VolumeProfileResult
 
-from .adjustment import AdjustmentService
-from .klines import KlineService
+from .adjustment_service import AdjustmentService
+from .kline_service import KlineService
 from .minute_quality import MinuteCoverageError, quality_report, validate_minutes
 from .profile_calculation import ALGORITHM_VERSION, BUCKET_VERSION, calculate_profile, price_in_cents
-from .stock_info import StockInfoService
+from .stock_service import StockInfoService
 
 
 MAX_RANGE_DAYS = 366
@@ -24,13 +22,10 @@ MAX_RANGE_DAYS = 366
 class VolumeProfileService:
     def __init__(
         self, klines: KlineService, stocks: StockInfoService, adjustment: AdjustmentService,
-        minute_sources: tuple[KlineDataSource, ...], calendar: CalendarDataSource,
     ):
         self.klines = klines
         self.stocks = stocks
         self.adjustment = adjustment
-        self.minute_sources = minute_sources
-        self.calendar = calendar
         self.calendar_cache = ExpiringCache(1)
         self.minute_cache = ExpiringCache(64)
         self.profile_cache = ExpiringCache(64)
@@ -42,14 +37,17 @@ class VolumeProfileService:
             raise UnsupportedMarketData(f"单次分布计算最多支持 {MAX_RANGE_DAYS} 个自然日")
         if last > datetime.now(CHINA).date():
             raise MinuteCoverageError("所选区间包含未来交易日", quality)
-        calendar_key = (self.calendar.name, self.calendar.version)
+        source = self.klines.source
+        calendar_key = (source.calendar_name, source.calendar_version)
         calendar = self.calendar_cache.get(calendar_key)
         if calendar is None:
-            with observe_provider(self.calendar.name, "exchange_calendar", version=self.calendar.version):
-                calendar = self.calendar.get_calendar()
+            with observe_provider(source.calendar_name, "exchange_calendar", version=source.calendar_version):
+                calendar = source.get_calendar()
+                if not calendar.sessions or calendar.sessions != tuple(sorted(set(calendar.sessions))):
+                    raise ProviderUnavailable("交易日历返回日期无效")
             self.calendar_cache.put(calendar_key, calendar, 21600)
         else:
-            log_provider("cache_hit", self.calendar.name, "exchange_calendar")
+            log_provider("cache_hit", source.calendar_name, "exchange_calendar")
         if first < calendar.start or last > calendar.end:
             raise MinuteCoverageError("交易日历未覆盖所选区间", quality)
         sessions = tuple(day for day in calendar.sessions if first <= day <= last)
@@ -58,14 +56,11 @@ class VolumeProfileService:
         return sessions
 
     def _minute_snapshot(
-        self, source: KlineDataSource, symbol: str, first: date, last: date,
+        self, symbol: str, first: date, last: date,
     ) -> tuple[tuple[Candle, ...], int]:
-        if source.minute_history_limit is None:
-            start, end = midnight(first), midnight(last) + 86400
-            limit = MAX_RANGE_DAYS * 240
-        else:
-            start, end = None, None
-            limit = source.minute_history_limit
+        source = self.klines.source
+        start, end = midnight(first), midnight(last) + 86400
+        limit = MAX_RANGE_DAYS * 240
         key = (source.name, source.version, symbol, "1m", "none", start, end, limit)
         snapshot = self.minute_cache.get(key)
         if snapshot is None:
@@ -88,56 +83,45 @@ class VolumeProfileService:
     def _profile_minutes(
         self, symbol: str, start: int, end: int, sessions: tuple[date, ...],
         daily: tuple[Candle, ...], quality: MinuteQuality,
-    ) -> tuple[tuple[Candle, ...], MinuteQuality, KlineDataSource]:
-        failures: list[SourceFailure] = []
-        best_quality = quality
+    ) -> tuple[tuple[Candle, ...], MinuteQuality]:
+        source = self.klines.source
         requested = {"requested_start": quality["requested_start"], "requested_end": quality["requested_end"]}
-        for source in self.minute_sources:
-            fields = {"symbol": symbol, "version": source.version, "start": start, "end": end}
-            log_provider("attempt", source.name, "profile_minutes", **fields)
-            try:
-                snapshot, closed_until = self._minute_snapshot(source, symbol, sessions[0], sessions[-1])
-                bars, report = validate_minutes(
-                    snapshot, start, end, sessions, daily, source.name, closed_until=closed_until,
-                )
-            except MarketDataError as exc:
-                failures.append({"source": source.name, "message": str(exc)})
-                log_provider(
-                    "failed", source.name, "profile_minutes", **fields,
-                    errorType=type(exc).__name__, reason=str(exc),
-                    dataQuality=exc.quality if isinstance(exc, MinuteCoverageError) else None,
-                )
-                if isinstance(exc, MinuteCoverageError):
-                    candidate = exc.quality
-                    has_better_coverage = (
-                        candidate["minute_count"] > best_quality["minute_count"]
-                        or (best_quality["available_start"] is None and candidate["available_start"] is not None)
-                        or (best_quality["missing_minute_count"] is None and candidate["missing_minute_count"] is not None)
-                    )
-                    if has_better_coverage:
-                        best_quality = {**candidate, **requested}
-                continue
-            log_provider(
-                "selected", source.name, "profile_minutes", **fields, rowCount=len(bars),
-                availableStart=report["available_start"], availableEnd=report["available_end"],
-                actualStart=report["actual_start"], actualEnd=report["actual_end"],
-                totalShares=sum(bar.volume for bar in bars),
-                volumePrecisionShares=report["volume_precision_shares"],
+        fields = {"symbol": symbol, "version": source.version, "start": start, "end": end}
+        log_provider("attempt", source.name, "profile_minutes", **fields)
+        try:
+            snapshot, closed_until = self._minute_snapshot(symbol, sessions[0], sessions[-1])
+            bars, report = validate_minutes(
+                snapshot, start, end, sessions, daily, source.name, closed_until=closed_until,
             )
-            return bars, {**report, **requested}, source
+        except MarketDataError as exc:
+            log_provider(
+                "failed", source.name, "profile_minutes", **fields,
+                errorType=type(exc).__name__, reason=str(exc),
+                dataQuality=exc.quality if isinstance(exc, MinuteCoverageError) else None,
+            )
+            if isinstance(exc, MinuteCoverageError):
+                quality = {**exc.quality, **requested}
+            quality["source_errors"] = [{"source": source.name, "message": str(exc)}]
+            message = "所选区间没有完整的 1 分钟 K 线"
+            if quality["daily_mismatches"]:
+                affected = "、".join(quality["daily_mismatches"][:3])
+                message = f"分钟行情与对应日线的成交量或价格对账不一致（{affected}）"
+            elif quality["duplicate_count"] or quality["invalid_count"]:
+                message = "所选区间的 1 分钟 K 线含重复或异常记录"
+            if quality["available_start"] is not None and quality["available_end"] is not None:
+                available_start = datetime.fromtimestamp(quality["available_start"], CHINA)
+                available_end = datetime.fromtimestamp(quality["available_end"], CHINA)
+                message += f"。当前取得的分钟数据范围为 {available_start:%Y-%m-%d %H:%M} 至 {available_end:%Y-%m-%d %H:%M}"
+            raise MinuteCoverageError(message, quality) from exc
 
-        best_quality["source_errors"] = failures
-        message = "所选区间没有完整的 1 分钟 K 线"
-        if best_quality["daily_mismatches"]:
-            affected = "、".join(best_quality["daily_mismatches"][:3])
-            message = f"分钟行情与对应日线的成交量或价格对账不一致（{affected}）"
-        elif best_quality["duplicate_count"] or best_quality["invalid_count"]:
-            message = "所选区间的 1 分钟 K 线含重复或异常记录"
-        if best_quality["available_start"] is not None and best_quality["available_end"] is not None:
-            available_start = datetime.fromtimestamp(best_quality["available_start"], CHINA)
-            available_end = datetime.fromtimestamp(best_quality["available_end"], CHINA)
-            message += f"。当前取得的分钟数据范围为 {available_start:%Y-%m-%d %H:%M} 至 {available_end:%Y-%m-%d %H:%M}"
-        raise MinuteCoverageError(message, best_quality)
+        log_provider(
+            "selected", source.name, "profile_minutes", **fields, rowCount=len(bars),
+            availableStart=report["available_start"], availableEnd=report["available_end"],
+            actualStart=report["actual_start"], actualEnd=report["actual_end"],
+            totalShares=sum(bar.volume for bar in bars),
+            volumePrecisionShares=report["volume_precision_shares"],
+        )
+        return bars, {**report, **requested}
 
     def calculate(self, symbol: str, requested_start: int, requested_end: int) -> VolumeProfileResult:
         if requested_start >= requested_end:
@@ -154,7 +138,8 @@ class VolumeProfileService:
         except MarketDataError as exc:
             raise MinuteCoverageError(f"缺少用于核验分钟行情的日线：{exc}", quality) from exc
 
-        bars, quality, source = self._profile_minutes(symbol, start, end, sessions, daily, quality)
+        bars, quality = self._profile_minutes(symbol, start, end, sessions, daily, quality)
+        source = self.klines.source
         try:
             factors = self.adjustment.get_factors(symbol)
             tick_cents = price_in_cents(self.stocks.get_stock(symbol).stock.price_tick)

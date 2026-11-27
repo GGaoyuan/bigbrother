@@ -6,7 +6,7 @@ from easy_tdx import Period
 from easy_tdx.mac.enums import Adjust
 from pandas import DataFrame
 
-from app.data.easy_tdx_minutes import EasyTdxMinuteData
+from app.models.provider import MarketDataProvider
 from app.core.exceptions import ProviderUnavailable
 from app.core.market_time import CHINA, midnight
 
@@ -23,20 +23,37 @@ def frame(*labels, volume=600):
     ])
 
 
-class EasyTdxMinuteTests(TestCase):
+class EasyTdxKlineTests(TestCase):
     def setUp(self):
-        self.patch = patch("app.data.easy_tdx_minutes.MacClient")
+        self.patch = patch("app.models.provider.MacClient")
         self.constructor = self.patch.start()
         self.addCleanup(self.patch.stop)
         self.client = self.constructor.return_value.__enter__.return_value
-        self.provider = EasyTdxMinuteData(servers=("one", "two"))
+        self.provider = MarketDataProvider(mac_servers=("one", "two"))
+
+    def test_same_client_loads_daily_and_chart_minute_periods(self):
+        for interval, period, label, opened, duration, volume in (
+            ("day", Period.DAILY, "2026-10-14 00:00", stamp(0, 0), 86400, 21873),
+            ("60m", Period.MIN_60, "2026-10-14 10:30", stamp(9, 30), 3600, 800),
+            ("5m", Period.MIN_5, "2026-10-14 13:05", stamp(13, 0), 300, 800),
+        ):
+            with self.subTest(interval=interval):
+                self.client.get_stock_kline.return_value = frame(label, volume=volume)
+                bars = self.provider.get_klines("600519", interval, "none", None, None, 1)
+                self.client.get_stock_kline.assert_called_with(
+                    1, "600519", period, start=0, count=1, adjust=Adjust.NONE,
+                )
+                bar, = bars
+                self.assertEqual((bar.timestamp, bar.end_timestamp), (opened, opened + duration))
+                self.assertEqual(bar.volume, volume)
+                self.assertIsNone(bar.amount)
 
     def test_pages_backwards_and_returns_right_labeled_bars_in_source_shares(self):
         self.client.get_stock_kline.side_effect = (
             frame("2026-10-14 09:33", "2026-10-14 09:34"),
             frame("2026-10-14 09:31", "2026-10-14 09:32"),
         )
-        with patch("app.data.easy_tdx_minutes.PAGE_SIZE", 2):
+        with patch("app.models.provider.PAGE_SIZE", 2):
             bars = self.provider.get_klines("600519", "1m", "none", stamp(9, 30), stamp(9, 33), 99)
         self.assertEqual([bar.timestamp for bar in bars], [stamp(9, 30), stamp(9, 31), stamp(9, 32)])
         self.assertEqual((bars[0].open, bars[0].volume, bars[0].original_volume), (1298.97, 600, 600))
@@ -62,9 +79,9 @@ class EasyTdxMinuteTests(TestCase):
         self.assertEqual(alternate.get_stock_kline.call_args.args[:2], (0, "000001"))
 
     def test_repeated_page_and_inconsistent_native_volume_are_rejected(self):
-        first = EasyTdxMinuteData(servers=("one",))
+        first = MarketDataProvider(mac_servers=("one",))
         self.client.get_stock_kline.return_value = frame("2026-10-14 09:31", "2026-10-14 09:32")
-        with patch("app.data.easy_tdx_minutes.PAGE_SIZE", 2):
+        with patch("app.models.provider.PAGE_SIZE", 2):
             with self.assertRaisesRegex(ProviderUnavailable, "分页"):
                 first.get_klines("688981", "1m", "none", midnight(date(2026, 10, 13)), stamp(10, 0), 99)
         self.client.get_stock_kline.return_value = frame("2026-10-14 09:31", volume=2.5)

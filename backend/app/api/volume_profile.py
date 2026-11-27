@@ -1,4 +1,4 @@
-"""Estimate a fixed-range volume profile from one-minute candles."""
+"""根据 1 分钟 K 线估算固定区间的成交量分布。"""
 
 from typing import Literal
 
@@ -6,7 +6,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.response import ApiResponse, success_response
-from app.models.volume_profile import PriceLevel, VolumeProfileResult
+from app.models.model import PriceLevel, VolumeProfileResult
 
 from ._shared import MAX_TIMESTAMP, ProfileServiceDependency, Symbol
 

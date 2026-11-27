@@ -2,31 +2,34 @@
 
 ## 后端依赖与职责
 
-`main.py` 负责注入 Data 实现。请求沿 API → Service → Data → 第三方库处理，Model 为 Service 和 Data 提供同一份契约。数据源优先顺序在组装入口声明，分钟快照始终来自单一行情源。
+`main.py` 创建一个 Provider 实例供各 Service 使用。请求沿 API → Service → Provider 处理。Provider 将第三方数据转换为 `model.py` 定义的内部数据。
 
 | 目录 | 职责 |
 | --- | --- |
-| `backend/app/api/stocks/` | `info.py`、`klines.py`、`volume_profile.py` 分别定义路由、请求和响应模型 |
-| `backend/app/services/` | 股票查询、K 线、统一前复权、分钟完整性核验和加权计算 |
-| `backend/app/models/` | 内部数据结构、共用 K 线校验及 `contracts.py` 中的取数协议 |
-| `backend/app/data/` | `tdx.py`、`tencent.py`、`easy_tdx_minutes.py` 和 `xshg_calendar.py` 实现取数协议 |
+| `backend/app/api/` | `stock.py`、`kline.py`、`volume_profile.py` 分别定义路由、请求和响应模型 |
+| `backend/app/services/` | 平铺股票、K 线、前复权和成交量分布服务及计算模块 |
+| `backend/app/models/model.py` | 内部数据字段、类型和单位 |
+| `backend/app/models/provider.py` | 单一 Provider，调用第三方库并转换数据 |
 | `backend/app/core/` | 公共异常、日志、内存缓存、时间与响应封装 |
 
-Data 负责识别价格口径与单位并返回标准 K 线。成交额单位为元，无法可靠取得时为 `None`。Service 取得统一的不复权行情后，用同一份除权事件完成图表和成交量分布的前复权。契约测试对通达信公共主站、通达信 MAC 和腾讯验证相同的分钟时间、单位和价格口径。
+Provider 负责识别价格口径与单位并返回标准 K 线。成交额单位为元，无法可靠取得时为 `None`。Service 负责缓存和业务校验，并用同一份除权事件完成图表和成交量分布的前复权。测试验证 MAC 日线和各分钟周期的时间、单位、分页和价格口径。
 
 ## 当前数据源
 
-| 数据 | 使用顺序和接口 |
+| 数据 | 取数接口 |
 | --- | --- |
-| 个股资料 | 通达信公共主站的证券目录，腾讯股票资料作为备选 |
-| 不复权日线、60 分钟、5 分钟 | mootdx / tdxpy 通达信公共主站，腾讯 `tencent_kline` 作为备选 |
-| 1 分钟 OHLCV | 通达信公共主站，easy_tdx MAC `get_stock_kline(..., Period.MIN_1, adjust=Adjust.NONE)`，腾讯最近 320 根 `m1` |
-| 除权事件 | tdxpy `get_xdxr_info`，按股票代码查询，由 Service 统一计算前复权 |
+| 个股资料 | easy_tdx MAC 的 `get_stock_quotes`，按市场和代码查询 |
+| 不复权日线、60 分钟、5 分钟、1 分钟 OHLCV | easy_tdx MAC 的 `get_stock_kline(..., adjust=Adjust.NONE)`，按周期分页 |
+| 除权事件 | easy_tdx 的 `get_xdxr_info`，将每股红利和股份变动比例换算成内部每 10 股口径，由 Service 统一计算前复权 |
 | 交易日历 | `exchange-calendars==4.13.2` 自带的 XSHG 日历，覆盖 1990-12-03 至 2026-12-31，超出日历覆盖的选区会返回错误 |
 
-AKShare 只在用户明确授权的任务中可用，当前应用依赖和数据链路均已移除。腾讯行情 adapter 复用 a-stock-data 固定提交 `f21534946c42be3ad048ac938eecb1bad84cb8ab` 的实现。 [XSHG 日历源码](https://github.com/gerrymanoim/exchange_calendars/blob/4.13.2/exchange_calendars/exchange_calendar_xshg.py) · [上交所 2026 年休市公告](https://www.sse.com.cn/disclosure/announcement/general/c/c_20251222_10802507.shtml) · [a-stock-data K 线源码](https://github.com/simonlin1212/a-stock-data/blob/f21534946c42be3ad048ac938eecb1bad84cb8ab/SKILL.md)
+AKShare 只在用户明确授权的任务中可用。 [XSHG 日历源码](https://github.com/gerrymanoim/exchange_calendars/blob/4.13.2/exchange_calendars/exchange_calendar_xshg.py) · [上交所 2026 年休市公告](https://www.sse.com.cn/disclosure/announcement/general/c/c_20251222_10802507.shtml)
 
-MAC 行情的 `vol` 已以股返回，公布粒度为 100 股，服务在 `data_quality.volume_precision_shares` 与 `warnings` 中标明。MAC 分钟成交额和股数无法逐行互验，因此分钟成交额记为缺省，完整交易日仍核对日线价格和合计股数。 [easy_tdx MAC 接口](https://github.com/clong365/easy_tdx/tree/4820b4a0496899ece0b8ca4d7f4d66a5159da7f8)
+MAC 行情的 `vol` 以股返回。1 分钟线的公布粒度为 100 股，服务在 `data_quality.volume_precision_shares` 与 `warnings` 中标明。1 分钟成交额记为缺省，其他周期保留能与成交股数和价格区间核对的成交额。 [easy_tdx MAC 接口](https://github.com/clong365/easy_tdx/tree/4820b4a0496899ece0b8ca4d7f4d66a5159da7f8)
+
+### 2026-11-27 联调
+
+`300604`、`600519`、`000001`、`300750`、`688981` 均通过日线、60 分钟、5 分钟和历史成交量分布接口验证。2026-10-14 至 10-30 的选区每只取得 3,120 根同源分钟线，通过日线对账及成交量守恒检查。
 
 ### 2026-11-26 联调
 
@@ -56,11 +59,11 @@ MAC 行情的 `vol` 已以股返回，公布粒度为 100 股，服务在 `data_
 
 ### 前复权与股数
 
-日线、60 分钟、5 分钟和参与计算的 1 分钟 OHLC 都先取得不复权数据，再应用同一个通达信除权事件版本。除权记录按交易所和股票代码直接查询，与证券目录分页独立。复用通达信连接遇到传输中断时重连同一主站一次，再尝试其他主站，日志记录 `provider.server_reconnect`。个股空结果不影响下一只股票的查询。按每 10 股现金红利、送转股及配股参数应用 `(10 × 价格 − 现金红利 + 配股数 × 配股价) ÷ (10 + 送转股数 + 配股数)`，只调整事件前的交易日，多次事件按时间顺序复合，最终舍入到人民币分。成交量及成交额保留原值。前复权坐标始终使用这套事件口径。复权因子缺失，或历史前复权价格舍入后为非正数时，返回明确错误。
+日线、60 分钟、5 分钟和参与计算的 1 分钟 OHLC 都先取得不复权数据，再应用同一个通达信除权事件版本。除权记录按交易所和股票代码直接查询，与证券目录分页独立。通达信每次查询建立连接，查询结束即关闭。主站调用失败时尝试下一个配置的主站。按每 10 股现金红利、送转股及配股参数应用 `(10 × 价格 − 现金红利 + 配股数 × 配股价) ÷ (10 + 送转股数 + 配股数)`，只调整事件前的交易日，多次事件按时间顺序复合，最终舍入到人民币分。成交量及成交额保留原值。前复权坐标始终使用这套事件口径。复权因子缺失，或历史前复权价格舍入后为非正数时，返回明确错误。
 
 中国中免 601888 在 2026-11-20 除息。真实接口使用 11-19 和 11-20 的 476 根分钟 K 线生成估算分布，与两日图表使用同一复权版本。11-19 日线收盘从 51.30 调整到 50.90，11-20 收盘为 50.00，估算 POC 为 50.01。其他复核实例包括贵州茅台 2026-06-25 收盘 1212.10 元调整至 1184.08 元，以及宁德时代 2023 年送转前后日期。跨配股和分红以及因子版本变更由固定数据测试覆盖。除权事件日的原生 1 分钟行情还受实际分钟窗口限制。
 
-腾讯沪深主板及创业板原单位为手，科创板原单位为股。用标准化股数和原数据交叉核验，整手舍入的分钟数据会标记为 `rounded_lots` 并拒绝用于估算。原始单位和原始数值在适配器内保留。整日分钟结果核对不复权日线开高低收及股数，日线按手发布或分钟源原生粒度为 100 股时，只允许一手以内的差异。通达信与腾讯不复权价在分位统一检查。分钟快照从单一供应商获取，多个供应商的部分记录不会拼接。
+原始成交量和单位在适配器内保留。整日分钟结果以同源不复权日线核对开高低收及股数。分钟数据按 100 股发布时，股数对账允许一手以内的差异。
 
 ### 时间和统计
 
@@ -77,14 +80,14 @@ Backend 对外提供下面三个业务接口。使用 `{code,message,data}` 响�
 | 方法与路径 | 参数和结果 |
 | --- | --- |
 | `GET /api/v1/stocks/{symbol}` | 股票名称、交易所、板块、币种、最小价格单位和来源 |
-| `POST /api/v1/stocks/{symbol}/klines` | JSON 请求体选择 `interval=1d\|60m\|5m`，可选 `start/end/limit/cursor`，复权固定为 `qfq`。返回 OHLCV、原始成交量及单位、来源、`adjustment_version`。`cursor` 以上一页最早时间作为新页排他终点。腾讯分钟接口只能访问最近 320 根滚动窗口 |
+| `POST /api/v1/stocks/{symbol}/klines` | JSON 请求体选择 `interval=1d\|60m\|5m`，可选 `start/end/limit/cursor`，复权固定为 `qfq`。返回 OHLCV、原始成交量及单位、来源、`adjustment_version`。`cursor` 以上一页最早时间作为新页排他终点 |
 | `POST /api/v1/stocks/{symbol}/volume-profile` | 请求体仅需 `{start,end}`。返回 `symbol/start/end/actual_start/actual_end/calculation_method/data_source/price_step/total_volume/price_levels/poc/vah/val/data_quality/warnings`，并保留图表所需的 `profile` 数据和复权版本。方法固定为 `estimated_1m_weighted_range` |
 
 `data_quality` 包含原始及对齐后的请求时间、取得的时间窗口、首末有效分钟、覆盖交易日数、分钟数、重复数、异常数、缺失分钟和日期、日线对账及因子完整性。缺失或校验失败时返回 409 和质量报告。422 表示参数错误或所请求的周期、复权方式不受支持。
 
 ## 缓存与验证
 
-原始 K 线按源、源版本、股票、周期、日期和复权口径缓存。1 分钟窗口按源、版本和股票缓存，可请求历史分页的来源另带日期范围。盘中缓存只保存抓取时已经结束的分钟的可用性判定，最长保留至下一分钟并且最多 45 秒，盘后快照缓存 5 分钟。前复权事件按交易日和来源缓存 5 分钟，事件内容哈希作为版本。已复权的图表和统计以因子版本以及行情内容哈希隔离，分布另按区间、档位规则与算法版本缓存 10 分钟。
+原始 K 线按源、源版本、股票、周期、日期和复权口径缓存。1 分钟窗口按源、版本、股票和日期范围缓存。盘中缓存只保存抓取时已经结束的分钟的可用性判定，最长保留至下一分钟并且最多 45 秒，盘后快照缓存 5 分钟。前复权事件按交易日和来源缓存 5 分钟，事件内容哈希作为版本。已复权的图表和统计以因子版本以及行情内容哈希隔离，分布另按区间、档位规则与算法版本缓存 10 分钟。
 
 在 `backend/` 安装 `requirements.txt` 后运行 `python main.py`，在 `webfront/` 运行 `npm run dev`。打开 `/volume-profile` 并查询 `600519`。可以在 5 分钟图上选择最近已收盘的时段；本次验证日期为 2026-11-24。
 

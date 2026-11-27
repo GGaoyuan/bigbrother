@@ -1,31 +1,33 @@
 import unittest
 from datetime import date, datetime, time
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, patch
 
 from dataclasses import replace
 from fractions import Fraction
 
+from easy_tdx import Market
+from pandas import DataFrame
+
 from app.core.exceptions import ProviderUnavailable, UnsupportedMarketData
 from app.core.market_time import CHINA, candle_span, midnight
-from app.models.corporate_action import CorporateAction
-from app.models.kline import Candle
-from app.data.tdx import TdxConnection, TdxCorporateActionData, normalize_actions
-from app.services.adjustment import build_qfq
+from app.models.model import Candle, CorporateAction
+from app.models.provider import MarketDataProvider
+from app.services.adjustment_service import build_qfq
 
 
 def action(day, *, cash=0, bonus=0, rights=0, rights_price=0):
     return CorporateAction(day, *(Fraction(str(value)) for value in (cash, bonus, rights, rights_price)))
 
 
-def tdx_action(day, *, cash=0):
+def tdx_action(day, *, cash=0.4, bonus=0.8, rights=0.1, rights_price=6):
     return {
-        "category": 1, "year": day.year, "month": day.month, "day": day.day,
-        "fenhong": cash, "songzhuangu": 0, "peigu": 0, "peigujia": 0,
+        "category": 1, "date": day.isoformat(),
+        "fenhong": cash, "songzhuangu": bonus, "peigu": rights, "peigujia": rights_price,
     }
 
 
 def factors_for(actions, *, as_of):
-    return build_qfq(tuple(actions), as_of=as_of, source="mootdx")
+    return build_qfq(tuple(actions), as_of=as_of, source="easy-tdx")
 
 
 def candle(day, *, price=100, minute=False):
@@ -39,7 +41,7 @@ class AdjustmentFactorsTests(unittest.TestCase):
         split = date(2023, 4, 26)
         dividend = date(2024, 4, 30)
         as_of = date(2024, 5, 1)
-        # Ningde Times TDX events around its 2023 transfer of eight shares per ten.
+        # 使用宁德时代 2023 年每 10 股转增 8 股相关的通达信除权事件。
         factors = factors_for([
             action(dividend, cash=50.279998779296875),
             action(split, cash=25.200000762939453, bonus=8),
@@ -53,7 +55,7 @@ class AdjustmentFactorsTests(unittest.TestCase):
         self.assertEqual((daily.volume, daily.amount, daily.original_volume_unit), (1000, 100000, "shares"))
         self.assertEqual(factors.apply(candle(split)).close, 94.97)
         self.assertEqual(factors.apply(candle(dividend)).close, 100)
-        self.assertEqual(factors.source, "mootdx")
+        self.assertEqual(factors.source, "easy-tdx")
         self.assertRegex(factors.version, r"^tdx-affine-qfq-v1:[\da-f]{64}$")
 
     def test_same_day_actions_use_a_common_share_base_and_a_stable_version(self):
@@ -72,8 +74,8 @@ class AdjustmentFactorsTests(unittest.TestCase):
         )
 
     def test_rights_event_after_an_earlier_cash_dividend(self):
-        # China Merchants Bank 2013 TDX rights event. Its subscription input
-        # has binary floating-point noise, far below chart price precision.
+        # 使用招商银行 2013 年配股的通达信除权事件。配股数据的二进制浮点误差
+        # 远小于图表价格精度。
         day = date(2013, 9, 5)
         factors = factors_for([
             action(day, rights=1.7400000095367432, rights_price=9.289999961853027),
@@ -102,74 +104,45 @@ class AdjustmentFactorsTests(unittest.TestCase):
             factors.apply(bar)
 
 
-class TdxAdjustmentSourceTests(unittest.TestCase):
-    def test_requires_metadata_and_rejects_malformed_actions(self):
+class CorporateActionProviderTests(unittest.TestCase):
+    @patch("app.models.provider.TdxClient")
+    def test_converts_per_share_values_to_the_existing_per_ten_share_model(self, factory):
+        day = date(2026, 11, 20)
+        client = factory.return_value.__enter__.return_value
+        client.get_xdxr_info.return_value = DataFrame([tdx_action(day)])
+        provider = MarketDataProvider(tdx_servers=("one",))
+
+        events = provider.get_corporate_actions("601888")
+
+        self.assertEqual(events, (action(day, cash=4, bonus=8, rights=1, rights_price=6),))
+        client.get_security_count.assert_not_called()
+        client.get_xdxr_info.assert_called_once_with(Market.SH, "601888")
+
+    @patch("app.models.provider.TdxClient")
+    def test_empty_and_malformed_payloads_are_rejected(self, factory):
+        provider = MarketDataProvider(tdx_servers=("one",))
+        client = factory.return_value.__enter__.return_value
         day = date(2024, 7, 1)
-        stock_change = {"category": 5, "year": 2024, "month": 7, "day": 1}
-        self.assertEqual(normalize_actions([stock_change]), ())
-        for rows in (None, [], [{"category": 5}], [tdx_action(day, cash=float("nan"))], [tdx_action(day, cash=-1)]):
+        for rows in ([], [{"category": 5}], [tdx_action(day, cash=float("nan"))], [tdx_action(day, bonus=-1)]):
+            client.get_xdxr_info.return_value = DataFrame(rows)
             with self.subTest(rows=rows), self.assertRaises(ProviderUnavailable):
-                normalize_actions(rows)
+                provider.get_corporate_actions("600519")
 
-    def test_reads_symbol_specific_events_when_the_security_directory_is_unavailable(self):
-        source = Mock()
-        source.get_security_count.side_effect = TimeoutError("证券目录不可用")
+        client.get_xdxr_info.return_value = DataFrame([{"category": 5, "date": day.isoformat()}])
+        self.assertEqual(provider.get_corporate_actions("600519"), ())
 
-        def events(market, symbol):
-            if (market, symbol) == (0, "300604"):
-                return [tdx_action(date(2026, 10, 30), cash=1)]
-            return []
+    @patch("app.models.provider.TdxClient")
+    def test_unverified_empty_payload_uses_another_host_of_the_same_sdk(self, factory):
+        primary, alternate = MagicMock(), MagicMock()
+        primary.__enter__.return_value.get_xdxr_info.return_value = DataFrame()
+        day = date(2026, 10, 30)
+        alternate.__enter__.return_value.get_xdxr_info.return_value = DataFrame([
+            tdx_action(day, cash=0.1, bonus=0, rights=0, rights_price=0),
+        ])
+        factory.side_effect = (primary, alternate)
 
-        source.get_xdxr_info.side_effect = events
-        with patch("app.data.tdx.TdxHq_API", return_value=source):
-            provider = TdxCorporateActionData(TdxConnection(servers=(("127.0.0.1", 7709),)))
-            events = provider.get_corporate_actions("300604")
-            self.assertEqual(events, (action(date(2026, 10, 30), cash=1),))
-            with self.assertRaises(ProviderUnavailable):
-                provider.get_corporate_actions("600001")
-            with self.assertRaises(UnsupportedMarketData):
-                provider.get_corporate_actions("920001")
-        source.get_security_count.assert_not_called()
-        source.get_security_list.assert_not_called()
-        source.get_xdxr_info.assert_any_call(0, "300604")
+        events = MarketDataProvider(tdx_servers=("one", "two")).get_corporate_actions("300604")
 
-    def test_unverified_empty_payload_retries_another_host(self):
-        primary, secondary = Mock(), Mock()
-        primary.get_xdxr_info.return_value = []
-        secondary.get_xdxr_info.return_value = [tdx_action(date(2024, 6, 19), cash=308.76)]
-        servers = (("127.0.0.1", 7709), ("127.0.0.2", 7709))
-        with patch("app.data.tdx.TdxHq_API", side_effect=(primary, secondary)):
-            provider = TdxCorporateActionData(TdxConnection(servers=servers))
-            events = provider.get_corporate_actions("600519")
-        self.assertEqual(events, (action(date(2024, 6, 19), cash=308.76),))
-        secondary.get_xdxr_info.assert_called_once_with(1, "600519")
-
-    def test_reconnects_an_existing_socket_after_the_server_closes_it(self):
-        from tdxpy.exceptions import TdxFunctionCallError
-        from tdxpy.parser.base import ResponseHeaderRecvFails
-
-        closed = TdxFunctionCallError("calling function error")
-        closed.original_exception = ResponseHeaderRecvFails("head_buf is not 0x10 : b''")
-        cached, refreshed = Mock(), Mock()
-        actions = [tdx_action(date(2026, 10, 30), cash=1)]
-        cached.get_xdxr_info.side_effect = (actions, closed)
-        refreshed.get_xdxr_info.return_value = actions
-        with patch("app.data.tdx.TdxHq_API", side_effect=(cached, refreshed)):
-            provider = TdxCorporateActionData(TdxConnection(servers=(("127.0.0.1", 7709),)))
-            provider.get_corporate_actions("300604")
-            events = provider.get_corporate_actions("300604")
-
-        self.assertEqual(events, (action(date(2026, 10, 30), cash=1),))
-        cached.disconnect.assert_called_once()
-        refreshed.connect.assert_called_once_with("127.0.0.1", 7709, time_out=3)
-        refreshed.get_xdxr_info.assert_called_once_with(0, "300604")
-
-    def test_empty_actions_for_one_stock_do_not_disable_the_provider_for_another(self):
-        source = Mock()
-        source.get_xdxr_info.side_effect = ([], [tdx_action(date(2026, 10, 30), cash=1)])
-        with patch("app.data.tdx.TdxHq_API", return_value=source):
-            provider = TdxCorporateActionData(TdxConnection(servers=(("127.0.0.1", 7709),)))
-            with self.assertRaises(ProviderUnavailable):
-                provider.get_corporate_actions("300999")
-            events = provider.get_corporate_actions("300604")
-        self.assertEqual(events, (action(date(2026, 10, 30), cash=1),))
+        self.assertEqual(events, (action(day, cash=1),))
+        primary.__exit__.assert_called_once()
+        alternate.__exit__.assert_called_once()

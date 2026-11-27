@@ -1,4 +1,4 @@
-"""Write request-scoped JSON events to the backend console."""
+"""将同一请求的事件以 JSON 格式输出到后端控制台。"""
 
 import json
 from contextlib import contextmanager

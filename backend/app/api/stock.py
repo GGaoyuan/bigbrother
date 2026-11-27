@@ -1,4 +1,4 @@
-"""Stock name and exchange lookup."""
+"""查询股票名称和所属交易所。"""
 
 from dataclasses import asdict
 

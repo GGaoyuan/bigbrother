@@ -1,25 +1,24 @@
-"""Stock metadata lookup, validation and source selection."""
+"""查询、校验和缓存股票资料。"""
 
 from app.core.cache import ExpiringCache
 from app.core.exceptions import ProviderUnavailable
-from app.core.logger import log_provider
+from app.core.logger import log_provider, observe_provider
 from app.core.symbols import stock_exchange
-from app.models.stock import StockLookup
-from app.models.contracts import StockDataSource
-
-from ._fallback import read_with_fallback
+from app.models.model import StockLookup
+from app.models.provider import MarketDataProvider
 
 
 class StockInfoService:
-    def __init__(self, sources: tuple[StockDataSource, ...]):
-        self.sources = sources
+    def __init__(self, source: MarketDataProvider):
+        self.source = source
         self.lookup_cache = ExpiringCache(256)
 
     def get_stock(self, symbol: str) -> StockLookup:
         exchange = stock_exchange(symbol)
 
-        def read(source: StockDataSource) -> StockLookup:
-            key = (source.name, source.version, symbol)
+        source = self.source
+        key = (source.name, source.version, symbol)
+        with observe_provider(source.name, "stock", symbol=symbol, version=source.version):
             info = self.lookup_cache.get(key)
             if info is None:
                 info = source.get_stock_info(symbol)
@@ -28,13 +27,6 @@ class StockInfoService:
                 self.lookup_cache.put(key, info, 3600)
             else:
                 log_provider("cache_hit", source.name, "stock", symbol=symbol)
-            available = [
-                item.name for item in self.sources
-                if self.lookup_cache.get((item.name, item.version, symbol)) is not None
-            ]
             return StockLookup(
-                info, source.name, source.version, tuple(available),
-                tuple(item.name for item in self.sources),
+                info, source.name, source.version, (source.name,), (source.name,),
             )
-
-        return read_with_fallback(self.sources, "stock", symbol, read)

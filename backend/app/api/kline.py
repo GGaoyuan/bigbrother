@@ -1,4 +1,4 @@
-"""Query adjusted stock candles."""
+"""查询股票的前复权 K 线。"""
 
 from typing import Literal
 
@@ -6,7 +6,7 @@ from fastapi import APIRouter, Body
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.response import ApiResponse, success_response
-from app.models.kline import ChartInterval
+from app.models.model import ChartInterval
 
 from ._shared import KlineServiceDependency, MAX_TIMESTAMP, Symbol
 
