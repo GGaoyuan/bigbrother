@@ -11,12 +11,3 @@ class StockInfo:
     market: str
     currency: str = "CNY"
     price_tick: float = 0.01
-
-
-@dataclass(frozen=True, slots=True)
-class StockLookup:
-    stock: StockInfo
-    source: str
-    source_version: str
-    available_sources: tuple[str, ...]
-    configured_sources: tuple[str, ...]

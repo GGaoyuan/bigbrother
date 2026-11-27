@@ -33,7 +33,7 @@ class EasyTdxKlineTests(TestCase):
 
     def test_same_client_loads_daily_and_chart_minute_periods(self):
         for interval, period, label, opened, duration, volume in (
-            ("day", Period.DAILY, "2026-10-14 00:00", stamp(0, 0), 86400, 21873),
+            ("1d", Period.DAILY, "2026-10-14 00:00", stamp(0, 0), 86400, 21873),
             ("60m", Period.MIN_60, "2026-10-14 10:30", stamp(9, 30), 3600, 800),
             ("5m", Period.MIN_5, "2026-10-14 13:05", stamp(13, 0), 300, 800),
         ):
@@ -50,7 +50,7 @@ class EasyTdxKlineTests(TestCase):
 
     def test_native_qfq_flag_is_sent_for_every_used_period(self):
         for interval, period, label in (
-            ("day", Period.DAILY, "2026-10-14 00:00"),
+            ("1d", Period.DAILY, "2026-10-14 00:00"),
             ("60m", Period.MIN_60, "2026-10-14 10:30"),
             ("5m", Period.MIN_5, "2026-10-14 13:05"),
             ("1m", Period.MIN_1, "2026-10-14 09:31"),

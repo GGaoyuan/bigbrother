@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 
 from app.core.exceptions import ProviderUnavailable
 from main import app
-from test_stock_market import MINUTE_END, MINUTE_START, SYMBOL, fake_provider, stock_service
+from test_stock_market import MINUTE_END, MINUTE_START, SYMBOL, fake_provider, mock_market
 
 
 BASE = f"/api/v1/stocks/{SYMBOL}"
@@ -25,16 +25,14 @@ class RequestLoggingTests(TestCase):
             response = self.client.request(method, route, **kwargs)
         return response, [json.loads(line) for line in output.getvalue().splitlines()]
 
-    def test_provider_cache_and_response_share_the_request_id(self):
+    def test_provider_and_response_share_the_request_id_on_each_request(self):
         provider = fake_provider("easy-tdx")
-        market, _ = stock_service(provider)
-
-        with patch.object(app, "state", market):
-            provider.get_stock_info.side_effect = ProviderUnavailable("连接超时")
-            failed, failed_events = self.request("GET", BASE)
-            provider.get_stock_info.side_effect = None
-            response, events = self.request("GET", BASE, params={"lookup": "yes"})
-            _, cached = self.request("GET", BASE)
+        mock_market(self, provider)
+        provider.get_stock_info.side_effect = ProviderUnavailable("连接超时")
+        failed, failed_events = self.request("GET", BASE)
+        provider.get_stock_info.side_effect = None
+        response, events = self.request("GET", BASE, params={"lookup": "yes"})
+        _, repeated = self.request("GET", BASE)
 
         self.assertEqual(failed.status_code, 502)
         self.assertTrue(any(event["event"] == "provider.failed" for event in failed_events))
@@ -47,14 +45,14 @@ class RequestLoggingTests(TestCase):
         self.assertEqual(events[-1]["pathParams"], {"symbol": SYMBOL})
         self.assertEqual(events[-1]["data"], response.json())
         self.assertEqual(len({event["requestId"] for event in events}), 1)
-        self.assertNotEqual(cached[0]["requestId"], events[0]["requestId"])
-        self.assertTrue(any(event["event"] == "provider.cache_hit" for event in cached))
+        self.assertNotEqual(repeated[0]["requestId"], events[0]["requestId"])
+        self.assertEqual([event["event"] for event in repeated[1:-1]], ["provider.attempt", "provider.selected"])
+        self.assertEqual(provider.get_stock_info.call_count, 3)
 
     def test_profile_logs_post_body_and_minute_source_before_the_full_result(self):
-        market, _ = stock_service(fake_provider("easy-tdx"))
+        mock_market(self, fake_provider("easy-tdx"))
         payload = {"start": MINUTE_START, "end": MINUTE_END}
-        with patch.object(app, "state", market):
-            response, events = self.request("POST", BASE + "/volume-profile", json=payload)
+        response, events = self.request("POST", BASE + "/volume-profile", json=payload)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(events[1]["event"], "http.request_body")
@@ -90,7 +88,7 @@ class RequestLoggingTests(TestCase):
         self.assertEqual(events[-1]["statusCode"], 404)
         self.assertEqual(events[-1]["data"], missing.json())
 
-        with patch.object(app.state.stocks, "get_stock", side_effect=RuntimeError("test failure")):
+        with patch("app.api.stock.get_stock", side_effect=RuntimeError("test failure")):
             failed, events = self.request("GET", BASE)
         self.assertEqual(events[-1]["statusCode"], 500)
         self.assertEqual(events[-1]["data"], failed.json())

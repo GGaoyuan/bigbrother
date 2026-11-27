@@ -2,13 +2,12 @@ import io
 from contextlib import redirect_stdout
 from dataclasses import replace
 from unittest import TestCase
-from unittest.mock import patch
 
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 
 from main import app
-from test_stock_market import END, MINUTE_BARS, MINUTE_END, MINUTE_START, START, SYMBOL, fake_provider, stock_service
+from test_stock_market import END, MINUTE_BARS, MINUTE_END, MINUTE_START, START, SYMBOL, fake_provider, mock_market
 
 
 BASE = f"/api/v1/stocks/{SYMBOL}"
@@ -19,10 +18,7 @@ class StocksApiTests(TestCase):
         self.client = TestClient(app)
         self.addCleanup(self.client.close)
         self.provider = fake_provider("easy-tdx")
-        self.market, self.minute = stock_service(self.provider)
-        patcher = patch.object(app, "state", self.market)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        self.minute = mock_market(self, self.provider)
 
     def request(self, route="", method="GET", **kwargs):
         with redirect_stdout(io.StringIO()):
@@ -46,7 +42,7 @@ class StocksApiTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["data"]["next_cursor"], START)
-        self.market.klines.source.get_klines.assert_called_with(SYMBOL, "day", "qfq", START - 60, END - 60, 1)
+        self.provider.get_klines.assert_called_with(SYMBOL, "1d", "qfq", START - 60, END - 60, 1)
         self.assertEqual(self.request(
             "/klines", "POST", json={"start": START, "end": END, "cursor": START},
         ).status_code, 422)

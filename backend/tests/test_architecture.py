@@ -14,26 +14,19 @@ def layer_of(parts: tuple[str, ...]) -> str:
 
 
 class ArchitectureTests(TestCase):
-    def test_each_business_route_has_its_own_service(self):
+    def test_business_routes_live_in_api_without_service_dependencies(self):
         from fastapi.routing import APIRoute
 
         from main import app
 
         routes = [route for route in app.routes if isinstance(route, APIRoute)]
-        services = {path.stem for path in (APP / "services").glob("*_service.py")}
-        self.assertEqual(len(routes), len(services))
+        self.assertFalse((APP / "services").exists())
+        modules = {route.endpoint.__module__ for route in routes}
+        self.assertEqual(len(routes), len(modules))
         for route in routes:
             with self.subTest(path=route.path):
-                api_module = route.endpoint.__module__
-                service_module = f"{api_module.rsplit('.', 1)[-1]}_service"
-                self.assertIn(service_module, services)
-                services.remove(service_module)
-                dependency, = route.dependant.dependencies
-                self.assertEqual(dependency.call.__module__, api_module)
-                self.assertEqual(
-                    dependency.call.__annotations__["return"].__module__,
-                    f"app.services.{service_module}",
-                )
+                self.assertTrue(route.endpoint.__module__.startswith("app.api."))
+                self.assertFalse(route.dependant.dependencies)
 
     def test_models_group_fields_and_provider_by_data_type(self):
         models = APP / "models"
@@ -47,8 +40,7 @@ class ArchitectureTests(TestCase):
 
     def test_backwards_dependencies_and_akshare_imports_are_rejected(self):
         allowed = {
-            "api": {"api", "core", "models", "services"},
-            "services": {"core", "models", "provider", "services"},
+            "api": {"api", "core", "models", "provider"},
             "provider": {"core", "models"},
             "models": {"models"},
             "core": {"core"},
@@ -57,8 +49,8 @@ class ArchitectureTests(TestCase):
             if path == APP / "__init__.py":
                 continue
             parts = path.relative_to(APP).parts
-            self.assertIn(parts[0], {"api", "core", "models", "services"}, str(path))
-            if parts[0] in {"api", "services"}:
+            self.assertIn(parts[0], {"api", "core", "models"}, str(path))
+            if parts[0] == "api":
                 self.assertEqual(len(parts), 2, str(path))
             if parts[0] == "models":
                 if path != APP / "models" / "__init__.py":
@@ -84,7 +76,7 @@ class ArchitectureTests(TestCase):
                 for module in imports:
                     root_module = module.split(".")[0]
                     self.assertNotEqual(root_module, "akshare", str(path))
-                    if layer in {"api", "services", "models", "core"}:
+                    if layer != "provider":
                         self.assertNotIn(
                             root_module,
                             {"mootdx", "tdxpy", "easy_tdx", "exchange_calendars", "pandas", "requests"},

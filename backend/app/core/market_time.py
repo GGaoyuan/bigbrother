@@ -12,29 +12,14 @@ def midnight(day: date) -> int:
     return int(datetime.combine(day, time(), CHINA).timestamp())
 
 
-def candle_span(
-    stamp: date | datetime, interval: str, *, right_labeled: bool = False,
-) -> tuple[int, int]:
-    """将 A 股行情时标转换为左闭右开的时间区间。"""
-    if isinstance(stamp, datetime):
-        stamp = stamp.astimezone(CHINA) if stamp.tzinfo else stamp.replace(tzinfo=CHINA)
+def candle_span(stamp: datetime, interval: str) -> tuple[int, int]:
+    """将日线交易日或分钟线结束时间转换为左闭右开的区间。"""
+    stamp = stamp.astimezone(CHINA) if stamp.tzinfo else stamp.replace(tzinfo=CHINA)
+    if interval == "1d":
         day = stamp.date()
-    else:
-        day = stamp
-    if interval in MINUTES:
-        if not isinstance(stamp, datetime):
-            raise ValueError("分钟 K 线缺少时分")
-        duration = timedelta(minutes=MINUTES[interval])
-        start, end = (stamp - duration, stamp) if right_labeled else (stamp, stamp + duration)
-        return int(start.timestamp()), int(end.timestamp())
-    if interval == "week":
-        start = day - timedelta(days=day.weekday())
-        return midnight(start), midnight(start + timedelta(days=7))
-    if interval == "month":
-        start = day.replace(day=1)
-        end = (start + timedelta(days=32)).replace(day=1)
-        return midnight(start), midnight(end)
-    return midnight(day), midnight(day + timedelta(days=1))
+        return midnight(day), midnight(day + timedelta(days=1))
+    duration = timedelta(minutes=MINUTES[interval])
+    return int((stamp - duration).timestamp()), int(stamp.timestamp())
 
 
 def minute_window(start: int, end: int) -> tuple[int, int]:

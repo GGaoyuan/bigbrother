@@ -4,9 +4,8 @@ from unittest import TestCase
 
 from app.core.market_time import CHINA, midnight
 from app.models.kline.model import Candle
-from app.services.minute_quality import MinuteCoverageError
+from app.api.volume_profile import MinuteCoverageError, validate_minutes
 from app.core.market_time import minute_window
-from app.services.minute_quality import validate_minutes
 
 
 FRIDAY = date(2026, 11, 20)

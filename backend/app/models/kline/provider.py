@@ -18,7 +18,7 @@ from .model import Adjustment, Candle, Interval
 
 MARKETS = {"SSE": Market.SH, "SZSE": Market.SZ, "BSE": Market.BJ}
 PERIODS = {
-    "day": Period.DAILY, "week": Period.WEEKLY, "month": Period.MONTHLY,
+    "1d": Period.DAILY,
     "1m": Period.MIN_1, "5m": Period.MIN_5, "60m": Period.MIN_60,
 }
 ADJUSTMENTS = {"none": Adjust.NONE, "qfq": Adjust.QFQ}
@@ -31,7 +31,7 @@ def _normalize(row: dict, interval: Interval, adjust: Adjustment) -> Candle:
     label = datetime.fromisoformat(str(row["datetime"]))
     if label.second or label.microsecond:
         raise ProviderUnavailable("MAC 行情返回未对齐的 K 线时间")
-    timestamp, end = candle_span(label, interval, right_labeled=True)
+    timestamp, end = candle_span(label, interval)
     opening, high, low, close = (round(float(row[field]), 2) for field in ("open", "high", "low", "close"))
 
     native_volume = float(row["vol"])
@@ -60,7 +60,7 @@ class KlineProvider:
 
     @property
     def adjustment_version(self) -> str:
-        # MAC K 线未返回复权版本，按北京时间日期隔离缓存。
+        # MAC K 线未返回复权版本，按北京时间日期标记行情口径。
         return f"{self.name}:{self.version}:qfq:{datetime.now(CHINA).date()}"
 
     def get_klines(

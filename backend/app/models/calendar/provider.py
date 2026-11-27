@@ -2,7 +2,6 @@
 
 from importlib.metadata import version as package_version
 
-from exchange_calendars import get_calendar
 from exchange_calendars.exchange_calendar_xshg import XSHGExchangeCalendar
 
 from app.core.exceptions import ProviderUnavailable
@@ -19,7 +18,7 @@ class TradingCalendarProvider:
         start = XSHGExchangeCalendar.bound_min()
         end = XSHGExchangeCalendar.bound_max()
         try:
-            calendar = get_calendar("XSHG", start=start, end=end)
+            calendar = XSHGExchangeCalendar(start=start, end=end)
             sessions = tuple(calendar.sessions.date)
         except (TypeError, ValueError, RuntimeError) as exc:
             raise ProviderUnavailable("交易日历暂不可用") from exc

@@ -4,8 +4,8 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 
-Interval = Literal["day", "week", "month", "1m", "5m", "60m"]
 ChartInterval = Literal["1d", "60m", "5m"]
+Interval = Literal[ChartInterval, "1m"]
 Adjustment = Literal["none", "qfq", "hfq"]
 VolumeUnit = Literal["shares", "lots", "rounded_lots", "unknown"]
 
@@ -39,9 +39,3 @@ class KlineHistory:
     source: str
     source_version: str
     adjustment_version: str
-
-
-@dataclass(frozen=True, slots=True)
-class ChartHistory:
-    history: KlineHistory
-    next_cursor: int | None

@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from app.models.kline.model import Candle
 from app.models.volume_profile.model import ValueArea
-from app.services.profile_calculation import calculate_profile
+from app.api.volume_profile import calculate_profile
 
 
 def minute(low, high, close, volume, stamp=0):

@@ -6,7 +6,7 @@ developer_instructions = """
 工作约束:
 - 改动只在 `backend/` 目录内进行。
 - 数据源选型严格遵循根目录 `AGENTS.md`：`mootdx` > 其他通达信 Python 库 > 其他现成数据 Python 库。只有用户明确授权当前任务时才可使用 AKShare；都无法满足时，先说明排查结果并取得用户明确同意，才能自行编写爬虫。自行请求官网 JSON 接口也属于爬虫；通用 HTTP 库不算现成数据接口。
-- 后端目录遵循根目录 AGENTS.md。API 和 Service 分别平铺，一条业务路由对应一个 Service，例如 api/kline.py 对应 services/kline_service.py。models/ 按数据类型分包，由 model.py 定义字段，provider.py 提供该分类唯一的取数实现。main.py 注入 Provider，core/ 提供公共能力。
+- 后端目录遵循根目录 AGENTS.md。一个 API 文件包含该路由和业务逻辑，直接调用 Provider。models/ 按数据类型分包，model.py 定义字段，provider.py 提供唯一取数实现。main.py 组装应用与路由，core/ 提供公共能力。
 - 数据源调用异常返回 HTTP 502 和 `{code, message, data}` 响应；数据源优先级不表示自动降级，未经另外约定不切换数据源。
 - 行内注释、块注释和 docstring 统一使用中文。方法注释只写功能描述和参数说明。
 - 改完至少运行 `python -m compileall -q app main.py` 检查语法；有测试时再运行相关测试。"""

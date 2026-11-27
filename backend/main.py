@@ -4,12 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import router as stocks_router
 from app.api.errors import exception_handlers
 from app.core.request_logging import RequestLoggingMiddleware
-from app.models.calendar.provider import TradingCalendarProvider
-from app.models.kline.provider import KlineProvider
-from app.models.stock.provider import StockProvider
-from app.services.kline_service import KlineService
-from app.services.stock_service import StockService
-from app.services.volume_profile_service import VolumeProfileService
 
 
 class LoggedFastAPI(FastAPI):
@@ -18,14 +12,6 @@ class LoggedFastAPI(FastAPI):
 
 
 app = LoggedFastAPI(title="BigBrother API", version="1.0.0", exception_handlers=exception_handlers)
-
-stocks = StockService(StockProvider())
-klines = KlineService(KlineProvider())
-profiles = VolumeProfileService(klines, stocks, TradingCalendarProvider())
-app.state.stocks = stocks
-app.state.klines = klines
-app.state.profile = profiles
-
 
 app.add_middleware(
     CORSMiddleware,

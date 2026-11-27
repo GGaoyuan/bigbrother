@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from '@lucide/vue'
-import { sectorFlowApi, type SectorFlowItem, type TrendPoint } from '@/lib/api'
+import { sectorFlowApi, type SectorFlowItem } from '@/lib/api'
 
 // ═══ State ═══════════════════════════════════════════════════════════
 const loading = ref(true)
@@ -17,7 +17,7 @@ const allSectors = ref<SectorFlowItem[]>([])
 
 // 选中的板块名称（左右联动的唯一真相来源）
 const selectedSectors = ref<Set<string>>(new Set())
-const loadingSectors = ref<Set<string>>(new Set())
+const loadingSectors = ref(new Map<string, symbol>())
 
 // ═══ Color Palette ═══════════════════════════════════════════════════
 const COLORS = [
@@ -41,7 +41,6 @@ function getColor(name: string): string {
 const chartContainer = ref<HTMLElement | null>(null)
 let chart: IChartApi | null = null
 const activeSeries = new Map<string, any>() // name -> LineSeries
-const trendCache = new Map<string, TrendPoint[]>() // name -> points
 
 function initChart() {
   if (!chartContainer.value) return
@@ -87,7 +86,7 @@ async function handleRefresh() {
     if (chart) chart.removeSeries(series)
   }
   activeSeries.clear()
-  trendCache.clear()
+  loadingSectors.value.clear()
   await loadInitialData()
 }
 
@@ -100,6 +99,7 @@ async function toggleSector(name: string | null) {
     const next = new Set(selectedSectors.value)
     next.delete(name)
     selectedSectors.value = next
+    loadingSectors.value.delete(name)
     const series = activeSeries.get(name)
     if (series) {
       chart.removeSeries(series)
@@ -113,19 +113,11 @@ async function toggleSector(name: string | null) {
   next.add(name)
   selectedSectors.value = next
 
+  const request = Symbol()
+  loadingSectors.value.set(name, request)
   try {
-    let points = trendCache.get(name)
-    if (!points) {
-      const loadingNext = new Set(loadingSectors.value)
-      loadingNext.add(name)
-      loadingSectors.value = loadingNext
-
-      const trend = await sectorFlowApi.trend(name)
-      points = trend.points
-      trendCache.set(name, points)
-    }
-
-    if (!selectedSectors.value.has(name) || !chart) return
+    const { points } = await sectorFlowApi.trend(name)
+    if (loadingSectors.value.get(name) !== request || !chart) return
 
     const series = chart.addSeries(LineSeries, {
       color: getColor(name),
@@ -134,14 +126,15 @@ async function toggleSector(name: string | null) {
     series.setData(points)
     activeSeries.set(name, series)
   } catch (e) {
+    if (loadingSectors.value.get(name) !== request) return
     const rollback = new Set(selectedSectors.value)
     rollback.delete(name)
     selectedSectors.value = rollback
     error.value = e instanceof Error ? e.message : String(e)
   } finally {
-    const loadingNext = new Set(loadingSectors.value)
-    loadingNext.delete(name)
-    loadingSectors.value = loadingNext
+    if (loadingSectors.value.get(name) === request) {
+      loadingSectors.value.delete(name)
+    }
   }
 }
 

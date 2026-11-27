@@ -10,7 +10,8 @@ from starlette.responses import JSONResponse
 from app.core.exceptions import MarketDataError, StockNotFound, UnsupportedMarketData
 from app.core.logger import log_event
 from app.core.response import ResponseCode, error_response
-from app.services.minute_quality import MinuteCoverageError
+
+from .volume_profile import MinuteCoverageError
 
 
 logger = logging.getLogger(__name__)

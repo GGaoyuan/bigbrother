@@ -13,7 +13,9 @@
 
 - 只有用户明确说明本次任务可以使用 AKShare 时，才可选用 AKShare。该授权仅适用于用户指定的范围。
 - 同一种 Model 能由一个库满足需求时，只保留该库的取数实现。股票资料和各周期 K 线使用 `easy_tdx`。交易日历读取 XSHG 离线日历。
-- 第三方库能通过参数直接返回所需数据时，在 Provider 直接传参取数。前复权 K 线各周期（含成交量分布用的 1 分钟）统一传 `Adjust.QFQ`。Service 负责校验和业务计算，禁止自行计算复权因子或修改行情价格。
+- 第三方库能通过参数直接返回所需数据时，在 Provider 直接传参取数。前复权 K 线各周期（含成交量分布用的 1 分钟）统一传 `Adjust.QFQ`。API 直接使用取得的价格进行校验和业务计算，禁止自行计算复权因子或调整行情价格。
+- 业务数据和计算结果默认不缓存。每次请求重新取数和计算，只有用户明确要求时才引入缓存。
+- 同一业务字段在 API 和 Provider 使用同一命名。K 线周期统一使用 `1d`、`60m`、`5m`，成交量分布另用 `1m`。第三方库的枚举映射只在 Provider 完成。
 - 不得跳过现成库的排查，直接自行抓取网站数据。
 - 自行请求官网/交易所网站的 JSON 接口、解析网页、模拟浏览器获取数据，也属于第 4 项；公开接口或官方来源不免除确认要求。
 - 使用现成数据 Python 库的封装接口（即使该库内部通过 HTTP 获取数据）属于前三项。仅使用 `requests`、`httpx`、`urllib` 等通用 HTTP 库自行抓取，不算使用现成数据接口。
@@ -22,11 +24,10 @@
 
 ## 后端分层
 
-- `backend/app/api/` 与 `backend/app/services/` 的业务入口一一对应。每条业务路由独占一个 API 文件，并在该文件声明对应的 Service 依赖。例如 `api/kline.py` 对应 `services/kline_service.py`。API 负责 HTTP 参数校验和响应转换，错误统一在 API 层处理。
-- `backend/app/services/` 的每个 `*_service.py` 对应一条业务路由，负责取数、校验、计算和缓存。共享计算由 Service 内部复用。
-- `backend/app/models/` 按数据类型分包，例如 `models/kline/`。每个有取数需求的分类包含两个业务文件。`model.py` 定义字段和类型，`provider.py` 提供该分类唯一的取数实现，调用第三方库并将结果解析为模型。Service 计算产生的数据只需要对应的 `model.py`。
-- `backend/app/core/` 提供通用日志、缓存、异常、时间及响应封装。
-- `backend/main.py` 将各分类的 Provider 注入对应 Service。请求沿 API → Service → Provider 处理。
+- `backend/app/api/` 每条业务路由独占一个文件，路由、业务校验和计算放在同一个文件。接口直接调用 Provider 或复用现有 API 模块的函数，取消独立 Service 层及对应的依赖注入。
+- `backend/app/models/` 按数据类型分包，例如 `models/kline/`。每个有取数需求的分类包含两个业务文件。`model.py` 定义字段和类型，`provider.py` 提供该分类唯一的取数实现，调用第三方库并将结果解析为模型。应用计算产生的数据只需要对应的 `model.py`。
+- `backend/app/core/` 提供通用日志、异常、时间及响应封装。
+- `backend/main.py` 组装 FastAPI 应用、中间件和路由。请求沿 API → Provider 处理。
 - 优先使用现有库和项目已有能力，只保留当前业务用到的文件与抽象。接口能力已满足需求时直接使用，避免额外包装和重复实现。
 
 ## 代码注释

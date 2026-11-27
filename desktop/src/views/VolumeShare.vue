@@ -8,7 +8,6 @@ import { RefreshCw } from '@lucide/vue'
 import {
   marketCapApi,
   type IndustryNode,
-  type TrendPoint,
 } from '@/lib/api'
 
 // ═══ State ═══════════════════════════════════════════════════════════
@@ -21,7 +20,7 @@ const L2 = ref<IndustryNode[]>([])
 const L3 = ref<IndustryNode[]>([])
 
 const selectedCodes = ref<Set<string>>(new Set())
-const loadingCodes = ref<Set<string>>(new Set())
+const loadingCodes = ref(new Map<string, symbol>())
 
 // ═══ Color Palette ═══════════════════════════════════════════════════
 const COLORS = [
@@ -46,7 +45,6 @@ const chartContainer = ref<HTMLElement | null>(null)
 let chart: IChartApi | null = null
 let mainSeries: any = null
 const activeSeries = new Map<string, any>() // code -> LineSeries
-const volumeCache = new Map<string, TrendPoint[]>() // code -> points
 
 function initChart() {
   if (!chartContainer.value) return
@@ -104,7 +102,7 @@ async function loadInitialData() {
 }
 
 async function handleRefresh() {
-  // 清空已选中的行业和缓存
+  // 清空已选中的行业
   selectedCodes.value = new Set()
 
   // 移除所有叠加的系列
@@ -114,7 +112,7 @@ async function handleRefresh() {
     }
   }
   activeSeries.clear()
-  volumeCache.clear()
+  loadingCodes.value.clear()
 
   // 重新加载数据
   await loadInitialData()
@@ -129,6 +127,7 @@ async function toggleIndustry(code: string | null) {
     const next = new Set(selectedCodes.value)
     next.delete(code)
     selectedCodes.value = next
+    loadingCodes.value.delete(code)
     const series = activeSeries.get(code)
     if (series) {
       chart.removeSeries(series)
@@ -137,25 +136,16 @@ async function toggleIndustry(code: string | null) {
     return
   }
 
-  // 选中：拉取数据（带缓存）并叠加
+  // 选中：重新请求数据并叠加
   const next = new Set(selectedCodes.value)
   next.add(code)
   selectedCodes.value = next
 
+  const request = Symbol()
+  loadingCodes.value.set(code, request)
   try {
-    let points = volumeCache.get(code)
-    if (!points) {
-      const loadingNext = new Set(loadingCodes.value)
-      loadingNext.add(code)
-      loadingCodes.value = loadingNext
-
-      const volume = await marketCapApi.industryVolume(code)
-      points = volume.points
-      volumeCache.set(code, points)
-    }
-
-    // 拉取期间可能已被取消勾选
-    if (!selectedCodes.value.has(code) || !chart) return
+    const { points } = await marketCapApi.industryVolume(code)
+    if (loadingCodes.value.get(code) !== request || !chart) return
 
     const series = chart.addSeries(LineSeries, {
       color: getColor(code),
@@ -164,15 +154,16 @@ async function toggleIndustry(code: string | null) {
     series.setData(points)
     activeSeries.set(code, series)
   } catch (e) {
+    if (loadingCodes.value.get(code) !== request) return
     // 失败则回滚勾选状态
     const rollback = new Set(selectedCodes.value)
     rollback.delete(code)
     selectedCodes.value = rollback
     error.value = e instanceof Error ? e.message : String(e)
   } finally {
-    const loadingNext = new Set(loadingCodes.value)
-    loadingNext.delete(code)
-    loadingCodes.value = loadingNext
+    if (loadingCodes.value.get(code) === request) {
+      loadingCodes.value.delete(code)
+    }
   }
 }
 

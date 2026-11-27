@@ -2,19 +2,18 @@
 
 ## 后端依赖与职责
 
-`main.py` 将各数据分类的 Provider 注入对应 Service。请求沿 API → Service → Provider 处理。Provider 将第三方数据转换为同一分类中 `model.py` 定义的内部数据。
+`main.py` 组装应用、中间件和路由。请求沿 API → Provider 处理。Provider 将第三方数据转换为同一分类中 `model.py` 定义的内部数据。
 
 | 目录 | 职责 |
 | --- | --- |
-| `backend/app/api/` | `stock.py`、`kline.py`、`volume_profile.py` 分别定义路由、请求和响应模型及对应 Service 的依赖 |
-| `backend/app/services/` | `stock_service.py`、`kline_service.py`、`volume_profile_service.py` 与业务路由一一对应，负责业务校验、计算和缓存 |
+| `backend/app/api/` | `stock.py`、`kline.py`、`volume_profile.py` 分别负责各自的路由、请求与响应、业务校验和计算 |
 | `backend/app/models/kline/` | K 线模型和取数实现 |
 | `backend/app/models/stock/` | 股票资料模型和取数实现 |
 | `backend/app/models/calendar/` | 交易日历模型和读取实现 |
-| `backend/app/models/volume_profile/model.py` | Service 计算产生的成交量分布结果及数据质量 |
-| `backend/app/core/` | 公共异常、日志、内存缓存、时间与响应封装 |
+| `backend/app/models/volume_profile/model.py` | 成交量分布计算结果及数据质量 |
+| `backend/app/core/` | 公共异常、日志、时间与响应封装 |
 
-Provider 直接请求前复权价格、识别单位并返回标准 K 线。成交额单位为元，无法可靠取得时为 `None`。Service 使用同源前复权价格做业务校验及成交量分布计算。测试验证 MAC 日线和各分钟周期的时间、单位、分页和价格口径。
+Provider 直接请求前复权价格、识别单位并返回标准 K 线。成交额单位为元，无法可靠取得时为 `None`。API 使用同源前复权价格做业务校验及成交量分布计算。测试验证 MAC 日线和各分钟周期的时间、单位、分页和价格口径。
 
 ## 当前数据源
 
@@ -88,9 +87,9 @@ Backend 对外提供下面三个业务接口。使用 `{code,message,data}` 响�
 
 盘中选区包含当天未结束的时段时，统计截至分钟行情快照中最后一个已结束的整分钟。`start/end` 回显原选区，`data_quality.aligned_end` 表示截取后的校验终点，`actual_end` 是实际纳入的最后一根分钟 K 线的结束时间。已结束的交易分钟仍须通过完整性校验。
 
-## 缓存与验证
+## 逐次取数与验证
 
-前复权 K 线按来源、股票、周期和区间缓存 30 秒。通达信 MAC 响应没有复权版本号，兼容字段 `adjustment_version` 按来源、库版本和北京时间日期划分。1 分钟快照沿用这一版本，盘中最长保留至下一分钟且最多 45 秒，盘后缓存 5 分钟。分布按分钟行情内容、区间、档位规则与算法版本缓存 10 分钟。
+每次请求重新读取所需的股票资料、K 线和交易日历。成交量分布使用本次取得的 1 分钟行情重新计算。通达信 MAC 响应没有复权版本号，兼容字段 `adjustment_version` 按来源、库版本和北京时间日期划分。
 
 在 `backend/` 安装 `requirements.txt` 后运行 `python main.py`，在 `webfront/` 运行 `npm run dev`。打开 `/volume-profile` 并查询 `600519`。可以在 5 分钟图上选择最近已收盘的时段；本次验证日期为 2026-11-24。
 
